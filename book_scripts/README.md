@@ -1,55 +1,52 @@
 - The format of a book map is described here
-  `helpers_root/.claude/skills/book.rules.md`
+  `.claude/skills/book_map.rules.md`
 
 # All prompts
 
-> ls -1 book_proposals/*prompt*
-book_proposals/prompt.create_lesson_slides_from_chap_toc.md
-book_proposals/prompt.create_lesson_slides_from_chap_toc2.md
-book_proposals/prompt.create_lesson_slides_from_topic.md
-book_proposals/prompt.create_latex_book_chap_from_lesson_slides.md
-book_proposals/prompt.create_typst_book_chap_from_lesson_slides.md
-book_proposals/prompt.expand_skeleton_slides.md
-book_proposals/prompt.extract_skeleton_slides_from_lesson_slides.md
-book_proposals/prompt.find_references_to_chap_toc.md
-book_proposals/prompt.inline_lesson_slides_from_skeleton_slides.md
-book_proposals/prompt.springer.from_toc_to_slides.md
-book_proposals/prompt.springer.from_toc_to_slides2.md
-book_proposals/prompt.update_book_chap_from_lesson_slides.md
-
-// TODO(gp): `prompt.create_lesson_slides_from_chap_toc.md` and
-// `prompt.create_lesson_slides_from_chap_toc2.md` do the same job (the `2`
-// file collects related material and adds `// From:` source attribution on
-// top); merge them into one file and delete the other.
+```
+> ls -1 book_scripts/*prompt*
+book_scripts/prompt.create_lesson_slides_from_chap_toc.md
+book_scripts/prompt.create_lesson_slides_from_topic.md
+book_scripts/prompt.create_latex_book_chap_from_lesson_slides.md
+book_scripts/prompt.create_typst_book_chap_from_lesson_slides.md
+book_scripts/prompt.expand_skeleton_slides.md
+book_scripts/prompt.extract_skeleton_slides_from_lesson_slides.md
+book_scripts/prompt.find_references_to_chap_toc.md
+book_scripts/prompt.inline_lesson_slides_from_skeleton_slides.md
+book_scripts/prompt.update_book_chap_from_lesson_slides.md
+```
 
 # Prompts
 
-## Create new slides from a chapter toc
+## Create `lesson_slides` from a chapter toc
 - E.g., for the agentic AI book, there is a `chap_toc` and we need to create
   `lesson_slides`
-- Reads the chapter TOC from `map.md`, calls `slides.write`, and saves a new
-  `lectures_source/Lesson<NUM>.<Title>.txt`
-- `book_proposals/prompt.create_lesson_slides_from_chap_toc.md`
+- Reads the chapter TOC, `### Topics`, and `### Lesson Materials` from
+  `book_map.md`
+- Creates a skeleton of titles, asks the user for approval, then calls
+  `slides.write` for 30-35 slides and saves a new
+  `lectures_source/Lesson<CHAP_NUM>.<ID>_<Title>.smd`
+- `book_scripts/prompt.create_lesson_slides_from_chap_toc.md`
 
 ## Create `lesson_slides` from a topic list (no book map yet)
-- Same goal as the prompt above, but topics are given as an ad hoc list
-  inline in the prompt instead of being read from a chapter's `### Topics` in
-  `map.md` (useful when the book map does not have that chapter yet)
-- Adds a "create a skeleton of titles first, get user approval, then
-  complete" workflow
-- `book_proposals/prompt.create_lesson_slides_from_topic.md`
+- Same goal and workflow as the prompt above, but topics are given as an ad
+  hoc list inline in the prompt instead of being read from a chapter's
+  `### Topics` in `book_map.md`
+- Useful when the book map does not have that chapter yet, or for a course
+  such as `msml610`
+- `book_scripts/prompt.create_lesson_slides_from_topic.md`
 
 ## Find material
 - Complete the pointers and add references to `resources.md`
-  `book_proposals/prompt.find_references_to_chap_toc.md`
+  `book_scripts/prompt.find_references_to_chap_toc.md`
 
-## Create `skeleton_slides` from `map` and `slides_tutorials`
-- In practice we read the TOC for a chapter in the `map` and find the material
-  already available for it
-- `book_proposals/prompt.extract_skeleton_slides_from_lesson_slides.md`
+## Create `skeleton_slides` from `book_map` and `slides_tutorials`
+- In practice we read the TOC for a chapter in the `book_map.md` and find the
+  material already available for it
+- `book_scripts/prompt.extract_skeleton_slides_from_lesson_slides.md`
 
 ## Inline slides in a skeleton slide
-- `book_proposals/prompt.inline_lesson_slides_from_skeleton_slides.md`
+- `book_scripts/prompt.inline_lesson_slides_from_skeleton_slides.md`
 - Mechanically copies existing slide content into a skeleton, following each
   slide's `// From: <file>:<line num> '<title>'` pointer
 - This is also implemented as Python script since it's a mechanical operation
@@ -59,7 +56,7 @@ book_proposals/prompt.update_book_chap_from_lesson_slides.md
   ```
 - E.g.,
   ```
-  claude> Execute /Users/saggese/src/notes1/book_proposals/prompt.inline_lesson_slides_from_skeleton_slides.md on book_springer/lectures_source/Lesson05.1_Probabilistic_ML.txt
+  claude> Execute /Users/saggese/src/notes1/book_scripts/prompt.inline_lesson_slides_from_skeleton_slides.md on book_springer/lectures_source/Lesson05.1_Probabilistic_ML.txt
   ```
 
 - Check that the result is correct with:
@@ -72,15 +69,11 @@ book_proposals/prompt.update_book_chap_from_lesson_slides.md
   slide's `// From: <file>` pointer names a whole background file (e.g. a
   rules doc) rather than a specific source slide/line, so the content must be
   generated from that background reading instead of copied verbatim
-- `book_proposals/prompt.expand_skeleton_slides.md`
+- `book_scripts/prompt.expand_skeleton_slides.md`
 
 // TODO(gp): Likely a near-duplicate of "Inline slides in a skeleton slide"
 // above (same skeleton -> full-slides direction, different `// From:`
 // semantics); consider merging as a documented variant of that prompt.
-
-- Some obsolete files are in:
-  `book_proposals/prompt.springer.from_toc_to_slides.md`
-  `book_proposals/prompt.springer.from_toc_to_slides2.md`
 
 ## Generate lectures commentary
 - To generate a commentary in `$DIR/lectures_commentary`
@@ -105,12 +98,12 @@ book_proposals/prompt.update_book_chap_from_lesson_slides.md
   ```
 
 ## Convert slides to typst or Latex text for a book chapter
-  `book_proposals/prompt.create_typst_book_chap_from_lesson_slides.md`
-  `book_proposals/prompt.create_latex_book_chap_from_lesson_slides.md`
+  `book_scripts/prompt.create_typst_book_chap_from_lesson_slides.md`
+  `book_scripts/prompt.create_latex_book_chap_from_lesson_slides.md`
 
 - Execute
   ```
-  claude> Execute book_proposals/prompt.create_latex_book_chap_from_lesson_slides.md on 
+  claude> Execute book_scripts/prompt.create_latex_book_chap_from_lesson_slides.md on 
   ```
 
   ```
@@ -121,8 +114,8 @@ book_proposals/prompt.update_book_chap_from_lesson_slides.md
   ```
 
 ## Update the a Typst book chapter when the corresponding `lesson_slides` are updated
-- `book_proposals/prompt.update_book_chap_from_lesson_slides.md`
-- `book_proposals/prompt.springer.add_references.md`
+- `book_scripts/prompt.update_book_chap_from_lesson_slides.md`
+- `book_scripts/prompt.springer.add_references.md`
 
 // TODO(gp): This prompt currently only follows the Typst variant of the
 // "Convert slides to typst or Latex" prompt above; update it to branch on
