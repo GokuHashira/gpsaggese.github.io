@@ -25,14 +25,10 @@
 ## Short TOC
 - Foundations
   - 01, Why Finance Is Different
-    - Finance primer: instruments, returns, Sharpe ratio, costs, capacity
-    - Non-stationarity, fat tails, low signal-to-noise
-    - Backtest discipline: overfitting, multiple testing, purged CV, deflated Sharpe
-    - Causal vs. predictive: spurious factors
-  - 02, Deep Learning, Transformers, and LLMs
-    - Refresher: deep learning, transformers, LLMs
-    - Adapting LLMs: fine-tuning, RAG, domain-pretrained models
-  - 03, Data engineering
+    - Finance primer: instruments, returns, risk and Sharpe ratio, factor
+      models, market microstructure basics, costs, capacity
+    - Non-stationarity, heavy tails, volatility clustering, low signal-to-noise
+  - 02, Data engineering
     - Point-in-time correctness (as-of joins)
     - Survivorship bias and delisting returns
     - Restatements and revisions
@@ -43,8 +39,18 @@
     - Alternative data: classification and practice
       - Satellite and web data
       - ESG and climate risk data
+  - 03, Strategy Backtesting
+    - Backtest mechanics: simulation, fills, costs, look-ahead and survivorship
+      bias
+    - Backtest discipline: overfitting, multiple testing, purged CV,
+      deflated Sharpe
+    - Causal vs. predictive: spurious factors
+  - 04, Deep Learning, Transformers, and LLMs
+    - Refresher: deep learning, transformers, LLMs
+    - Adapting LLMs: fine-tuning, RAG, domain-pretrained models
+
 - Market Prediction with Deep Learning
-  - 04, Price and Volatility Forecasting
+  - 05, Price and Volatility Forecasting
     - Baselines first: linear, ARIMA/GARCH, GBDT
     - Time series foundation models (Chronos, TimesFM, Lag-Lama)
     - Alpha research: signals, IC, turnover, decay
@@ -52,10 +58,10 @@
     - Regime detection and macro nowcasting
     - Uncertainty quantification: probabilistic forecasts, calibration,
       conformal prediction
-  - 05, Limit Order Book Modeling
+  - 06, Limit Order Book Modeling
     - Microstructure and LOB mechanics
     - Market impact and execution cost
-  - 06, Portfolio Optimization and Reinforcement Learning
+  - 07, Portfolio Optimization and Reinforcement Learning
     - Portfolio optimization and constraints
     - Derivatives and fixed income
       - Neural option pricing and volatility surface
@@ -63,33 +69,35 @@
       - Hedging (deep hedging)
     - RL where it works: execution, market making, hedging
     - RL where it is mostly hype: end-to-end trading
+
 - Language in Finance
-  - 07, News, Filings, Earnings Calls
+  - 08, News, Filings, Earnings Calls
     - LLMs for finance text
-  - 08, Agents: automating the research loop
-  - 09, Conversational finance assistants
+  - 09, Agents: automating the research loop
+  - 10, Conversational finance assistants
+
 - Risk, Operations, and Governance
-  - 10, Risk, Credit Risk, and Fraud
+  - 11, Risk, Credit Risk, and Fraud
     - Market risk: VaR/ES, covariance, factor risk models
     - Credit risk and fraud detection
     - Uncertainty in credit: calibrated default probabilities, conformal
       prediction
-  - 11, Explainability and Robustness
+  - 12, Explainability and Robustness
     - Uncertainty and trust: calibration, conformal prediction
-  - 12, Regulation, Model Risk Management, and Deployment
+  - 13, Regulation, Model Risk Management, and Deployment
+
 - Frontiers
-  - 13, Market simulation
+  - 14, Market simulation
     - GANs / diffusion models for scenario generation
     - Agent-based market simulation
     - Stress testing
     - Synthetic data: augmenting scarce data
     - Fidelity: stylized facts (fat tails, volatility clustering)
-  - 14, The Road Ahead: multimodal models, open problems
-
-## Resources
-- /Users/saggese/src/notes1/finance_index.md
+  - 15, The Road Ahead: multimodal models, open problems
 
 ## All Lesson Materials
+- `/Users/saggese/src/notes1/finance_index.md`
+
 - `data605/all_tocs.md`
 - `data605/lectures_source/*.smd`
 
@@ -108,26 +116,26 @@
 
 | Chap                                                    | Slides | Slides % | Criticize | Tutorial | Book |
 | :------------------------------------------------------ | :----- | :------- | :-------- | :------- | :--- |
-|                                                         |        |          |           |          |      |
 | **Foundations**                                         |        |          |           |          |      |
 | 01. Why Finance Is Different                            | N/A    |          |           |          |      |
-| 02. Deep Learning, Transformers, and LLMs               | N/A    |          |           |          |      |
-| 03. Data Engineering                                    | N/A    |          |           |          |      |
+| 02. Data Engineering                                    | N/A    |          |           |          |      |
+| 03. Strategy Backtesting                                | N/A    |          |           |          |      |
+| 04. Deep Learning, Transformers, and LLMs               | N/A    |          |           |          |      |
 | **Market Prediction with Deep Learning**                |        |          |           |          |      |
-| 04. Price and Volatility Forecasting                    | N/A    |          |           |          |      |
-| 05. Limit Order Book Modeling                           | N/A    |          |           |          |      |
-| 06. Portfolio Optimization and Reinforcement Learning   | N/A    |          |           |          |      |
+| 05. Price and Volatility Forecasting                    | N/A    |          |           |          |      |
+| 06. Limit Order Book Modeling                           | N/A    |          |           |          |      |
+| 07. Portfolio Optimization and Reinforcement Learning   | N/A    |          |           |          |      |
 | **Language in Finance**                                 |        |          |           |          |      |
-| 07. News, Filings, Earnings Calls                       | N/A    |          |           |          |      |
-| 08. Agents: Automating the Research Loop                | N/A    |          |           |          |      |
-| 09. Conversational Finance Assistants                   | N/A    |          |           |          |      |
+| 08. News, Filings, Earnings Calls                       | N/A    |          |           |          |      |
+| 09. Agents: Automating the Research Loop                | N/A    |          |           |          |      |
+| 10. Conversational Finance Assistants                   | N/A    |          |           |          |      |
 | **Risk, Operations, and Governance**                    |        |          |           |          |      |
-| 10. Risk, Credit Risk, and Fraud                        | N/A    |          |           |          |      |
-| 11. Explainability and Robustness                       | N/A    |          |           |          |      |
-| 12. Regulation, Model Risk Management, and Deployment   | N/A    |          |           |          |      |
+| 11. Risk, Credit Risk, and Fraud                        | N/A    |          |           |          |      |
+| 12. Explainability and Robustness                       | N/A    |          |           |          |      |
+| 13. Regulation, Model Risk Management, and Deployment   | N/A    |          |           |          |      |
 | **Frontiers**                                           |        |          |           |          |      |
-| 13. Market Simulation                                   | N/A    |          |           |          |      |
-| 14. The Road Ahead                                      | N/A    |          |           |          |      |
+| 14. Market Simulation                                   | N/A    |          |           |          |      |
+| 15. The Road Ahead                                      | N/A    |          |           |          |      |
 
 ## `book_Modern_AI_for_Finance` Tutorials
 
@@ -139,7 +147,6 @@
 - Write one slide deck per chapter in `book_Modern_AI_for_Finance/lectures_source/`
   (30-35 slides each)
 - Write the finance-specific content from scratch for chapters where the
-  `_Not covered_` share exceeds 50%: 03, 05, 06, 07, 10, 13, 14
 - Add tutorial notebooks under `book_Modern_AI_for_Finance/tutorials/`
 - Collect related books, packages, and papers for each chapter: the previous map
   had empty placeholders for them
@@ -152,48 +159,135 @@
 ## 01: Why Finance Is Different
 
 ### Goals
-- Introduce the finance basics the book needs: instruments, returns, Sharpe
-  ratio, costs, and capacity
-- Explain why non-stationarity, fat tails, and low signal-to-noise break the
-  assumptions of standard ML
-- Teach backtest discipline and causal thinking to avoid false discoveries
+- Introduce the finance basics: instruments, returns, risk, factor models, and
+  implementation costs
+- Explain why non-stationarity, heavy tails, volatility clustering, and weak
+  signals break the assumptions of standard ML
+- Preview the failure modes that chapter 03 handles with backtest discipline
 
 ### Topics
 - Finance Primer
-  - Instruments: equities, futures, options, bonds
-  - Returns: simple vs. log returns, excess returns, compounding
-  - Risk-adjusted performance: volatility, Sharpe ratio, drawdown
-  - Transaction costs and strategy capacity
+  - Financial instruments: equities, bonds, futures, and options
+  - Measuring returns: simple vs. log returns, compounding, and excess returns
+  - Measuring risk and performance: volatility, drawdown, and the Sharpe ratio
+  - Factor models: market beta, style factors (value, momentum, size, quality,
+    low volatility), and alpha vs. beta
+  - Market microstructure basics: order books, bid-ask spread, liquidity, and
+    order types
+  - Implementation realities: transaction costs, market impact, and strategy
+    capacity
+
 - Statistical Properties of Financial Data
-  - Non-stationarity and regime shifts
-  - Fat tails and extreme events
-  - Low signal-to-noise ratios and small effective sample sizes
-- Backtest Discipline
-  - Backtest overfitting and data snooping
-  - Multiple testing and false discoveries
-  - Purged and embargoed cross-validation
-  - Deflated Sharpe ratio
-- Causal vs. Predictive Models
-  - Spurious factors: correlation without causation
-  - Markets that adapt to published signals
+  - Non-stationarity: drifting distributions and regime shifts
+  - Heavy tails: extreme events and the limits of the normal distribution
+  - Dependence structure: volatility clustering and time-varying correlations
+  - Weak signals: low signal-to-noise ratios and small effective sample sizes
 
 ### Slides
 - N/A: no dedicated deck yet
 
 ### Lesson Materials
 - `msml610/lectures_source/Lesson10.1-Timeseries_forecasting.smd`
-  - [25%]: Strict and weak stationarity, ACF, AR(1) for financial series,
-    ARCH/GARCH volatility, change-point detection, Markov-switching models,
-    cross-validation for time series
+  - [20%]: Strict and weak stationarity, ACF, AR(1) for financial series,
+    ARCH/GARCH volatility, change-point detection, Markov-switching models
+- `book_springer/lectures_source/Lesson08.1_Causal_Data_Pipelines.smd`
+  - [10%]: Distribution shift, concept drift, non-stationarity, detecting shift
+    in production
+- `msml610/lectures_source/Lesson05.2-Overfitting.smd`
+  - [5%]: Deterministic vs. stochastic noise, data size vs. noise
+- `book_cs_refreshers/lectures_source/Lesson91.Refresher_probability.smd`
+  - [5%]: Kurtosis and excess kurtosis as the definition of fat tails
+- _Not covered_
+  - [60%]: Finance primer (instruments, returns, risk and Sharpe ratio, factor
+    models, microstructure basics, costs, market impact, capacity),
+    extreme-value and tail-risk
+    modeling, time-varying correlations, adaptive markets
+
+## 02: Data Engineering
+
+### Goals
+- Build point-in-time correct datasets free of look-ahead and survivorship bias
+- Handle restatements, corporate actions, identifiers, and timestamps correctly
+- Survey market, fundamental, filing, and alternative data vendors and their
+  pitfalls
+
+### Topics
+- Point-in-Time Correctness
+  - Look-ahead bias and as-of joins
+  - Restatements and data revisions
+- Survivorship Bias
+  - Survivorship-bias-free universes
+  - Delisting returns
+- Reference Data
+  - Corporate actions: splits, dividends, and adjusted prices
+  - Identifiers and symbology: CUSIP, ISIN, PERMNO
+  - Timestamps, time zones, and trading calendars
+- Data Vendors
+  - Market data: CRSP and TAQ
+  - Fundamental data: Compustat
+  - Filings: EDGAR
+- Alternative Data
+  - Classification of alternative data and practical pitfalls
+  - Satellite and web data
+  - ESG and climate risk data
+
+### Slides
+- N/A: no dedicated deck yet
+
+### Lesson Materials
+- `data605/lectures_source/Lesson02.3-Data_Pipelines.smd`
+  - [15%]: Data ingestion, ETL/ELT paradigms, workflow orchestration, data lake vs.
+    warehouse, data cleaning
+- `data605/lectures_source/Lesson07.2-Data_Wrangling.smd`
+  - [15%]: Tidy data, single-source and multi-source data problems, outlier
+    detection including time series outliers
+- `book_springer/lectures_source/Lesson08.1_Causal_Data_Pipelines.smd`
+  - [15%]: Selection bias as the root of survivorship bias, missing-data
+    mechanisms, distribution shift, measurement error, pre-flight data quality
+    checks
+- `data605/lectures_source/Lesson10.2-Streaming_and_Real_Time_Analytics.smd`
+  - [10%]: Event time vs. processing time, delivery semantics, Kafka, Flink,
+    Spark Structured Streaming
+- `data605/lectures_source/Lesson07.3-Serialization_Formats.smd`
+  - [5%]: CSV, Parquet, JSON, and Protocol Buffers for storing market data
+- _Not covered_
+  - [65%]: Point-in-time (as-of) joins, restatements and revisions,
+    survivorship-bias-free universes and delisting returns, corporate actions,
+    identifiers and symbology, trading calendars, vendor datasets (CRSP,
+    Compustat, TAQ, EDGAR), alternative data (satellite, web, ESG, climate)
+
+## 03: Strategy Backtesting
+
+### Goals
+- Simulate strategies realistically: signals, positions, fills, and costs
+- Explain how overfitting, data snooping, and multiple testing create false
+  discoveries
+- Validate with purged cross-validation, deflated Sharpe, and causal reasoning
+
+### Topics
+- Backtest Mechanics
+  - Simulation of signals, positions, fills, and transaction costs
+  - Look-ahead and survivorship bias in backtests
+- Backtest Discipline
+  - Backtest overfitting and data snooping
+  - Multiple testing and false discoveries
+  - Purged and embargoed cross-validation
+  - Deflated Sharpe ratio
+- Causal vs. Predictive
+  - Predictive vs. causal questions
+  - Spurious factors and confounding
+
+### Slides
+- N/A: no dedicated deck yet
+
+### Lesson Materials
 - `msml610/lectures_source/Lesson02.6-ML_Techniques_How_To_Do_Research.smd`
   - [20%]: Data snooping, "burning the test set", sampling bias, out-of-sample
     discipline, multiple comparisons
 - `msml610/lectures_source/Lesson05.2-Overfitting.smd`
-  - [15%]: Overfitting, bias-variance trade-off, deterministic vs. stochastic
-    noise, data size vs. noise
+  - [10%]: Overfitting, bias-variance trade-off
 - `book_cs_refreshers/lectures_source/Lesson91.Refresher_probability.smd`
-  - [15%]: Kurtosis and excess kurtosis as the definition of fat tails,
-    multiple hypothesis testing, p-hacking, FWER and Bonferroni, FDR and
+  - [10%]: Multiple hypothesis testing, p-hacking, FWER and Bonferroni, FDR and
     Benjamini-Hochberg
 - `msml610/lectures_source/Lesson08.1-Causal_AI_intro.smd`
   - [10%]: Association vs. correlation vs. causation, what ML systems can and
@@ -201,15 +295,17 @@
 - `book_springer/lectures_source/Lesson02.1_From_Data_Science_To_Decision_Science.smd`
   - [10%]: Causal vs. predictive questions, correlation that encodes
     confounding, selection bias, Simpson's paradox, collider bias
-- `book_springer/lectures_source/Lesson08.1_Causal_Data_Pipelines.smd`
-  - [10%]: Distribution shift, concept drift, non-stationarity, detecting shift
-    in production
+- `msml610/lectures_source/Lesson10.1-Timeseries_forecasting.smd`
+  - [5%]: Data leakage, walk-forward validation as time-aware cross-validation
+- `msml610/lectures_source/Lesson05.3-Learn_Validation.smd`
+  - [5%]: Cross-validation and repeated cross-validation as the basis for
+    purged variants
 - _Not covered_
-  - [40%]: Finance primer (instruments, returns, Sharpe ratio, costs, capacity),
-    extreme-value and tail-risk modeling, purged and embargoed cross-validation,
-    deflated Sharpe ratio, spurious factors in finance, adaptive markets
+  - [50%]: Backtest simulation and transaction-cost modeling, purged and
+    embargoed cross-validation, deflated Sharpe ratio, spurious factors in
+    finance
 
-## 02: Deep Learning, Transformers, and LLMs
+## 04: Deep Learning, Transformers, and LLMs
 
 ### Goals
 - Review the neural architectures and training methods used throughout the book
@@ -284,62 +380,9 @@
     datasets, parameter-efficient fine-tuning, supervised instruction tuning on
     financial tasks, domain-pretrained finance models
 
-## 03: Data Engineering
-
-### Goals
-- Build point-in-time correct datasets free of look-ahead and survivorship bias
-- Handle restatements, corporate actions, identifiers, and timestamps correctly
-- Survey market, fundamental, filing, and alternative data vendors and their
-  pitfalls
-
-### Topics
-- Point-in-Time Correctness
-  - Look-ahead bias and as-of joins
-  - Restatements and data revisions
-- Survivorship Bias
-  - Survivorship-bias-free universes
-  - Delisting returns
-- Reference Data
-  - Corporate actions: splits, dividends, and adjusted prices
-  - Identifiers and symbology: CUSIP, ISIN, PERMNO
-  - Timestamps, time zones, and trading calendars
-- Data Vendors
-  - Market data: CRSP and TAQ
-  - Fundamental data: Compustat
-  - Filings: EDGAR
-- Alternative Data
-  - Classification of alternative data and practical pitfalls
-  - Satellite and web data
-  - ESG and climate risk data
-
-### Slides
-- N/A: no dedicated deck yet
-
-### Lesson Materials
-- `data605/lectures_source/Lesson02.3-Data_Pipelines.smd`
-  - [15%]: Data ingestion, ETL/ELT paradigms, workflow orchestration, data lake vs.
-    warehouse, data cleaning
-- `data605/lectures_source/Lesson07.2-Data_Wrangling.smd`
-  - [15%]: Tidy data, single-source and multi-source data problems, outlier
-    detection including time series outliers
-- `book_springer/lectures_source/Lesson08.1_Causal_Data_Pipelines.smd`
-  - [15%]: Selection bias as the root of survivorship bias, missing-data
-    mechanisms, distribution shift, measurement error, pre-flight data quality
-    checks
-- `data605/lectures_source/Lesson10.2-Streaming_and_Real_Time_Analytics.smd`
-  - [10%]: Event time vs. processing time, delivery semantics, Kafka, Flink,
-    Spark Structured Streaming
-- `data605/lectures_source/Lesson07.3-Serialization_Formats.smd`
-  - [5%]: CSV, Parquet, JSON, and Protocol Buffers for storing market data
-- _Not covered_
-  - [65%]: Point-in-time (as-of) joins, restatements and revisions,
-    survivorship-bias-free universes and delisting returns, corporate actions,
-    identifiers and symbology, trading calendars, vendor datasets (CRSP,
-    Compustat, TAQ, EDGAR), alternative data (satellite, web, ESG, climate)
-
 # Part II: Market Prediction with Deep Learning
 
-## 04: Price and Volatility Forecasting
+## 05: Price and Volatility Forecasting
 
 ### Goals
 - Establish strong baselines before reaching for deep models
@@ -402,7 +445,7 @@
     Lag-Llama), alpha research metrics (IC, turnover, decay), classic and
     ML-based factors, factor zoo, macro nowcasting
 
-## 05: Limit Order Book Modeling
+## 06: Limit Order Book Modeling
 
 ### Goals
 - Introduce market microstructure and the limit order book
@@ -433,7 +476,7 @@
   - [85%]: Market microstructure, order book dynamics, market impact, high-frequency
     signals, latency and capacity constraints
 
-## 06: Portfolio Optimization and Reinforcement Learning
+## 07: Portfolio Optimization and Reinforcement Learning
 
 ### Goals
 - Solve portfolio optimization under risk, cost, and position constraints
@@ -486,7 +529,7 @@
 
 # Part III: Language in Finance
 
-## 07: News, Filings, Earnings Calls
+## 08: News, Filings, Earnings Calls
 
 ### Goals
 - Extract signals from news, filings, and earnings-call transcripts
@@ -524,7 +567,7 @@
     and event extraction, SEC filing parsing, financial text classification,
     look-ahead bias from LLM pretraining data
 
-## 08: Agents: Automating the Research Loop
+## 09: Agents: Automating the Research Loop
 
 ### Goals
 - Build agents that call tools and retrieve financial data
@@ -568,7 +611,7 @@
     design, finance-specific tools (market data APIs, filings, backtesters),
     multiple-testing controls for automated research
 
-## 09: Conversational Finance Assistants
+## 10: Conversational Finance Assistants
 
 ### Goals
 - Design advisory chatbots and natural-language portfolio queries
@@ -608,7 +651,7 @@
 
 # Part IV: Risk, Operations, and Governance
 
-## 10: Risk, Credit Risk, and Fraud
+## 11: Risk, Credit Risk, and Fraud
 
 ### Goals
 - Measure market risk with VaR, expected shortfall, covariance, and factor risk
@@ -663,7 +706,7 @@
     risk models, tabular deep learning, graph neural networks, fraud
     typologies, fair-lending regulation, conformal credit scoring
 
-## 11: Explainability and Robustness
+## 12: Explainability and Robustness
 
 ### Goals
 - Explain model predictions with Shapley values and attention
@@ -710,7 +753,7 @@
   - [15%]: Finance-specific feature importance, adversarial attacks on market
     models
 
-## 12: Regulation, Model Risk Management, and Deployment
+## 13: Regulation, Model Risk Management, and Deployment
 
 ### Goals
 - Map AI systems to compliance frameworks such as SR 11-7 and the EU AI Act
@@ -748,7 +791,7 @@
 
 # Part V: Frontiers
 
-## 13: Market Simulation
+## 14: Market Simulation
 
 ### Goals
 - Generate market scenarios with GANs, diffusion models, and agent-based
@@ -791,7 +834,7 @@
     simulators, stress testing, synthetic data augmentation, fidelity tests
     based on stylized facts
 
-## 14: The Road Ahead
+## 15: The Road Ahead
 
 ### Goals
 - Show how multimodal models fuse text, tabular, and time series data
