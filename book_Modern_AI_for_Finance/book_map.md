@@ -28,18 +28,18 @@
     - Finance primer: instruments, returns, risk and Sharpe ratio, factor
       models, market microstructure basics, costs, capacity
     - Non-stationarity, heavy tails, volatility clustering, low signal-to-noise
-  - 03, Strategy Backtesting
+  - 02, Strategy Backtesting
     - Backtest mechanics: simulation, fills, costs, look-ahead and survivorship
       bias
     - Backtest discipline: overfitting, multiple testing, purged CV,
       deflated Sharpe
     - Causal vs. predictive: spurious factors
-  - 04, Deep Learning, Transformers, and LLMs
+  - 03, Deep Learning, Transformers, and LLMs
     - Refresher: deep learning, transformers, LLMs
     - Adapting LLMs: fine-tuning, RAG, domain-pretrained models
 
 - Data engineering
-  - 02, Data engineering
+  - 04, Data engineering
     - Point-in-time correctness (as-of joins)
     - Survivorship bias and delisting returns
     - Restatements and revisions
@@ -122,9 +122,9 @@
 | :------------------------------------------------------ | :----- | :------- | :-------- | :------- | :--- |
 | **Foundations**                                         |        |          |           |          |      |
 | 01. Why Finance Is Different                            | N/A    |          |           |          |      |
-| 02. Data Engineering                                    | N/A    |          |           |          |      |
-| 03. Strategy Backtesting                                | N/A    |          |           |          |      |
-| 04. Deep Learning, Transformers, and LLMs               | N/A    |          |           |          |      |
+| 02. Strategy Backtesting                                | N/A    |          |           |          |      |
+| 03. Deep Learning, Transformers, and LLMs               | N/A    |          |           |          |      |
+| 04. Data Engineering                                    | N/A    |          |           |          |      |
 | **Market Prediction with Deep Learning**                |        |          |           |          |      |
 | 05. Price and Volatility Forecasting                    | N/A    |          |           |          |      |
 | 06. Limit Order Book Modeling                           | N/A    |          |           |          |      |
@@ -167,7 +167,7 @@
   implementation costs
 - Explain why non-stationarity, heavy tails, volatility clustering, and weak
   signals break the assumptions of standard ML
-- Preview the failure modes that chapter 03 handles with backtest discipline
+- Preview the failure modes that chapter 02 handles with backtest discipline
 
 ### Topics
 - Finance Primer
@@ -223,82 +223,7 @@
   - [15%]: Extreme-value and tail-risk modeling, time-varying correlations,
     adaptive markets, strategy capacity
 
-## 02: Data Engineering
-
-### Goals
-- Build point-in-time correct datasets free of look-ahead and survivorship bias
-- Handle restatements, corporate actions, identifiers, and timestamps correctly
-- Survey market, fundamental, filing, and alternative data vendors and their
-  pitfalls
-
-### Topics
-- Point-in-Time Correctness
-  - Look-ahead bias and as-of joins
-  - Restatements and data revisions
-- Survivorship Bias
-  - Survivorship-bias-free universes
-  - Delisting returns
-- Reference Data
-  - Corporate actions: splits, dividends, and adjusted prices
-  - Identifiers and symbology: CUSIP, ISIN, PERMNO
-  - Timestamps, time zones, and trading calendars
-- Data Vendors
-  - Market data: CRSP and TAQ
-  - Fundamental data: Compustat
-  - Filings: EDGAR
-- Alternative Data
-  - Classification of alternative data and practical pitfalls
-  - Satellite and web data
-  - ESG and climate risk data
-
-### Slides
-- N/A: no dedicated deck yet
-
-### Lesson Materials
-- `data605/lectures_source/Lesson02.3-Data_Pipelines.smd`
-  - [15%]: Data ingestion, ETL/ELT paradigms, workflow orchestration, data lake vs.
-    warehouse, data cleaning
-- `data605/lectures_source/Lesson07.2-Data_Wrangling.smd`
-  - [15%]: Tidy data, single-source and multi-source data problems, outlier
-    detection including time series outliers
-- `book_springer/lectures_source/Lesson08.1_Causal_Data_Pipelines.smd`
-  - [15%]: Selection bias as the root of survivorship bias, missing-data
-    mechanisms, distribution shift, measurement error, pre-flight data quality
-    checks
-- `//notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md`
-  - [15%]: Fundamental, market, analytics, and alternative data, release date
-    vs. report date, backfilling, reinstated values, point-in-time, time, tick,
-    and volume bars
-- `data605/lectures_source/Lesson10.2-Streaming_and_Real_Time_Analytics.smd`
-  - [10%]: Event time vs. processing time, delivery semantics, Kafka, Flink,
-    Spark Structured Streaming
-- `//notes1/notes/IN_PROGRESS.finance.Compustat.2017.txt`
-  - [10%]: Compustat Snapshot as a point-in-time database: originally reported
-    vs. restated values, observation date vs. effective date
-- `data605/lectures_source/Lesson07.3-Serialization_Formats.smd`
-  - [5%]: CSV, Parquet, JSON, and Protocol Buffers for storing market data
-- `//notes1/notes/finance.all.txt`
-  - [5%]: Trading hours and time zones, adjusting equity prices, continuous
-    adjustments for futures
-- `//notes1/notes/IN_PROGRESS.finance.Quantitative_trading.Chan.2009.txt`
-  - [5%]: Historical databases, survivorship bias, and look-ahead bias in market
-    data
-- `//notes1/notes/IN_PROGRESS.finance.XBRL.txt`
-  - [5%]: XBRL markup for financial reporting
-- `//notes1/notes/papers.finance.edgar.txt`
-  - [5%]: EDGAR filings: Form 4 insider data, filing dissemination timing,
-    changes in 10-K text
-- `//notes1/notes/finance.bloomberg.txt`
-  - [5%]: Bloomberg terminal data access: identifiers such as CUSIP, functions,
-    cheatsheets
-- `//notes1/notes/papers.finance.misc.txt`
-  - [5%]: Paper reviews on Compustat, market data, and alternative data
-- _Not covered_
-  - [30%]: Corporate actions in detail (splits, delistings), identifiers and
-    symbology (ISIN, PERMNO), CRSP and TAQ dataset documentation, satellite,
-    web, and ESG data
-
-## 03: Strategy Backtesting
+## 02: Strategy Backtesting
 
 ### Goals
 - Simulate strategies realistically: signals, positions, fills, and costs
@@ -372,7 +297,7 @@
   - [10%]: Backtest simulator design and fill models, empirical case studies of
     spurious factors
 
-## 04: Deep Learning, Transformers, and LLMs
+## 03: Deep Learning, Transformers, and LLMs
 
 ### Goals
 - Review the neural architectures and training methods used throughout the book
@@ -453,6 +378,81 @@
     suites, composition of pretraining datasets, parameter-efficient fine-
     tuning, supervised instruction tuning on financial tasks, domain-pretrained
     finance models
+
+## 04: Data Engineering
+
+### Goals
+- Build point-in-time correct datasets free of look-ahead and survivorship bias
+- Handle restatements, corporate actions, identifiers, and timestamps correctly
+- Survey market, fundamental, filing, and alternative data vendors and their
+  pitfalls
+
+### Topics
+- Point-in-Time Correctness
+  - Look-ahead bias and as-of joins
+  - Restatements and data revisions
+- Survivorship Bias
+  - Survivorship-bias-free universes
+  - Delisting returns
+- Reference Data
+  - Corporate actions: splits, dividends, and adjusted prices
+  - Identifiers and symbology: CUSIP, ISIN, PERMNO
+  - Timestamps, time zones, and trading calendars
+- Data Vendors
+  - Market data: CRSP and TAQ
+  - Fundamental data: Compustat
+  - Filings: EDGAR
+- Alternative Data
+  - Classification of alternative data and practical pitfalls
+  - Satellite and web data
+  - ESG and climate risk data
+
+### Slides
+- N/A: no dedicated deck yet
+
+### Lesson Materials
+- `data605/lectures_source/Lesson02.3-Data_Pipelines.smd`
+  - [15%]: Data ingestion, ETL/ELT paradigms, workflow orchestration, data lake vs.
+    warehouse, data cleaning
+- `data605/lectures_source/Lesson07.2-Data_Wrangling.smd`
+  - [15%]: Tidy data, single-source and multi-source data problems, outlier
+    detection including time series outliers
+- `book_springer/lectures_source/Lesson08.1_Causal_Data_Pipelines.smd`
+  - [15%]: Selection bias as the root of survivorship bias, missing-data
+    mechanisms, distribution shift, measurement error, pre-flight data quality
+    checks
+- `//notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md`
+  - [15%]: Fundamental, market, analytics, and alternative data, release date
+    vs. report date, backfilling, reinstated values, point-in-time, time, tick,
+    and volume bars
+- `data605/lectures_source/Lesson10.2-Streaming_and_Real_Time_Analytics.smd`
+  - [10%]: Event time vs. processing time, delivery semantics, Kafka, Flink,
+    Spark Structured Streaming
+- `//notes1/notes/IN_PROGRESS.finance.Compustat.2017.txt`
+  - [10%]: Compustat Snapshot as a point-in-time database: originally reported
+    vs. restated values, observation date vs. effective date
+- `data605/lectures_source/Lesson07.3-Serialization_Formats.smd`
+  - [5%]: CSV, Parquet, JSON, and Protocol Buffers for storing market data
+- `//notes1/notes/finance.all.txt`
+  - [5%]: Trading hours and time zones, adjusting equity prices, continuous
+    adjustments for futures
+- `//notes1/notes/IN_PROGRESS.finance.Quantitative_trading.Chan.2009.txt`
+  - [5%]: Historical databases, survivorship bias, and look-ahead bias in market
+    data
+- `//notes1/notes/IN_PROGRESS.finance.XBRL.txt`
+  - [5%]: XBRL markup for financial reporting
+- `//notes1/notes/papers.finance.edgar.txt`
+  - [5%]: EDGAR filings: Form 4 insider data, filing dissemination timing,
+    changes in 10-K text
+- `//notes1/notes/finance.bloomberg.txt`
+  - [5%]: Bloomberg terminal data access: identifiers such as CUSIP, functions,
+    cheatsheets
+- `//notes1/notes/papers.finance.misc.txt`
+  - [5%]: Paper reviews on Compustat, market data, and alternative data
+- _Not covered_
+  - [30%]: Corporate actions in detail (splits, delistings), identifiers and
+    symbology (ISIN, PERMNO), CRSP and TAQ dataset documentation, satellite,
+    web, and ESG data
 
 # Part II: Market Prediction with Deep Learning
 
