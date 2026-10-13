@@ -94,6 +94,11 @@
    model listing only; does divergence from OpenRouter's exact error codes/streaming
    semantics break real OpenRouter clients in practice, before advertising
    `NoesisServer` as a drop-in replacement?
+9. Nerfing vs. legitimate model updates (`PR_S13`): a provider that silently swaps
+   the snapshot behind a stable alias looks identical to nerfing; should a
+   detected quality shift be reported as "downgraded" or as "new model, re-baseline",
+   and can the server tell the two apart without the provider disclosing snapshot
+   ids? -> Project
 
 ## Architecture
 
@@ -528,6 +533,73 @@
   strips its identifying fields
 - Result: `PR_S3`'s distillation experiment can be pointed at `D` built under real
   consent, ahead of the PII open question being fully resolved for raw logging
+
+### `PR_S13`: [ ] Model-nerfing Detection and Cost-per-task Tracking
+
+- Background: `papers/Noesis/01_introduction.tex` motivates `NoesisServer` with the
+  buyer having "no standard way to detect that a model has been quietly downgraded
+  (model nerfing)": two providers, or one provider on two days, can charge the same
+  per-token rate while delivering different capability
+- Background: no PR above covers this:
+  - `PR_S4`/`PR_S6` judge one contract's window against `R_min`, so they have no
+    memory of a `(provider, model_id)` across contracts or across weeks
+  - `PR_S11` scores a single response, not a time series
+  - `PR_S2` measures cost and quality once, on logged data, not over time
+  - Market open question 1 (the task unit) is open, so there is no "price per task"
+    number anywhere
+- Reuse what `research/Noesis/checker/` already has: the secret balanced canary
+  selection (`checker_canaries.py`), deterministic grading (`checker_grading.py`),
+  and one-sided bounds (`checker_statistics.py`); this PR adds the longitudinal view
+  per model, not a new grader
+- Define the unit of tracking as `(provider, model_id, probe_set_version)` over
+  non-overlapping windows `W_t` of fixed wall-clock length (e.g., 1 day), with a
+  fixed canary subset per window drawn from the versioned probe set
+- Per window, compute and store:
+  - Quality $\hat q_t$: pass rate of graded canaries (errors and timeouts are
+    excluded from the denominator and counted in availability, consistent with the
+    checker's seller-attributable evidence rule)
+  - Availability: fraction of canary requests that returned a non-error response
+  - Latency: p50 and p95 of canary latency
+  - Tokens per task (prompt and completion): a nerfed model often gets cheaper
+    per request by answering shorter, so cost alone can hide a downgrade
+  - `cost_per_task`: mean billed cost per canary request, using `PR_S7`'s real
+    per-token price (fixture prices until `PR_S7` lands)
+  - `cost_per_correct_task = cost_per_task / q_hat_t`: the price of one *passed*
+    task; this is the "price per task" figure that a quality drop at constant token
+    price makes go up
+- Baseline: the first `K_base` windows after a model is first seen, or a pinned
+  onboarding run, stored with `probe_set_version`; a change of `probe_set_version`
+  or of `model_id` starts a new series and is never compared across the boundary
+- Nerfing test per window: one-sided Fisher exact test (normal approximation when
+  both counts are large) of $H_0: q_t \ge q_{\text{base}}$; flag `NERFED` only when
+  both hold: `p < delta` and `q_base - q_hat_t >= Delta_min` (a practical effect
+  size, so a huge sample cannot flag a trivial drop); require `k_consecutive`
+  flagged windows before raising the flag, to control repeated-testing false alarms
+- Verdicts mirror the checker: `OK`, `NERFED`, or `INSUFFICIENT` when the window has
+  fewer than `n_min` graded canaries (never flagged on thin data)
+- Surface the series through a CLI report (one row per model per window: quality,
+  baseline, drop, p-value, availability, p95 latency, `cost_per_task`,
+  `cost_per_correct_task`, verdict) and a store table; emit a `NERFED` event
+  through `PR_S4`'s market-facing report interface at model scope, so `PR_M3` can
+  later discount every contract that routes to that model
+- Unit tests (fake provider using `gateway_faults.py`'s `model_override`, with fixed
+  seeds):
+  - A healthy provider over many windows is never flagged, and the simulated
+    false-flag rate stays at or below `delta`
+  - A mid-series swap to a weaker model is flagged within `k_consecutive` windows of
+    the swap and not before it
+  - A true drop smaller than `Delta_min` is not flagged even at large `n`
+  - Same token price and a quality drop: `cost_per_task` is unchanged and
+    `cost_per_correct_task` rises by the factor $q_{\text{base}} / \hat q_t$
+  - A price increase at constant quality: `cost_per_task` rises and no `NERFED`
+    flag is raised
+  - A window with fewer than `n_min` graded canaries yields `INSUFFICIENT`
+  - A `probe_set_version` change starts a new baseline and never compares across it
+- Result: a per-model time series of quality, availability, latency, and
+  `cost_per_correct_task` for each provider `NoesisServer` routes to, with a nerfing
+  flag that fires on an injected model swap and stays quiet on a healthy provider;
+  gives `NoesisMarket` a model-level (not only contract-level) signal and a first
+  concrete "price per task" number for open question 1 -> Project
 
 ## NoesisPlatform
 

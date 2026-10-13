@@ -7,8 +7,8 @@
 - The relevant variables are:
   ```
   DIR="/Users/saggese/src/umd_classes1"
-  BOOK="book_AI_Software_Engineering"
-  CHAP="## 03: Prompt Engineering for Code"
+  BOOK="book_Modern_AI_for_Finance"
+  CHAP="## 01, Why Finance Is Different"
   ```
   - `CHAP` is an H2 chapter of `<DIR>/<BOOK>/book_map.md`
   - The topics come from `### Topics` of that chapter
