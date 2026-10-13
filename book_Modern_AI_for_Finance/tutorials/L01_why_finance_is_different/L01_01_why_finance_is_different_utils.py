@@ -125,9 +125,7 @@ def cell1_1_plot_option_payoffs(
     ax.axvline(strike, color=_GRAY, linestyle="--", linewidth=1.0)
     ax.set_xticks([0.0, strike, 2.0 * strike])
     ax.set_xticklabels(["0", "$K$", "$2K$"])
-    ax.text(
-        1.55 * strike, 0.75 * strike, "long call", color=_BLUE, ha="center"
-    )
+    ax.text(1.55 * strike, 0.75 * strike, "long call", color=_BLUE, ha="center")
     ax.text(0.45 * strike, 0.75 * strike, "long put", color=_CORAL, ha="center")
     ax.set_xlabel("spot price at expiration $S_T$")
     ax.set_ylabel("payoff")
@@ -483,9 +481,7 @@ def cell1_4_plot_market_impact(
         ha="right",
         va="bottom",
     )
-    ax.set_ylim(
-        arrival_price - 0.1 * temporary, final_price + 1.45 * temporary
-    )
+    ax.set_ylim(arrival_price - 0.1 * temporary, final_price + 1.45 * temporary)
     ax.set_xlabel("time (minutes)")
     ax.set_ylabel("price ($)")
     return fig
@@ -746,9 +742,7 @@ def cell2_3_plot_volatility_clustering(
     #
     fig, axes = _new_figure(figsize)
     ax = axes[0, 0]
-    sns.lineplot(
-        x=returns.index, y=returns, color=_BLUE, linewidth=0.8, ax=ax
-    )
+    sns.lineplot(x=returns.index, y=returns, color=_BLUE, linewidth=0.8, ax=ax)
     ax.axhline(0.0, color=_GRAY, linestyle="--", linewidth=1.0)
     ax.set_xlabel("day")
     ax.set_ylabel("return (%)")
@@ -837,9 +831,7 @@ def cell2_4_plot_returns_vs_squared_returns(
         (axes[0, 1], acf_squared, _CORAL, "squared returns"),
     ]
     for ax, acf, color, title in panels:
-        sns.barplot(
-            x=acf.index, y=acf.to_numpy(), color=color, width=0.6, ax=ax
-        )
+        sns.barplot(x=acf.index, y=acf.to_numpy(), color=color, width=0.6, ax=ax)
         ax.axhline(band, color=_GRAY, linestyle="--", linewidth=1.0)
         ax.axhline(-band, color=_GRAY, linestyle="--", linewidth=1.0)
         ax.set_title(title, color=color)

@@ -627,7 +627,10 @@ def cell2_3_plot_bh_procedure(
     )
     x_line = np.arange(1, n_show + 1)
     ax.plot(
-        x_line, alpha * x_line / n_tests, color=_BLUE, label="BH: $\\alpha i / m$"
+        x_line,
+        alpha * x_line / n_tests,
+        color=_BLUE,
+        label="BH: $\\alpha i / m$",
     )
     ax.axhline(
         alpha / n_tests,
@@ -635,7 +638,9 @@ def cell2_3_plot_bh_procedure(
         linestyle="--",
         label="Bonferroni: $\\alpha / m$",
     )
-    ax.axhline(alpha, color=_ORANGE, linestyle=":", label="no correction: $\\alpha$")
+    ax.axhline(
+        alpha, color=_ORANGE, linestyle=":", label="no correction: $\\alpha$"
+    )
     ax.axvline(n_bh + 0.5, color=_BLUE, linewidth=0.8, linestyle="--")
     ax.set_yscale("log")
     ax.set_xlabel("rank $i$ of the sorted p-value")
@@ -805,7 +810,11 @@ def cell2_5_plot_deflated_sharpe(
             n_trials=n_trials,
         )
         ax.plot(
-            n_trials, dsr, color=color, linewidth=2.5, label=f"SR = {annual_sharpe:g}"
+            n_trials,
+            dsr,
+            color=color,
+            linewidth=2.5,
+            label=f"SR = {annual_sharpe:g}",
         )
         # Mark the number of trials where the strategy stops being significant.
         below = np.flatnonzero(dsr < threshold)
