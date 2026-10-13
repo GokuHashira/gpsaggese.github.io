@@ -46,6 +46,24 @@
     // From: msml610/lectures_source/Lesson08.1-Causal_AI_intro.smd:318 '* Where ML Falls Short'
     ```
 
+- When you have a doubt about a claim, number, example, or reference, add a
+  `// TODO(gp): Check ...` comment right above the bullet it refers to
+  - Doubts include content recalled from memory and not found in the material
+    read, illustrations not taken from a source, and unverified metadata of a
+    reference (e.g., year, venue)
+  - Say what to check and why it is in doubt
+  - Start the comment at column 0, even under a sub-bullet
+    - The preprocessor strips only `//` lines that start at column 0, so an
+      indented comment shows up in the rendered slide
+  - E.g.,
+    ```
+    // TODO(gp): Check that de Prado (2018, ch. 7) suggests h_e = 0.01T: it is
+    // recalled from memory and is not in the notes
+    - @Definition@: an **embargo** drops $h_e$ observations after each test
+      block
+    ```
+  - List all the `TODO(gp)` comments in the final report to the user
+
 - Do not run the linter on the slides
 
 ## Create Notebook

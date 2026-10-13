@@ -14,6 +14,7 @@
 //   Portfolio Management (2014)
 // - Bailey et al.: _"The Probability of Backtest Overfitting"_, Journal of
 //   Computational Finance (2016)
+//   TODO(gp): Check the year: online 2016, print issue may be 2017
 // - Harvey, Liu, and Zhu: _"... and the Cross-Section of Expected Returns"_,
 //   Review of Financial Studies (2016)
 // - Hou, Xue, and Zhang: _"Replicating Anomalies"_, Review of Financial
@@ -432,6 +433,8 @@ the next day (blue) and on the signal day (red)_
 - @Key idea@: standard ML practice guards against train-set overfitting, but
   backtest research mostly suffers from test-set overfitting
 
+// TODO(gp): Check the source and year of the Coase quote: the msml610 slide
+// cites it as (Coase, 1982) without a reference
 - @Remark@: _"If you torture the data long enough, it will confess whatever
   you want"_ (Coase)
 
@@ -693,6 +696,8 @@ Bonferroni, and BH thresholds_
 
 - @Definition@: an **embargo** drops $h_e$ further observations after each
   test block, beyond the purged ones
+// TODO(gp): Check that de Prado (2018, ch. 7) suggests h_e = 0.01T: it is
+// recalled from memory and is not in the notes
   - A small value such as $h_e \approx 0.01 T$ often suffices
 
 - @Remark@: leave-one-out CV leaks the most, since every test point borders
@@ -837,6 +842,8 @@ of trials, with the 95% level dashed_
 - @Solution@: experiment tracking logs every trial automatically
   - Strategy configuration, data version, code version, and metrics
   - The log is append-only, so no failed trial can be deleted
+// TODO(gp): Check the 6,385 trials: they come from the reporting template
+// in the de Prado (2018) multiple-testing paper, not from a live strategy
   - E.g., a proposed reporting template for a corporate-bond strategy
     discloses the 6,385 trials behind it
 
@@ -917,6 +924,8 @@ of trials, with the 95% level dashed_
   return $Y$, which creates an association between $X$ and $Y$ with no causal
   link
 
+// TODO(gp): Check the analyst coverage example: it is an illustration not
+// taken from a source, so consider a documented confounded factor instead
 - @Example@: analyst coverage and returns
   - Large firms attract more analysts, and size is associated with returns
   - Regressing returns on coverage alone credits coverage with part of the
@@ -964,6 +973,8 @@ digraph Confounder {
 - @Definition@: a **collider** $C$ is caused by both $X$ and $Y$, and
   conditioning on it creates an association between $X$ and $Y$
 
+// TODO(gp): Check the leverage collider example: it is a constructed
+// illustration, not an empirical result from a paper
 - @Example@: survivorship bias is collider bias
   - High leverage and low returns both cause delisting
   - Levered survivors must have had high returns, so a spurious leverage
@@ -1086,6 +1097,8 @@ digraph Collider {
 - **White**: _"A Reality Check for Data Snooping"_, Econometrica (2000)
 - **Bailey and Lopez de Prado**: _"The Deflated Sharpe Ratio"_, Journal of
   Portfolio Management (2014)
+// TODO(gp): Check the year of the PBO paper: Crossref lists it online in 2016
+// without a volume, and the print issue may be 2017
 - **Bailey, Borwein, Lopez de Prado, and Zhu**: _"The Probability of Backtest
   Overfitting"_, Journal of Computational Finance (2016)
 - **Harvey, Liu, and Zhu**: _"... and the Cross-Section of Expected Returns"_,
