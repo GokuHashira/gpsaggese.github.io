@@ -1,5 +1,7 @@
 # Summary
 
+// Execute book_scripts/prompt.create_lesson_slides_from_chap_toc.md
+
 ## Title
 - Modern AI for Finance
 
@@ -17,6 +19,8 @@
   - Modern architectures (transformers, LLMs) applied to concrete financial tasks
   - Intuition over math, with derivations only when needed
   - Making theory operational through packages and notebooks
+  - For each chapter: `Why AI` bullets inside each topic pair finance problems with
+    how AI, ML, and coding automation help
 - Provide resources to go one level deeper:
   - Related classes (`msml610`, `data605`)
   - Related books (`book_Agentic_AI`, `book_springer`)
@@ -180,12 +184,29 @@
     order types
   - Implementation realities: transaction costs, market impact, and strategy
     capacity
+  - Why AI:
+    - Hidden costs: transaction costs, market impact, and capacity erase paper
+      profits
+      - Automation: tested library functions encode one definition of returns, risk,
+        and costs
 
 - Statistical Properties of Financial Data
   - Non-stationarity: drifting distributions and regime shifts
   - Heavy tails: extreme events and the limits of the normal distribution
   - Dependence structure: volatility clustering and time-varying correlations
   - Weak signals: low signal-to-noise ratios and small effective sample sizes
+  - Why AI:
+    - Non-stationarity: return distributions and relationships drift, so past fits
+      fail live
+      - ML: regime-switching and change-point models detect drift and re-estimate
+        parameters
+    - Heavy tails: extreme events are far more frequent than a normal distribution
+      implies
+      - ML: heavy-tailed distributions and quantile losses model extremes explicitly
+    - Weak signals: low signal-to-noise and few independent samples limit what can be
+      learned
+      - ML: strong regularization, shrinkage, and ensembles avoid fitting noise
+    - Limits: ML cannot create signal that is not in the data
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -235,14 +256,32 @@
 - Backtest Mechanics
   - Simulation of signals, positions, fills, and transaction costs
   - Look-ahead and survivorship bias in backtests
+  - Why AI:
+    - Unrealistic simulation: ignoring fills, queue position, and costs inflates
+      returns
+      - Automation: event-driven backtesters with unit-tested fill and cost models
+        make results reproducible
+    - Information leakage: look-ahead and survivorship bias put future data into past
+      decisions
+      - Automation: as-of assertions and generated tests catch look-ahead bugs before
+        a run
 - Backtest Discipline
   - Backtest overfitting and data snooping
   - Multiple testing and false discoveries
   - Purged and embargoed cross-validation
   - Deflated Sharpe ratio
+  - Why AI:
+    - Backtest overfitting: many trials on the same data make luck look like skill
+      - ML: purged and embargoed cross-validation and the deflated Sharpe ratio
+        correct for the number of trials
+      - Automation: experiment tracking logs every trial, so the trial count is known
 - Causal vs. Predictive
   - Predictive vs. causal questions
   - Spurious factors and confounding
+  - Why AI:
+    - Spurious factors: predictive patterns without causal links fail out of sample
+      - ML: causal discovery and causal ML separate confounded factors from causal
+        ones
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -311,6 +350,10 @@
 - Training on Small and Noisy Datasets
   - Optimizers, learning-rate schedules, vanishing and exploding gradients
   - Weight decay, dropout, early stopping, and data augmentation
+  - Why AI:
+    - Small noisy data: deep models overfit when few independent samples exist
+      - ML: weight decay, dropout, early stopping, and augmentation tuned to
+        financial noise levels
 - Attention and Transformers
   - Self-attention, multi-head attention, and positional encoding
   - Transformers vs. RNNs: long sequences, parallelism, and cost of attention
@@ -321,10 +364,24 @@
 - The LLM Landscape
   - Open vs. proprietary models
   - Evaluation, benchmarking, limitations, and failure modes
+  - Why AI:
+    - Model choice: many architectures, with little guidance on what fits tabular,
+      sequence, or text data
+      - Automation: benchmark harnesses compare baselines and deep models on
+        identical splits
 - Adapting LLMs to Finance
   - Fine-tuning and instruction tuning for financial tasks
   - RAG over filings, news, and research, and RAG vs. fine-tuning trade-offs
   - Domain-pretrained models such as BloombergGPT
+  - Why AI:
+    - Domain gap: general models lack finance vocabulary and current, sourced facts
+      - LLM: fine-tuning, instruction tuning, and domain-pretrained models adapt
+        general models to financial tasks
+      - LLM: RAG grounds answers in filings, news, and research instead of model
+        memory
+    - Cost: large models are expensive to train, serve, and evaluate
+      - ML: parameter-efficient fine-tuning and smaller models cut training and
+        serving cost
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -391,21 +448,41 @@
 - Point-in-Time Correctness
   - Look-ahead bias and as-of joins
   - Restatements and data revisions
+  - Why AI:
+    - Point-in-time errors: restated and revised values leak into past decisions
+      - Automation: pipelines enforce as-of joins and fail loudly on future-dated
+        records
 - Survivorship Bias
   - Survivorship-bias-free universes
   - Delisting returns
+  - Why AI:
+    - Survivorship bias: datasets without delisted firms inflate returns
+      - Automation: data-quality tests check that the universe includes delistings
+        and delisting returns
 - Reference Data
   - Corporate actions: splits, dividends, and adjusted prices
   - Identifiers and symbology: CUSIP, ISIN, PERMNO
   - Timestamps, time zones, and trading calendars
+  - Why AI:
+    - Messy reference data: splits, dividends, identifiers (CUSIP, ISIN, PERMNO),
+      time zones, and calendars break joins
+      - ML: entity resolution maps names and tickers across identifier systems
+      - ML: anomaly detection flags bad ticks and unadjusted splits
 - Data Vendors
   - Market data: CRSP and TAQ
   - Fundamental data: Compustat
   - Filings: EDGAR
+  - Why AI:
+    - Vendor formats: vendors differ in format, coverage, and quality
+      - Automation: generated and tested vendor adapters share one schema
 - Alternative Data
   - Classification of alternative data and practical pitfalls
   - Satellite and web data
   - ESG and climate risk data
+  - Why AI:
+    - Unstructured sources: web pages and documents have no fixed schema
+      - LLM: extraction models turn filings, web pages, and PDFs into structured,
+        timestamped fields
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -470,24 +547,49 @@
   - Linear models and ARIMA for returns
   - GARCH for volatility clustering
   - Gradient-boosted decision trees (GBDT) on tabular features
+  - Why AI:
+    - Nonlinearity: linear baselines miss interactions between features
+      - ML: GBDT and neural models capture nonlinear interactions that linear
+        baselines miss
 - Time Series Foundation Models
   - Chronos, TimesFM, and Lag-Llama
   - Zero-shot vs. fine-tuned forecasting against baselines
+  - Why AI:
+    - Short histories: many assets have too little data to fit models
+      - ML: time series foundation models provide strong zero-shot baselines
 - Alpha Research
   - Signals and the information coefficient (IC)
   - Turnover and signal decay
+  - Why AI:
+    - Weak, decaying alpha: signals have a low information coefficient and fade as
+      others trade them
+      - Automation: research pipelines compute IC, turnover, and decay for every
+        signal in the same way
 - Factors
   - Classic factors: market, size, value, momentum
   - ML-based factors
   - The factor zoo and false discoveries
   - Causal factors
+  - Why AI:
+    - Factor zoo: hundreds of published factors, many of them false discoveries
+      - ML: multiple-testing correction and causal factor tests prune false
+        discoveries
 - Regimes and Macro
   - Regime detection
   - Macro nowcasting
+  - Why AI:
+    - Regime shifts: relationships change with the macro and volatility environment
+      - ML: HMMs, change-point detection, and nowcasting models track the current
+        regime
 - Uncertainty Quantification
   - Probabilistic forecasts
   - Calibration
   - Conformal prediction
+  - Why AI:
+    - Point forecasts: a single number hides the uncertainty that drives sizing and
+      risk
+      - ML: probabilistic forecasts, calibration, and conformal prediction give valid
+        intervals
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -574,10 +676,23 @@
   - Limit and market orders, queues, and matching
   - Order flow, spread, and depth
   - Deep learning on book snapshots and event sequences
+  - Why AI:
+    - Event streams: short-horizon signals hide in millions of order book events per
+      day
+      - ML: CNN, LSTM, and transformer models on book snapshots and event sequences
+        predict short-horizon moves
 - Market Impact and Execution Cost
   - Market impact estimation
   - Execution cost: spread, slippage, and impact
   - High-frequency signals and capacity constraints
+  - Why AI:
+    - Execution cost: spread, slippage, and own market impact erode returns
+      - ML: impact and fill-probability models are estimated from own execution data
+    - Capacity and latency: small high-frequency edges need low latency and cannot
+      absorb size
+      - Automation: matching-engine simulators and replay tools test models on event
+        data before live use
+    - Limits: gains from deep order flow models often vanish after costs and latency
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -632,17 +747,37 @@
   - Mean-variance and CVaR objectives
   - Constraints: leverage, turnover, and transaction costs
   - Differentiable portfolio layers
+  - Why AI:
+    - Estimation error: optimizers amplify noise in expected returns and covariances
+      - ML: shrinkage and robust estimators stabilize the inputs to the optimizer
+    - Constraints: leverage, turnover, and costs make allocation a hard constrained
+      problem
+      - ML: differentiable portfolio layers optimize the final objective under
+        constraints
 - Derivatives and Fixed Income
   - Neural option pricing and volatility surface
   - Yield curve and rates
   - Deep hedging
+  - Why AI:
+    - Derivatives and rates: pricing and hedging models are slow to calibrate and
+      misspecified under frictions
+      - ML: neural networks fit volatility surfaces and yield curves, and deep
+        hedging learns hedges under costs
 - RL Where It Works
   - Optimal execution
   - Market making
   - Hedging as sequential decision making
+  - Why AI:
+    - Sequential decisions: execution, market making, and hedging are control
+      problems under noisy simulators
+      - ML: RL works where a faithful simulator exists, such as execution, market
+        making, and hedging
 - RL Where It Is Mostly Hype
   - End-to-end trading agents
   - Failure causes: non-stationarity, low signal-to-noise, simulator gaps
+  - Why AI:
+    - Limits: end-to-end RL trading agents mostly fail on low signal-to-noise and
+      simulator gaps
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -708,13 +843,25 @@
 - Financial Text Sources
   - News feeds, SEC filings (10-K, 10-Q, 8-K), earnings-call transcripts
   - Parsing filings and aligning text with timestamps
+  - Why AI:
+    - Unstructured text: filings and transcripts mix boilerplate with signal
+      - Automation: parsers for filings and transcripts produce timestamped,
+        sectioned text
 - LLMs for Finance Text
   - Sentiment: lexicon-based vs. LLM-based
   - Named entity and event extraction
   - Financial text classification and summarization
+  - Why AI:
+    - Volume: thousands of documents per day exceed analyst reading capacity
+      - LLM: sentiment, entity, and event extraction and summarization run at scale
 - From Text to Signals
   - Event studies: linking text events to returns
   - Look-ahead bias from LLM pretraining data
+  - Why AI:
+    - Timing: text events must be aligned with market data without look-ahead
+      - ML: event studies measure abnormal returns around aligned events
+    - Pretraining leakage: LLMs may have seen the outcome during pretraining
+      - Automation: evaluation splits use only data after the model training cutoff
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -774,13 +921,28 @@
 - Tool-Using Agents
   - Function calling with finance tools: market data APIs, filings, backtesters
   - Retrieval pipelines for financial data
+  - Why AI:
+    - Manual data access: market data, filings, and backtests are reached by hand
+      - LLM: tool-using agents call market data APIs, filings, and backtesters
 - Automating the Research Loop
   - Loop: hypothesis, data, code, backtest, report
   - Multi-agent analyst workflows
   - Agent reasoning, memory, and planning
+  - Why AI:
+    - Slow research loop: hypothesis, data, code, backtest, and report are manual
+      steps
+      - Automation: code generation turns hypotheses into runnable backtests and
+        reports
+      - LLM: multi-agent analyst workflows split data, modeling, and review roles
 - Verification
   - Fact-checking and verification of agent outputs
   - Multiple testing in automated research: guarding against p-hacking
+  - Why AI:
+    - Automated data snooping: faster search multiplies false discoveries
+      - Automation: trial logging and multiple-testing corrections apply to every
+        agent run
+    - Unreliable outputs: agents can fabricate data or run incorrect code
+      - Automation: fact-checking, tests, and human review verify agent outputs
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -833,11 +995,23 @@
 - Assistant Use Cases
   - Advisory chatbots
   - Natural-language portfolio querying
+  - Why AI:
+    - Access: users cannot query portfolios and market data in natural language
+      - LLM: natural-language requests map to portfolio queries and tool calls
 - Reliability
   - Guardrails for factual accuracy
   - Handling ambiguity and uncertainty
+  - Why AI:
+    - Accuracy: a wrong answer has financial and legal cost
+      - LLM: retrieval grounding, citations, and guardrails constrain answers to
+        verified facts
+    - Ambiguity: questions are underspecified and answers are uncertain
+      - LLM: assistants ask clarifying questions and state uncertainty
 - Human Factors
   - User experience and trust
+  - Why AI:
+    - Trust: users over-rely on or reject algorithmic advice
+      - ML: calibrated uncertainty and escalation to humans set user expectations
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -880,14 +1054,28 @@
   - Value at Risk (VaR) and Expected Shortfall (ES)
   - Covariance estimation and shrinkage
   - Factor risk models
+  - Why AI:
+    - Market risk: VaR, ES, and covariance estimates are noisy in high dimensions and
+      fail in crises
+      - ML: shrinkage and factor risk models stabilize covariance estimates
 - Credit Risk and Fraud Detection
   - Tabular deep learning vs. gradient-boosted trees for credit scoring
   - Graph neural networks for transaction networks
   - Fraud patterns and anomaly detection
   - Real-time scoring and regulatory constraints
+  - Why AI:
+    - Credit scoring: tabular data is imbalanced and decisions are regulated
+      - ML: GBDT and tabular deep learning score imbalanced tabular data
+    - Fraud: events are rare, adversaries adapt, and patterns span many accounts
+      - ML: graph neural networks and anomaly detection find patterns across
+        transaction networks
+      - Automation: streaming pipelines score transactions in real time
 - Uncertainty in Credit
   - Calibrated default probabilities
   - Conformal prediction for credit decisions
+  - Why AI:
+    - Calibration: regulated decisions need valid default probabilities
+      - ML: calibration and conformal prediction give valid default probabilities
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -951,14 +1139,26 @@
   - SHAP and Shapley values
   - Attention-based interpretability
   - Feature importance in finance
+  - Why AI:
+    - Black boxes: regulators and stakeholders need reasons for each decision
+      - ML: SHAP, attention analysis, and feature importance attribute predictions to
+        inputs
 - Robustness
   - Adversarial robustness
   - Hallucination risk in LLM outputs
+  - Why AI:
+    - Fragility: small input changes or adversarial inputs flip model outputs
+      - Automation: perturbation and adversarial test suites measure robustness
+    - Hallucination: LLMs state false facts with confidence
+      - LLM: retrieval and chain-of-verification reduce unsupported claims
 - Decision Explanations
   - Explaining financial decisions
 - Uncertainty and Trust
   - Calibration of model outputs
   - Conformal prediction: distribution-free prediction sets
+  - Why AI:
+    - Overconfidence: users cannot tell when a model should not be trusted
+      - ML: calibration and conformal prediction attach valid uncertainty to outputs
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -998,12 +1198,28 @@
 ### Topics
 - Compliance Frameworks
   - Compliance frameworks (SR 11-7, EU AI Act)
+  - Why AI:
+    - Compliance: SR 11-7 and the EU AI Act require documented controls
+      - LLM: assistants map controls to regulatory text and draft documentation for
+        human review
 - Model Governance
   - Model validation and governance
+  - Why AI:
+    - Validation and governance: models need documented validation and audit trails
+      - Automation: pipelines generate model documentation, validation reports, and
+        audit trails from code and experiment logs
 - Production Operations
   - Latency and production constraints
   - Monitoring and drift detection
   - Incident response and rollback
+  - Why AI:
+    - Model drift: deployed models decay as markets change
+      - ML: drift detectors monitor inputs and performance and trigger retraining or
+        rollback
+    - Operations: latency limits, incidents, and rollbacks need engineering
+      discipline
+      - Automation: CI/CD, versioning, and canary deployments make releases and
+        rollbacks routine
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -1049,15 +1265,28 @@
 - Generative Models for Scenario Generation
   - Generative Adversarial Networks (GANs) for time series
   - Diffusion models for time series
+  - Why AI:
+    - Scarce history: markets give one realized path and few rare events
+      - ML: GANs and diffusion models generate synthetic paths that augment data
 - Agent-Based Market Simulation
   - Heterogeneous trader agents and market mechanisms
   - Calibrating simulators to real markets
+  - Why AI:
+    - Stress testing: risk managers need plausible scenarios beyond history
+      - ML: agent-based simulators calibrated to real markets produce scenarios with
+        feedback effects
 - Applications
   - Stress testing and scenario analysis
   - Synthetic data: augmenting scarce data
 - Fidelity
   - Stylized facts: fat tails, volatility clustering, autocorrelation of returns
   - Risks of training and testing on synthetic data
+  - Why AI:
+    - Fidelity: synthetic data must reproduce stylized facts
+      - Automation: test suites check fat tails, volatility clustering, and return
+        autocorrelation
+    - Limits: training and testing on the same synthetic generator gives circular
+      evidence
 
 ### Slides
 - N/A: no dedicated deck yet
@@ -1098,11 +1327,23 @@
 - Multimodal Finance
   - Multimodal models combining modalities
   - Text, tabular, and time-series fusion
+  - Why AI:
+    - Siloed modalities: text, tabular, and time series are modeled separately
+      - ML: multimodal models fuse text, tabular, and time series data
 - Emerging Directions
   - Emerging architectures and paradigms
+  - Why AI:
+    - Open problems: non-stationarity, scarce data, and crowding remain unsolved
+      - ML: self-supervised pretraining and foundation models reduce the need for
+        labels
+    - Fast-moving tools: models and tooling change faster than validation practice
+      - Automation: reproducible benchmarks and evaluation harnesses re-test new
+        models quickly
 - Outlook
   - Open research problems
   - Future of AI in finance
+  - Why AI:
+    - Limits: none of these methods removes non-stationarity or crowding
 
 ### Slides
 - N/A: no dedicated deck yet
