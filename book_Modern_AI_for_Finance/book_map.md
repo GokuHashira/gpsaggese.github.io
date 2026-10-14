@@ -1,6 +1,7 @@
 # Summary
 
-// Execute book_scripts/prompt.create_lesson_slides_from_chap_toc.md
+// claude> Execute book_scripts/prompt.create_lesson_slides_from_chap_toc.md
+// > gen_slides.py -i book_Modern_AI_for_Finance/10.01
 
 ## Title
 
