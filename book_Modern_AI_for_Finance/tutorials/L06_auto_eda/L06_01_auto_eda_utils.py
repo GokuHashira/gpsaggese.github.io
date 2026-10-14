@@ -197,9 +197,7 @@ def simulate_panel(
     # Delist a stock the first day its price falls below the threshold.
     below = (prices < 20.0 * delisting_price) & (days >= listing_day[None, :])
     delisting_day = np.where(below.any(axis=0), below.argmax(axis=0), n_days)
-    is_listed = (days >= listing_day[None, :]) & (
-        days <= delisting_day[None, :]
-    )
+    is_listed = (days >= listing_day[None, :]) & (days <= delisting_day[None, :])
     prices = np.where(is_listed, np.round(prices, 2), np.nan)
     # Remove the prices of some stocks during the vendor outage.
     is_hit = rng.random(n_stocks) < outage_fraction
@@ -288,7 +286,10 @@ def cell1_1_plot_panel_coverage(
     outage_date = count_change.idxmin()
     ax.annotate(
         "vendor outage",
-        (mdates.date2num(outage_date), float(is_present.sum(axis=1)[outage_date])),
+        (
+            mdates.date2num(outage_date),
+            float(is_present.sum(axis=1)[outage_date]),
+        ),
         xytext=(-20, -18),
         textcoords="offset points",
         ha="right",
@@ -492,7 +493,9 @@ def add_unadjusted_split(
     hdbg.dassert_lt(1.0, ratio)
     raw_df = prices_df.copy()
     is_after = raw_df.index >= pd.Timestamp(split_date)
-    raw_df.loc[is_after, stock] = np.round(raw_df.loc[is_after, stock] / ratio, 2)
+    raw_df.loc[is_after, stock] = np.round(
+        raw_df.loc[is_after, stock] / ratio, 2
+    )
     return raw_df
 
 
@@ -718,9 +721,7 @@ def cell3_1_plot_structural_breaks(
             linewidth=1.5,
             label=f"{label}: max {statistic.max():.2f}, {verdict}",
         )
-    ax.axhline(
-        _BRIDGE_CRITICAL_5PCT, color=_GRAY, linestyle="--", linewidth=1.0
-    )
+    ax.axhline(_BRIDGE_CRITICAL_5PCT, color=_GRAY, linestyle="--", linewidth=1.0)
     # Leave room above the curves for the legend.
     ax.set_ylim(0.0, 1.5 * float(stats_df.abs().max().max()))
     ax.set_ylabel("|CUSUM|")
@@ -838,7 +839,9 @@ def compute_stylized_facts(prices: pd.Series, *, max_lag: int) -> pd.Series:
     """
     returns = prices.pct_change(fill_method=None).dropna()
     abs_returns = returns.abs()
-    acf_abs = np.mean([abs_returns.autocorr(lag) for lag in range(1, max_lag + 1)])
+    acf_abs = np.mean(
+        [abs_returns.autocorr(lag) for lag in range(1, max_lag + 1)]
+    )
     # Non-overlapping monthly returns.
     month_id = np.arange(len(returns)) // _DAYS_PER_MONTH
     monthly = (1.0 + returns).groupby(month_id).prod() - 1.0

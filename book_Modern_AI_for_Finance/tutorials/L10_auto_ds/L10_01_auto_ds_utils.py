@@ -930,7 +930,9 @@ def cell3_2_plot_holdout_looks(
         for look in range(n_looks + 1):
             if look > 0:
                 # Try a nearby pair of windows and keep it if it helps.
-                new_fast = int(np.clip(fast + rng.integers(-5, 6), 2, max_slow - 2))
+                new_fast = int(
+                    np.clip(fast + rng.integers(-5, 6), 2, max_slow - 2)
+                )
                 new_slow = int(
                     np.clip(slow + rng.integers(-10, 11), new_fast + 1, max_slow)
                 )
