@@ -32,20 +32,20 @@
 ## Short TOC
 
 - Foundations
-  - 01, Why Finance Is Different
+  - 01: Why Finance Is Different
     - Finance primer: instruments, returns, risk and Sharpe ratio, factor models,
       market microstructure basics, costs, capacity
     - Non-stationarity, heavy tails, volatility clustering, low signal-to-noise
-  - 02, Strategy Backtesting
+  - 02: Strategy Backtesting
     - Backtest mechanics: simulation, fills, costs, look-ahead and survivorship bias
     - Backtest discipline: overfitting, multiple testing, purged CV, deflated Sharpe
     - Causal vs. predictive: spurious factors
-  - 03, Deep Learning, Transformers, LLMs, and Agents
+  - 03: Deep Learning, Transformers, LLMs, and Agents
     - Refresher: deep learning, transformers, LLMs
     - Adapting LLMs: fine-tuning, RAG, domain-pretrained models
     - Agents
 - Data Engineering
-  - 04, Data Engineering
+  - 04: Data Engineering
     - Point-in-time correctness (as-of joins)
     - Survivorship bias and delisting returns
     - Restatements and revisions
@@ -56,18 +56,21 @@
     - Alternative data: classification and practice
       - Satellite and web data
       - ESG and climate risk data
-  - 05, News, Filings, Earnings Calls
+  - 05: News, Filings, Earnings Calls
     - LLMs for finance text
     - Conversational finance assistants
-  - 06, Auto EDA
+  - 06: Auto EDA
+    - Levels of automation: profilers, AutoML, LLM agents
     - Automated profiling: schema, missing values, outliers, distributions
     - Finance-specific checks: look-ahead, survivorship, stale prices, corporate
       action breaks
+    - Time-aware EDA: split by time first, structural breaks
     - Stylized facts: fat tails, volatility clustering, autocorrelation
+    - EDA as snooping: every look is a trial
     - Agents generating hypotheses, features, and candidate signals
     - Reproducible EDA reports: generated notebooks with human review
 - Prediction and Portfolio Construction
-  - 07, Forecasting
+  - 07: Forecasting
     - Baselines first: linear, ARIMA, GBDT
     - Time series foundation models (Chronos, TimesFM, Lag-Lama)
     - Alpha research: signals, IC, turnover, decay
@@ -77,10 +80,10 @@
       prediction
     - Volatility Forecasting
       - GARCH for volatility clustering
-  - 08, Limit Order Book Modeling
+  - 08: Limit Order Book Modeling
     - Microstructure and LOB mechanics
     - Market impact and execution cost
-  - 09, Portfolio Optimization and Reinforcement Learning
+  - 09: Portfolio Optimization and Reinforcement Learning
     - Portfolio optimization and constraints
     - Derivatives and fixed income
       - Neural option pricing and volatility surface
@@ -89,29 +92,33 @@
     - RL where it works: execution, market making, hedging
     - RL where it is mostly hype: end-to-end trading
 - Research Loop
-  - 10, Auto DS
+  - 10: Auto DS
     - AutoML for finance: model and hyperparameter search under purged CV
     - Auto feature engineering: generated features, selection, leakage checks
-    - Auto agents for each pipeline step: cleaning, features, modeling, backtest
+    - Auto label generation and objective choice
     - Experiment tracking: trial counts feed the deflated Sharpe ratio
     - Human review gates and guardrails against automated overfitting
-  - 11, Agents: Automating the Research Loop
+  - 11: Agents: Automating the Research Loop
+    - Tool-using agents and architecture: planner, tools, sandbox, critic, memory
+    - Research loop: agents per pipeline step, single vs. multi-agent
+    - Data science agent landscape and evaluation: benchmarks, scorecards
+    - Verification, security, and provenance
 - Risk, Operations, and Governance
-  - 12, Risk, Credit Risk, and Fraud
+  - 12: Risk, Credit Risk, and Fraud
     - Market risk: VaR/ES, covariance, factor risk models
     - Credit risk and fraud detection
     - Uncertainty in credit: calibrated default probabilities, conformal prediction
-  - 13, Explainability and Robustness
+  - 13: Explainability and Robustness
     - Uncertainty and trust: calibration, conformal prediction
-  - 14, Regulation, Model Risk Management, and Deployment
+  - 14: Regulation, Model Risk Management, and Deployment
 - Frontiers
-  - 15, Market Simulation
+  - 15: Market Simulation
     - GANs / diffusion models for scenario generation
     - Agent-based market simulation
     - Stress testing
     - Synthetic data: augmenting scarce data
     - Fidelity: stylized facts (fat tails, volatility clustering)
-  - 16, The Road Ahead
+  - 16: The Road Ahead
     - Multimodal models
     - Open problems
 
@@ -135,27 +142,27 @@
 | Chap                                                  | Slides | Slides % | Criticize | Tutorial | Book |
 | :---------------------------------------------------- | :----- | :------- | :-------- | :------- | :--- |
 | **Foundations**                                       |        |          |           |          |      |
-| 01. Why Finance Is Different                          | N/A    |          |           |          |      |
-| 02. Strategy Backtesting                              | N/A    |          |           |          |      |
-| 03. Deep Learning, Transformers, LLMs, and Agents     | N/A    |          |           |          |      |
+| 01: Why Finance Is Different                          | N/A    |          |           |          |      |
+| 02: Strategy Backtesting                              | N/A    |          |           |          |      |
+| 03: Deep Learning, Transformers, LLMs, and Agents     | N/A    |          |           |          |      |
 | **Data Engineering**                                  |        |          |           |          |      |
-| 04. Data Engineering                                  | N/A    |          |           |          |      |
-| 05. News, Filings, Earnings Calls                     | N/A    |          |           |          |      |
-| 06. Auto EDA                                          | N/A    |          |           |          |      |
+| 04: Data Engineering                                  | N/A    |          |           |          |      |
+| 05: News, Filings, Earnings Calls                     | N/A    |          |           |          |      |
+| 06: Auto EDA                                          | N/A    |          |           |          |      |
 | **Prediction and Portfolio Construction**             |        |          |           |          |      |
-| 07. Forecasting                                       | N/A    |          |           |          |      |
-| 08. Limit Order Book Modeling                         | N/A    |          |           |          |      |
-| 09. Portfolio Optimization and Reinforcement Learning | N/A    |          |           |          |      |
+| 07: Forecasting                                       | N/A    |          |           |          |      |
+| 08: Limit Order Book Modeling                         | N/A    |          |           |          |      |
+| 09: Portfolio Optimization and Reinforcement Learning | N/A    |          |           |          |      |
 | **Research Loop**                                     |        |          |           |          |      |
-| 10. Auto DS                                           | N/A    |          |           |          |      |
-| 11. Agents: Automating the Research Loop              | N/A    |          |           |          |      |
+| 10: Auto DS                                           | N/A    |          |           |          |      |
+| 11: Agents: Automating the Research Loop              | N/A    |          |           |          |      |
 | **Risk, Operations, and Governance**                  |        |          |           |          |      |
-| 12. Risk, Credit Risk, and Fraud                      | N/A    |          |           |          |      |
-| 13. Explainability and Robustness                     | N/A    |          |           |          |      |
-| 14. Regulation, Model Risk Management, and Deployment | N/A    |          |           |          |      |
+| 12: Risk, Credit Risk, and Fraud                      | N/A    |          |           |          |      |
+| 13: Explainability and Robustness                     | N/A    |          |           |          |      |
+| 14: Regulation, Model Risk Management, and Deployment | N/A    |          |           |          |      |
 | **Frontiers**                                         |        |          |           |          |      |
-| 15. Market Simulation                                 | N/A    |          |           |          |      |
-| 16. The Road Ahead                                    | N/A    |          |           |          |      |
+| 15: Market Simulation                                 | N/A    |          |           |          |      |
+| 16: The Road Ahead                                    | N/A    |          |           |          |      |
 
 ## `book_Modern_AI_for_Finance` Tutorials
 
@@ -681,20 +688,34 @@
   distributions
 - Catch finance-specific data errors: look-ahead, survivorship, stale prices,
   corporate actions
-- Use agents to propose hypotheses and features, with reproducible reports and human
-  review
+- Use agents to propose hypotheses and features, with logged looks and human review
 
 ### Topics
 
+- Levels of Automation
+  - Profilers and rules: fixed checks, no search
+  - AutoML: search over a predefined space with a clear objective
+  - LLM agents: open-ended search over analyses, with code generation
 - Automated Profiling
-  - Schema, missing values, outliers, and distributions
+  - Rule-based profilers: schema, missing values, outliers, and distributions
+  - Panel structure: coverage and missingness by asset and date
 - Finance-Specific Checks
   - Look-ahead and survivorship bias
   - Stale prices and corporate action breaks
+  - Leakage detection: a known weak spot of agents
+- Time-Aware EDA
+  - Split by time first: explore the training period only
+  - Stationarity, structural breaks, and regime-aware summaries
 - Stylized Facts
   - Fat tails, volatility clustering, and autocorrelation
-- Agent-Driven Exploration
-  - Agents that generate hypotheses, features, and candidate signals
+- EDA as Snooping
+  - Every plot and hypothesis is a trial
+  - More automation widens the search and multiplies trials
+  - Logging the number of looks and holding out data
+- Agent-Driven EDA
+  - Hypotheses, features, and candidate signals
+  - Chart selection: correct semantics vs. code that merely runs
+  - Agent architecture and verification: see chapter 11
 - Reproducible EDA Reports
   - Generated notebooks with human review
 
@@ -1020,32 +1041,43 @@
 
 # Part IV: Research Loop
 
-
 ## 10: Auto DS
 
 ### Goals
 
 - Automate model and hyperparameter search under purged cross-validation
-- Generate and select features automatically, with checks for leakage
+- Generate and select labels and features automatically, with checks for leakage
 - Track every trial and gate automated output with human review to limit overfitting
 
 ### Topics
 
 - AutoML for Finance
-  - Model and hyperparameter search under purged cross-validation
+  - Search over a predefined space of models and hyperparameters
+  - Objective: purged and embargoed cross-validation score
+  - AutoML tools: AutoGluon and PyCaret
 - Auto Feature Engineering
-  - Generated features, feature selection, and leakage checks
-- Agents per Pipeline Step
-  - Cleaning, features, modeling, and backtest
+  - Generated features and feature selection
+  - Leakage checks on generated features
+- Auto Label Generation
+  - Labeling choices: horizon, threshold, triple barrier, and meta-labeling
+  - Label choice as a hidden trial dimension
+- Objective Choice
+  - Economic objective net of costs vs. statistical loss
+  - Agents may optimize the wrong metric
 - Experiment Tracking
   - Trial counts as input to the deflated Sharpe ratio
+  - Overfitting statistics: probability of backtest overfitting, effective trials
+  - Run logs: code, data versions, and seeds
+  - Search cost: compute and time per trial
 - Guardrails
+  - Final holdout touched once
   - Human review gates against automated overfitting
 
 ### TODO
 
 - [ ] Add `Why AI` bullets to each topic
-- [ ] Check research/ideas/in_progress.Comparison_of_Data_Science_Agents.md
+- [ ] Check labeling and overfitting statistics against
+  `//notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md`
 
 ### Slides
 
@@ -1063,35 +1095,58 @@
 
 - Build agents that call tools and retrieve financial data
 - Automate the research loop from hypothesis to backtest to report
-- Verify agent outputs and guard against automated data snooping
+- Evaluate agents and verify their outputs, guarding against automated data snooping
 
 ### Topics
 
 - Tool-Using Agents
   - Function calling with finance tools: market data APIs, filings, backtesters
   - Retrieval pipelines for financial data
+  - Architecture: planner, tool layer, sandbox, critic, and memory
+  - Semantic layers and data catalogs fix metric definitions
   - Why AI:
     - Manual data access: market data, filings, and backtests are reached by hand
       - LLM: tool-using agents call market data APIs, filings, and backtesters
 - Automating the Research Loop
   - Loop: hypothesis, data, code, backtest, report
-  - Multi-agent analyst workflows
+  - Agents per pipeline step: cleaning, features, modeling, and backtest
+  - Single-agent vs. multi-agent analyst workflows: AutoGen, CrewAI, LangGraph
   - Agent reasoning, memory, and planning
+  - Strong steps: exploration, modeling, and iteration
+  - Weak steps: problem framing, causal reasoning, and metric choice
   - Why AI:
     - Slow research loop: hypothesis, data, code, backtest, and report are manual
       steps
       - Automation: code generation turns hypotheses into runnable backtests and
         reports
       - LLM: multi-agent analyst workflows split data, modeling, and review roles
+- Data Science Agent Landscape
+  - Systems: LIDA, Data Interpreter, DS-STAR, RAGvis
+  - Reusing prior solutions: skill libraries (AgentAda), case-based reasoning
+    (DS-Agent)
+  - Agents as search systems over analyses
+- Evaluating Agents
+  - Benchmarks for data science tasks: DSBench, MLE-Bench, DataSciBench
+  - Benchmarks for analysis and insight: DA-Code, DABStep, InsightBench, BLADE
+  - Scorecard: performance, code quality, runtime, and explainability
+  - Cost: accuracy vs. tokens vs. latency
+  - Programmatic metrics vs. LLM-as-judge
+  - Benchmark limits: saturation and Kaggle-style tasks
 - Verification
   - Fact-checking and verification of agent outputs
+  - Critic loops and programmatic validators
+  - Silent failures: leaked features and corrupted labels
   - Multiple testing in automated research: guarding against p-hacking
+  - Division of labor: humans frame and decide, agents explore and build
   - Why AI:
     - Automated data snooping: faster search multiplies false discoveries
       - Automation: trial logging and multiple-testing corrections apply to every
         agent run
     - Unreliable outputs: agents can fabricate data or run incorrect code
       - Automation: fact-checking, tests, and human review verify agent outputs
+- Security and Provenance
+  - Sandboxing, least privilege, and prompt-injection defenses
+  - Provenance: prompts, tool calls, and agent traces
 
 ### Slides
 
@@ -1132,6 +1187,15 @@
   - [25%]: Research-loop automation for finance, multi-agent analyst workflow design,
     LLM tool definitions for finance, multiple-testing controls for automated
     research
+
+### Notes
+
+- Sources used for the agent topics, also used for chapters 06 and 10:
+  - `research/ideas/in_progress.Comparison_of_Data_Science_Agents.md`
+  - `research/ideas/draft.Benchmarking_Data_Science_Agents.md`
+  - `research/agentic_data_science/sota_eda.md`
+  - `research/agentic_data_science/deep-research-report.md`
+  - `research/agentic_data_science/agentic_data_science.report.md`
 
 # Part V: Risk, Operations, and Governance
 

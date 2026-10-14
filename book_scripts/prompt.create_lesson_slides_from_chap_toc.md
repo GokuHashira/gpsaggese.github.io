@@ -10,7 +10,7 @@
   ```
   DIR="/Users/saggese/src/umd_classes1"
   BOOK="book_Modern_AI_for_Finance"
-  CHAP="## 02: Strategy Backtesting"
+  CHAP="## 10: Auto DS"
   ```
   - `CHAP` is an H2 chapter of `<DIR>/<BOOK>/book_map.md`
   - The topics come from `### Topics` of that chapter
