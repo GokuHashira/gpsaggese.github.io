@@ -23,51 +23,67 @@
     how AI, ML, and coding automation help
 - Provide resources to go one level deeper:
   - Related classes (`msml610`, `data605`)
-  - Related books (`book_Agentic_AI`, `book_springer`)
+  - Related books (`book_Agentic_AI`, `book_springer`, etc.)
   - Papers and books on quantitative finance and deep learning
 
 ## Short TOC
-- Foundations
-  - 01, Why Finance Is Different
-    - Finance primer: instruments, returns, risk and Sharpe ratio, factor
-      models, market microstructure basics, costs, capacity
-    - Non-stationarity, heavy tails, volatility clustering, low signal-to-noise
-  - 02, Strategy Backtesting
-    - Backtest mechanics: simulation, fills, costs, look-ahead and survivorship
-      bias
-    - Backtest discipline: overfitting, multiple testing, purged CV,
-      deflated Sharpe
-    - Causal vs. predictive: spurious factors
-  - 03, Deep Learning, Transformers, and LLMs
-    - Refresher: deep learning, transformers, LLMs
-    - Adapting LLMs: fine-tuning, RAG, domain-pretrained models
 
-- Data engineering
-  - 04, Data engineering
-    - Point-in-time correctness (as-of joins)
-    - Survivorship bias and delisting returns
-    - Restatements and revisions
-    - Corporate actions and adjusted prices
-    - Identifiers and symbology (CUSIP, ISIN, PERMNO)
-    - Timestamps, time zones, calendars
-    - Data vendors (CRSP, Compustat, TAQ, EDGAR)
-    - Alternative data: classification and practice
-      - Satellite and web data
-      - ESG and climate risk data
+### Foundations
+- 01, Why Finance Is Different
+  - Finance primer: instruments, returns, risk and Sharpe ratio, factor
+    models, market microstructure basics, costs, capacity
+  - Non-stationarity, heavy tails, volatility clustering, low signal-to-noise
 
-- Market Prediction with Deep Learning
-  - 05, Price and Volatility Forecasting
-    - Baselines first: linear, ARIMA/GARCH, GBDT
-    - Time series foundation models (Chronos, TimesFM, Lag-Lama)
-    - Alpha research: signals, IC, turnover, decay
-    - Factors: classic, ML-based, factor zoo, causal factors
-    - Regime detection and macro nowcasting
-    - Uncertainty quantification: probabilistic forecasts, calibration,
-      conformal prediction
-  - 06, Limit Order Book Modeling
-    - Microstructure and LOB mechanics
-    - Market impact and execution cost
-  - 07, Portfolio Optimization and Reinforcement Learning
+- 02, Strategy Backtesting
+  - Backtest mechanics: simulation, fills, costs, look-ahead and survivorship
+    bias
+  - Backtest discipline: overfitting, multiple testing, purged CV,
+    deflated Sharpe
+  - Causal vs. predictive: spurious factors
+
+- 03, Deep Learning, Transformers, LLMs, Agents
+  - Refresher: deep learning, transformers, LLMs
+  - Adapting LLMs: fine-tuning, RAG, domain-pretrained models
+  - Agents
+
+### Data engineering
+- 04, Data engineering
+  - Point-in-time correctness (as-of joins)
+  - Survivorship bias and delisting returns
+  - Restatements and revisions
+  - Corporate actions and adjusted prices
+  - Identifiers and symbology (CUSIP, ISIN, PERMNO)
+  - Timestamps, time zones, calendars
+  - Data vendors (CRSP, Compustat, TAQ, EDGAR)
+  - Alternative data: classification and practice
+    - Satellite and web data
+    - ESG and climate risk data
+
+// TODO(ai_gp): Add a chapter number for this and renumber and reorganize everything
+- ?, News, Filings, Earnings Calls
+  - LLMs for finance text
+  - Conversational finance assistants
+
+// TODO(ai_gp): Add a chapter about auto EDA
+
+### Prediction and Portfolio Construction
+- 05, Price Forecasting
+  - Baselines first: linear, ARIMA/GARCH, GBDT
+  - Time series foundation models (Chronos, TimesFM, Lag-Lama)
+  - Alpha research: signals, IC, turnover, decay
+  - Factors: classic, ML-based, factor zoo, causal factors
+  - Regime detection and macro nowcasting
+  - Uncertainty quantification: probabilistic forecasts, calibration,
+    conformal prediction
+
+- 06, Limit Order Book Modeling
+  - Microstructure and LOB mechanics
+  - Market impact and execution cost
+
+- ?, Volatility Forecasting
+  // TODO(ai_gp): Move the topics from 05, Price Forecasting
+
+- 07, Portfolio Optimization and Reinforcement Learning
     - Portfolio optimization and constraints
     - Derivatives and fixed income
       - Neural option pricing and volatility surface
@@ -76,30 +92,29 @@
     - RL where it works: execution, market making, hedging
     - RL where it is mostly hype: end-to-end trading
 
-- Language in Finance
-  - 08, News, Filings, Earnings Calls
-    - LLMs for finance text
+### Research Loop
+// TODO(ai_gp): Add a chapter about auto DS (auto agents for XYZ)
+
   - 09, Agents: automating the research loop
-  - 10, Conversational finance assistants
 
-- Risk, Operations, and Governance
-  - 11, Risk, Credit Risk, and Fraud
-    - Market risk: VaR/ES, covariance, factor risk models
-    - Credit risk and fraud detection
-    - Uncertainty in credit: calibrated default probabilities, conformal
-      prediction
-  - 12, Explainability and Robustness
-    - Uncertainty and trust: calibration, conformal prediction
-  - 13, Regulation, Model Risk Management, and Deployment
+### Risk, Operations, and Governance
+- 11, Risk, Credit Risk, and Fraud
+  - Market risk: VaR/ES, covariance, factor risk models
+  - Credit risk and fraud detection
+  - Uncertainty in credit: calibrated default probabilities, conformal
+    prediction
+- 12, Explainability and Robustness
+  - Uncertainty and trust: calibration, conformal prediction
+- 13, Regulation, Model Risk Management, and Deployment
 
-- Frontiers
-  - 14, Market simulation
-    - GANs / diffusion models for scenario generation
-    - Agent-based market simulation
-    - Stress testing
-    - Synthetic data: augmenting scarce data
-    - Fidelity: stylized facts (fat tails, volatility clustering)
-  - 15, The Road Ahead: multimodal models, open problems
+### Frontiers
+- 14, Market simulation
+  - GANs / diffusion models for scenario generation
+  - Agent-based market simulation
+  - Stress testing
+  - Synthetic data: augmenting scarce data
+  - Fidelity: stylized facts (fat tails, volatility clustering)
+- 15, The Road Ahead: multimodal models, open problems
 
 ## All Lesson Materials
 - Read the content of the file `/Users/saggese/src/notes1/finance_index.md`
