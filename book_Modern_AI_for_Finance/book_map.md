@@ -64,38 +64,48 @@
   - LLMs for finance text
   - Conversational finance assistants
 
-// TODO(ai_gp): Add a chapter about auto EDA
+- ?, Auto EDA
+  - Automated profiling: schema, missing values, outliers, distributions
+  - Finance-specific checks: look-ahead, survivorship, stale prices, corporate
+    action breaks
+  - Stylized facts: fat tails, volatility clustering, autocorrelation
+  - Agents generating hypotheses, features, and candidate signals
+  - Reproducible EDA reports: generated notebooks with human review
 
 ### Prediction and Portfolio Construction
-- 05, Price Forecasting
-  - Baselines first: linear, ARIMA/GARCH, GBDT
+- 05, Forecasting
+  - Baselines first: linear, ARIMA, GBDT
   - Time series foundation models (Chronos, TimesFM, Lag-Lama)
   - Alpha research: signals, IC, turnover, decay
   - Factors: classic, ML-based, factor zoo, causal factors
   - Regime detection and macro nowcasting
   - Uncertainty quantification: probabilistic forecasts, calibration,
     conformal prediction
+  - Volatility Forecasting
+    - GARCH for volatility clustering
 
 - 06, Limit Order Book Modeling
   - Microstructure and LOB mechanics
   - Market impact and execution cost
 
-- ?, Volatility Forecasting
-  // TODO(ai_gp): Move the topics from 05, Price Forecasting
-
 - 07, Portfolio Optimization and Reinforcement Learning
-    - Portfolio optimization and constraints
-    - Derivatives and fixed income
-      - Neural option pricing and volatility surface
-      - Yield curve and rates
-      - Hedging (deep hedging)
-    - RL where it works: execution, market making, hedging
-    - RL where it is mostly hype: end-to-end trading
+  - Portfolio optimization and constraints
+  - Derivatives and fixed income
+    - Neural option pricing and volatility surface
+    - Yield curve and rates
+    - Hedging (deep hedging)
+  - RL where it works: execution, market making, hedging
+  - RL where it is mostly hype: end-to-end trading
 
 ### Research Loop
-// TODO(ai_gp): Add a chapter about auto DS (auto agents for XYZ)
+- ?, Auto DS
+  - AutoML for finance: model and hyperparameter search under purged CV
+  - Auto feature engineering: generated features, selection, leakage checks
+  - Auto agents for each pipeline step: cleaning, features, modeling, backtest
+  - Experiment tracking: trial counts feed the deflated Sharpe ratio
+  - Human review gates and guardrails against automated overfitting
 
-  - 09, Agents: automating the research loop
+- 09, Agents: automating the research loop
 
 ### Risk, Operations, and Governance
 - 11, Risk, Credit Risk, and Fraud
