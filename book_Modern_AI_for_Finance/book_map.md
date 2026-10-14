@@ -139,37 +139,40 @@
 
 # Roadmap
 
-| Chap                                                  | Slides | Slides % | Criticize | Tutorial | Book |
-| :---------------------------------------------------- | :----- | :------- | :-------- | :------- | :--- |
-| **Foundations**                                       |        |          |           |          |      |
-| 01: Why Finance Is Different                          | N/A    |          |           |          |      |
-| 02: Strategy Backtesting                              | N/A    |          |           |          |      |
-| 03: Deep Learning, Transformers, LLMs, and Agents     | N/A    |          |           |          |      |
-| **Data Engineering**                                  |        |          |           |          |      |
-| 04: Data Engineering                                  | N/A    |          |           |          |      |
-| 05: News, Filings, Earnings Calls                     | N/A    |          |           |          |      |
-| 06: Auto EDA                                          | N/A    |          |           |          |      |
-| **Prediction and Portfolio Construction**             |        |          |           |          |      |
-| 07: Forecasting                                       | N/A    |          |           |          |      |
-| 08: Limit Order Book Modeling                         | N/A    |          |           |          |      |
-| 09: Portfolio Optimization and Reinforcement Learning | N/A    |          |           |          |      |
-| **Research Loop**                                     |        |          |           |          |      |
-| 10: Auto DS                                           | N/A    |          |           |          |      |
-| 11: Agents: Automating the Research Loop              | N/A    |          |           |          |      |
-| **Risk, Operations, and Governance**                  |        |          |           |          |      |
-| 12: Risk, Credit Risk, and Fraud                      | N/A    |          |           |          |      |
-| 13: Explainability and Robustness                     | N/A    |          |           |          |      |
-| 14: Regulation, Model Risk Management, and Deployment | N/A    |          |           |          |      |
-| **Frontiers**                                         |        |          |           |          |      |
-| 15: Market Simulation                                 | N/A    |          |           |          |      |
-| 16: The Road Ahead                                    | N/A    |          |           |          |      |
+| Chap                                                  | Slides                                   | Slides % | Criticize | Tutorial                              | Book |
+| :---------------------------------------------------- | :--------------------------------------- | :------- | :-------- | :------------------------------------ | :--- |
+| **Foundations**                                       |                                          |          |           |                                       |      |
+| 01: Why Finance Is Different                          | Lesson01.01_Why_Finance_Is_Different.smd |          |           | L01_01_why_finance_is_different.ipynb |      |
+| 02: Strategy Backtesting                              | Lesson02.01_Strategy_Backtesting.smd     |          |           | L02_01_strategy_backtesting.ipynb     |      |
+| 03: Deep Learning, Transformers, LLMs, and Agents     | N/A                                      |          |           |                                       |      |
+| **Data Engineering**                                  |                                          |          |           |                                       |      |
+| 04: Data Engineering                                  | N/A                                      |          |           |                                       |      |
+| 05: News, Filings, Earnings Calls                     | N/A                                      |          |           |                                       |      |
+| 06: Auto EDA                                          | Lesson06.01_Auto_EDA.smd                 |          |           | L06_01_auto_eda.ipynb                 |      |
+| **Prediction and Portfolio Construction**             |                                          |          |           |                                       |      |
+| 07: Forecasting                                       | N/A                                      |          |           |                                       |      |
+| 08: Limit Order Book Modeling                         | N/A                                      |          |           |                                       |      |
+| 09: Portfolio Optimization and Reinforcement Learning | N/A                                      |          |           |                                       |      |
+| **Research Loop**                                     |                                          |          |           |                                       |      |
+| 10: Auto DS                                           | Lesson10.01_Auto_DS.smd                  |          |           | L10_01_auto_ds.ipynb                  |      |
+| 11: Agents: Automating the Research Loop              | N/A                                      |          |           |                                       |      |
+| **Risk, Operations, and Governance**                  |                                          |          |           |                                       |      |
+| 12: Risk, Credit Risk, and Fraud                      | N/A                                      |          |           |                                       |      |
+| 13: Explainability and Robustness                     | N/A                                      |          |           |                                       |      |
+| 14: Regulation, Model Risk Management, and Deployment | N/A                                      |          |           |                                       |      |
+| **Frontiers**                                         |                                          |          |           |                                       |      |
+| 15: Market Simulation                                 | N/A                                      |          |           |                                       |      |
+| 16: The Road Ahead                                    | N/A                                      |          |           |                                       |      |
 
 ## `book_Modern_AI_for_Finance` Tutorials
 
 > find book_Modern_AI_for_Finance/tutorials -name \*.ipynb
 
 ```
-
+book_Modern_AI_for_Finance/tutorials/L01_why_finance_is_different/L01_01_why_finance_is_different.ipynb
+book_Modern_AI_for_Finance/tutorials/L02_strategy_backtesting/L02_01_strategy_backtesting.ipynb
+book_Modern_AI_for_Finance/tutorials/L06_auto_eda/L06_01_auto_eda.ipynb
+book_Modern_AI_for_Finance/tutorials/L10_auto_ds/L10_01_auto_ds.ipynb
 ```
 
 ## TODOs
@@ -232,7 +235,7 @@
 
 ### Slides
 
-- N/A: no dedicated deck yet
+- `book_Modern_AI_for_Finance/lectures_source/Lesson01.01_Why_Finance_Is_Different.smd`
 
 ### Lesson Materials
 
@@ -310,7 +313,7 @@
 
 ### Slides
 
-- N/A: no dedicated deck yet
+- `book_Modern_AI_for_Finance/lectures_source/Lesson02.01_Strategy_Backtesting.smd`
 
 ### Lesson Materials
 
@@ -725,13 +728,74 @@
 
 ### Slides
 
-- N/A: no dedicated deck yet
+- `book_Modern_AI_for_Finance/lectures_source/Lesson06.01_Auto_EDA.smd`
 
 ### Lesson Materials
 
-// TODO(gp): Fill the lesson materials
+// TODO(gp): Check the coverage percentages: estimated from the deck's sources
+- `//notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md`
+  - [30%]: Look-ahead and survivorship bias, point-in-time data, structural breaks
+    and CUSUM tests, stationarity with maximum memory preservation, empirical
+    observations about financial time series, multiple testing
+- `research/agentic_data_science/sota_eda.md`
+  - [25%]: Definitions and scope of agentic EDA, systems comparison, agent loop,
+    failure modes in benchmarks and deployments, reproducibility and safety
+    recommendations
+- `research/agentic_data_science/agentic_data_science.report.md`
+  - [15%]: Agents as search systems, current capabilities, where agents still fail
+    (leakage, metric selection), the changing role of humans
+- `data605/lectures_source/Lesson07.2-Data_Wrangling.smd`
+  - [15%]: Data wrangling workflow, classification of data problems, single-source
+    problems, univariate and time series outlier detection
+- `book_Modern_AI_for_Finance/lectures_source/Lesson02.01_Strategy_Backtesting.smd`
+  - [15%]: Subtle sources of leakage, survivorship bias, false strategy theorem, the
+    backtest protocol that the Auto EDA protocol mirrors
+- `msml610/lectures_source/Lesson02.3-ML_Techniques_Input_Processing.smd`
+  - [10%]: Data cleaning, outliers, missing data and imputation, fit on train and
+    apply to validation and test
+- `msml610/lectures_source/Lesson10.1-Timeseries_forecasting.smd`
+  - [10%]: Stationarity, cross-validation for time series, change-point detection,
+    Markov-switching models
+- `msml610/lectures_source/Lesson02.6-ML_Techniques_How_To_Do_Research.smd`
+  - [10%]: Data snooping, "burning the test set", right and wrong approach to
+    research
+- `research/agentic_data_science/agentic_eda.notes.md`
+  - [10%]: Goals of agentic EDA, analysis templates by data type, EDA plan proposal
+- `research/agentic_data_science/AutoEDA_Plan.md`
+  - [5%]: Out-of-sample validation system, user approval of the EDA plan
+- `research/agentic_data_science/RL_for_auto_EDA_sota_review.md`
+  - [5%]: Descriptive report generators, search-based pipeline cleaning and feature
+    engineering
+- `research/ideas/in_progress.Comparison_of_Data_Science_Agents.md`
+  - [5%]: Key examples of data science agents, leakage failure case
+- `research/ideas/draft.Benchmarking_Data_Science_Agents.md`
+  - [5%]: Benchmark landscape for data science agents
+- `book_Modern_AI_for_Finance/lectures_source/Lesson01.01_Why_Finance_Is_Different.smd`
+  - [5%]: Running example (momentum strategy), stylized facts and ML failure modes
+- `//notes1/notes/finance.time_series.txt`
+  - [5%]: ADF test, Ljung-Box test
+- `//notes1/notes/papers.finance.misc.txt`
+  - [5%]: De Prado on the multiple-testing crisis in financial research
+- `msml610/lectures_source/Lesson05.1-Learning_Theory.smd`
+  - [5%]: Data snooping voids the VC guarantee
+- `book_cs_refreshers/lectures_source/Lesson91.Refresher_probability.smd`
+  - [5%]: P-hacking
+- `msml610/lectures_source/Lesson07.1-Intro_to_Probabilistic_Programming.smd`
+  - [5%]: EDA vs. inferential statistics
+- `data605/lectures_source/Lesson01.3-Is_Data_Science_Just_Hype.smd`
+  - [5%]: Where a data scientist spends most of the time
+- `book_springer/lectures_source/Lesson02.1_From_Data_Science_To_Decision_Science.smd`
+  - [5%]: Analytics maturity ladder
+- `book_springer/lectures_source/Lesson15.1_Deployment_Monitoring_And_Adaptation.smd`
+  - [5%]: Notebook-to-production gap
+- `book_Agentic_AI/lectures_source/Lesson01.1-What_Is_An_Agentic_AI.smd`
+  - [5%]: Human-in-the-loop vs. full autonomy
+- `msml610/lectures_source/Lesson12.2-Causal_Discovery.smd`
+  - [5%]: Discovery as hypothesis generation
 - _Not covered_
-  - All topics: no lecture mapped yet
+  - [5%]: Worked use of cleaning and feature-search tools (AlphaClean, featuretools,
+    TPOT) that the deck only names, and finance-specific benchmark results for EDA
+    agents, since the reported benchmarks are general data science tasks
 
 # Part III: Prediction and Portfolio Construction
 
@@ -1081,13 +1145,43 @@
 
 ### Slides
 
-- N/A: no dedicated deck yet
+- `book_Modern_AI_for_Finance/lectures_source/Lesson10.01_Auto_DS.smd`
 
 ### Lesson Materials
 
-// TODO(gp): Fill the lesson materials
+// TODO(gp): Check the coverage percentages: estimated from the deck's sources
+- `//notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md`
+  - [45%]: Grid and randomized search with cross-validation, financial observations
+    are not IID, fractionally differentiated features, feature importance (MDI,
+    MDA, single feature importance, substitution effects), labeling (fixed horizon,
+    dynamic thresholds, triple barrier, meta-labeling), uniqueness and sequential
+    bootstrap, log loss vs. accuracy, deflated Sharpe ratio, PBO, steps to reduce
+    overfitting
+- `book_Modern_AI_for_Finance/lectures_source/Lesson02.01_Strategy_Backtesting.smd`
+  - [25%]: Purging and embargo, experiment tracking counts the trials, deflated
+    Sharpe ratio, reality check and PBO
+- `research/agentic_data_science/agentic_data_science.report.md`
+  - [15%]: Agents as search systems, research architecture, current capabilities,
+    where agents fail (leakage, metric selection, compute cost), the changing role
+    of humans
+- `research/ideas/draft.MDL_Extensions_with_Research_Process.md`
+  - [10%]: Search cost per trial, hidden complexity of the research process, AutoML
+    search trajectories
+- `research/ideas/in_progress.Comparison_of_Data_Science_Agents.md`
+  - [5%]: Data science agents as search systems, candidate agents
+- `book_Modern_AI_for_Finance/lectures_source/Lesson01.01_Why_Finance_Is_Different.smd`
+  - [5%]: Transaction costs for net objectives
+- `//notes1/notes/work.trading_ideas.txt`
+  - [5%]: Own notes on overfitting: the number of hypotheses tested, not their
+    complexity
+- `msml610/lectures_source/Lesson02.6-ML_Techniques_How_To_Do_Research.smd`
+  - [5%]: Data snooping, "burning the test set"
+- `//notes1/notes/papers.finance.misc.txt`
+  - [5%]: De Prado on the multiple-testing crisis in financial research
 - _Not covered_
-  - All topics: no lecture mapped yet
+  - [5%]: Worked benchmarks of AutoGluon and PyCaret on a financial panel, and
+    quantitative comparison of Bayesian and successive-halving search under purged
+    cross-validation
 
 ## 11: Agents: Automating the Research Loop
 
