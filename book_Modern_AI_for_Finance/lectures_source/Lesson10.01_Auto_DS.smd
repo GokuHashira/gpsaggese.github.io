@@ -15,13 +15,9 @@
 * Roadmap
 
 - This lesson covers **AutoML for finance**: a search over a predefined space
-  of models and hyperparameters, scored by a purged and embargoed
-  cross-validation
-  - The search raises the validation score faster than the holdout score
+  of models and hyperparameters, scored by (a purged and embargoed) cross-validation
 
 - It then covers **auto feature engineering** and **auto label generation**:
-  generated features, leakage checks, the triple barrier method, and
-  meta-labeling
   - Every feature and every label choice is one more dimension of the search
 
 - It continues with **objective choice**: why a statistical loss is not an
@@ -32,8 +28,6 @@
   review gates
 
 # AutoML for Finance
-
-## Motivation
 
 * Why Automate the Model Search
 // From: research/agentic_data_science/agentic_data_science.report.md:76 '# 4. Research Trend: Agents as Search Systems'
@@ -46,30 +40,30 @@
 
 - @Example@: forecast the 5-day return of 500 stocks from 30 candidate
   features
-  - 3 model families, 20 hyperparameter settings, 10 feature subsets, and 5
-    label definitions make 3,000 configurations
+  - 10 feature subsets, 5 label definitions, 3 model families, 20 hyperparameter
+    settings make 3,000 configurations
 
 - @Problem@: each configuration is a trial, and the search that finds the best
-  model also inflates its score
+  model inflates its score
 
-- @Key idea@: automation changes the number of trials by orders of magnitude,
-  so it must come with controls
+- @Key idea@: automation changes the number of trials by orders of magnitude, so it
+  must come with controls
 
 * AutoML as Search Over a Predefined Space
 // From: research/ideas/in_progress.Comparison_of_Data_Science_Agents.md:20 '- **Data Science Agents** are AI-powered autonomous systems'
 
-- @Definition@: **AutoML** searches a predefined space $\Theta$ of pipelines
-  for the best score of a fixed objective, under a compute budget
+- @Definition@: **AutoML** searches a predefined space $\Theta$ of pipelines for the
+  best score of a fixed objective, under a compute budget
   $$
   \theta^* = \arg\max_{\theta \in \Theta} S(\theta)
   $$
 
 - @Components@:
-  - Search space $\Theta$: model family, hyperparameters, preprocessing,
-    feature subset
+  - Search space $\Theta$: preprocessing, feature subset, model family,
+    hyperparameters
   - Objective $S$: the cross-validation score
   - Search algorithm: how the next trial is chosen
-  - Budget: number of trials or wall-clock time
+  - Budget: number of trials, compute budget, or wall-clock time
 
 - @Example@: the space of the running example
   - Ridge with $\alpha \in [10^{-2}, 10^4]$
@@ -79,8 +73,6 @@
 
 - @Remark@: a human fixes the space before the search, and anything outside it
   is never tried
-
-## Search and Objective
 
 * Search Strategies
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1743 '* Grid search cross-validation'
@@ -92,7 +84,7 @@
   headers: ("Strategy", "How it picks the next trial", "Strength", "Weakness"),
   rows: (
     ("Grid", "Every combination on a fixed grid", "Exhaustive and reproducible", "Cost grows exponentially with the number of parameters"),
-    ("Random", "Samples each parameter from a distribution, e.g., log-uniform", "Controls the budget and covers the relevant parameters", "Does not learn from the past trials"),
+    ("Random", "Samples each parameter from a distribution", "Controls the budget and covers relevant parameters", "Does not learn from the past trials"),
     ("Bayesian", "Fits a model of the score and tries the most promising point", "Fewer trials for a smooth score", "Sequential, and the score surface is noisy"),
     ("Successive halving", "Gives many trials a small budget and keeps the best", "Cheap screening", "A noisy early score can discard a good trial"),
   ),
@@ -102,8 +94,8 @@
 ```
 \endgroup
 
-- @Key idea@: every strategy picks the winner with the same noisy score, so
-  more trials means more selection bias
+- @Key idea@: every strategy picks the winner with the same noisy score, so more
+  trials means more selection bias
 
 * The Objective: Purged and Embargoed CV
 // From: book_Modern_AI_for_Finance/lectures_source/Lesson02.01_Strategy_Backtesting.smd:666 '* Purging Overlapping Labels'
@@ -130,7 +122,7 @@
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1536 '* The most pervasive mistake in financial research'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=60%}
 - @Example@: 200 random configurations on 30 features, where 3 features carry
   the signal
   - The oracle score of the true signal on the holdout is 0.139
@@ -143,23 +135,19 @@
   estimate that grows with the number of trials, and the holdout score does
   not
 ::::
-:::: {.column width=45%}
+:::: {.column width=40%}
 
-![](book_Modern_AI_for_Finance/lectures_source/figures/L10.01.Search_Overfitting.png)
+![Best cross-validation score and holdout against the number of
+trials](book_Modern_AI_for_Finance/lectures_source/figures/L10.01.Search_Overfitting.png)
 
-\footnotesize _Best cross-validation score and holdout score of the same
-configuration against the number of trials, as mean and interquartile band of
-10 searches_
 ::::
 :::
-
-## Tools
 
 * AutoML Tools: AutoGluon and PyCaret
 // From: research/ideas/in_progress.Comparison_of_Data_Science_Agents.md:54 '### Candidate Agents'
 
-- @Definition@: **AutoGluon** trains and ensembles many models on tabular data
-  with little code
+- @Definition@:
+  - **AutoGluon** trains and ensembles many models on tabular data with little code
   - **PyCaret** is a low-code library that compares, tunes, and blends models
 
 - @Components@: what the tools automate
@@ -174,6 +162,7 @@ configuration against the number of trials, as mean and interquartile band of
 
 // TODO(gp): Check that the AutoGluon presets use bagging and stacking over
 // random folds by default: recalled from memory, not in the notes
+// TODO(gp): This is unclear
 - @Remark@: bagging and stacking inside the tool repeat the leak of a random
   split at every layer of the ensemble
 
@@ -194,18 +183,18 @@ configuration against the number of trials, as mean and interquartile band of
         data_split_shuffle=False)
   ```
 
-- @Key idea@: the tool runs the search, and the human owns the split
+// TODO(gp): Add a tutorial for AutoGluon, PyCaret
 
-## Why AI
+- @Key idea@: the human owns the split, and the tool runs the search
 
 * What Search Automation Buys and Costs
 // From: research/agentic_data_science/agentic_data_science.report.md:107 '# 6. Current Capabilities of Agentic Data Science'
 // From: research/agentic_data_science/agentic_data_science.report.md:121 '# 7. Where Agents Still Fail'
 
-- @Problem@: a manual search covers few configurations, and the tuning is
-  slow and unlogged
+- @Problem@: a manual search covers few configurations, and the tuning is slow and
+  unlogged
 
-- @Pros@: what automation buys
+- @Pros@: what automation buys:
   - Wide coverage of models and hyperparameters
   - Reproducible runs and a trial log by construction
   - A strong tabular baseline in minutes
@@ -214,38 +203,36 @@ configuration against the number of trials, as mean and interquartile band of
   - More trials, so more selection bias
   - No judgment about leakage, economic sense, or costs
 
-- @Key idea@: use AutoML to set a baseline and to explore model families, not
-  to decide which strategy to trade
+- @Key idea@: use AutoML to set a baseline and to explore model families, not to
+  decide which strategy to trade
 
 # Auto Feature Engineering
-
-## Generated Features
 
 * Generated Features
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1187 '# 5, Fractionally differentiated features (p. 102)'
 // From: research/agentic_data_science/agentic_data_science.report.md:107 '# 6. Current Capabilities of Agentic Data Science'
 
-- @Definition@: **automatic feature engineering** applies a set of
-  transformations to the raw columns to create candidate features
+- @Definition@: **automatic feature engineering** applies a set of transformations to
+  the raw columns to create candidate features
 
 - @Examples@:
   - Lags and differences of returns
   - Rolling mean, volatility, and z-score over several windows
   - Ratio of the price to its moving average
   - Cross-sectional rank within each date
-  - Fractional differentiation, which makes a series stationary and keeps
-    memory
+  - Fractional differentiation (to make a series stationary but keep memory)
 
-- @Problem@: the number of candidates grows combinatorially
+- @Problem@: the number of candidates grows _combinatorially_
   - 10 raw columns, 5 transformations, and 6 windows make 300 features
   - All the pairwise interactions of 300 features make about 45,000
 
-- @Key idea@: every transformation needs an as-of rule, since a feature must
-  use only the data available at the decision time
+- @Key idea@: every transformation needs an as-of rule, since a feature must use only
+  the data available at the decision time
 
 * Generation Methods
 // From: research/agentic_data_science/agentic_data_science.report.md:63 '# 3. Research Architecture of Agentic Systems'
 
+// TODO(ai_gp): Make the table larger
 \begingroup \scriptsize
 ```{=typst}
 #styled-table(
@@ -265,15 +252,13 @@ configuration against the number of trials, as mean and interquartile band of
 - @Key idea@: the generator is cheap, so the filter after it must be cheap
   and strict
 
-## Feature Selection
-
 * Feature Selection
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1567 '* Substitution effect'
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1587 '* Mean decrease impurity'
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1605 '* Mean decrease performance score'
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1624 '* Single feature importance'
 
-- @Variants@: families of selection
+- @Variants@: **families of selection**
   - _Filter_: rank features by a univariate statistic, e.g., the correlation
     with the label
   - _Wrapper_: search subsets with the score of a model
@@ -313,13 +298,11 @@ configuration against the number of trials, as mean and interquartile band of
 - @Key idea@: the trial count must include the screened features, not only
   the fitted models
 
-## Leakage
-
 * Leakage in Generated Features
 // From: msml610/lectures_source/Lesson02.6-ML_Techniques_How_To_Do_Research.smd:125 '* Data Snooping (2/2)'
 // From: research/agentic_data_science/agentic_data_science.report.md:130 '- **Data Leakage Detection**: Still a major issue in automated modeling'
 
-- @Definition@: **leakage** is a feature that uses information that was not
+- @Definition@: a feature has **leakage** when it uses information that was not
   available at the decision time
 
 - @Examples@:
@@ -329,8 +312,7 @@ configuration against the number of trials, as mean and interquartile band of
   - A cross-sectional rank computed on the survivors only
   - A feature built from returns inside the label window
 
-- @Problem@: a generator makes thousands of features, and nobody reads each
-  one
+- @Problem@: a generator makes thousands of features, and nobody checks each one
 
 - @Key idea@: a leaked feature looks like an excellent one, with a high
   correlation to the label and a top importance
@@ -346,26 +328,16 @@ configuration against the number of trials, as mean and interquartile band of
      is far above what the market allows
   4. _Period stability_: the importance must hold in every sub-period
 
-- @Example@: the truncation test as code
-  ```python
-  def truncation_test(feature_fn, data, t):
-      full = feature_fn(data).loc[t]
-      cut = feature_fn(data.loc[:t]).loc[t]
-      return np.isclose(full, cut)
-  ```
-
 // TODO(gp): Check whether a daily correlation above about 0.1 is a usual
 // plausibility ceiling: it is a rule of thumb recalled from memory
-- @Remark@: the tests run inside the generator on every feature, and a feature
-  that fails never enters the search
-
-## Why AI
+- @Remark@: the tests run inside the generator on every feature, and a feature that
+  fails never enters the search
 
 * LLM-Proposed Features
 // From: research/agentic_data_science/agentic_data_science.report.md:63 '# 3. Research Architecture of Agentic Systems'
 
-- @Motivation@: an LLM reads filings, papers, and domain notes, and proposes
-  features that a grammar cannot write
+- @Motivation@: an LLM reads filings, papers, and domain notes, and proposes features
+  that a grammar cannot write
 
 - @Techniques@: the pipeline around the LLM
   - The LLM writes the feature code from a description of the data and of the
@@ -375,36 +347,34 @@ configuration against the number of trials, as mean and interquartile band of
   - The tracker logs the feature as a trial
 
 - @Limitations@:
-  - The code can be plausible and wrong
+  - The code can be plausible but _wrong
   - Each proposal is a trial, and cheap proposals raise the trial count
   - The economic story that the LLM writes is not evidence
 
-- @Key idea@: the LLM widens the search, so the logging and the leakage tests
-  must scale with it
+- @Key idea@: the LLM widens the search, so the logging and the leakage tests must
+  scale with it
 
 # Auto Label Generation
-
-## Labeling Choices
 
 * Labels Define the Problem
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:978 '# 3, Labeling (p. 70)'
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:985 '* ML problem setup'
 
-- @Definition@: a **label** $y_i$ is the target that the model learns to
-  predict for the observation $\vx_i$
+- @Definition@: a **label** $y_i$ is the target that the model learns to predict for
+  the observation $\vx_i$
 
 - @Components@: the labeling choices
-  - Horizon: number of bars of the forward window
-  - Type: return, sign, or class with a dead zone
-  - Threshold: size of the move that counts
-  - Sampling: all bars, or only the bars after an event
+  - _Horizon_: number of bars of the forward window
+  - _Type_: return, sign, ...
+  - _Threshold_: size of the move that counts
+  - _Sampling_: all bars, or only the bars after an event
 
-- @Example@: the sign of the 5-day return, against the 20-day return above one
-  standard deviation
+- @Example@: the sign of the 5-day return above one standard deviation of the 20-day
   - The same features with the two labels are two different experiments
 
-- @Remark@: generic AutoML tools take the label column as given, and labeling
-  is where finance differs the most
+// TODO(gp): Explain
+- @Remark@: generic AutoML tools take the label column as given, and labeling is
+  where finance differs the most
 
 * Fixed-Horizon Labels and Their Limits
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:995 '* Fixed-time horizon method'
@@ -415,9 +385,9 @@ configuration against the number of trials, as mean and interquartile band of
   $$
   y_i =
     \begin{cases}
-      +1 & r_i \ge \tau \\
-      -1 & r_i \le -\tau \\
-      0 & \text{otherwise}
+      +1 & \quad \quad r_i \ge \tau \\
+      -1 & \quad \quad r_i \le -\tau \\
+      0 & \quad \quad \text{otherwise}
     \end{cases}
   $$
 
@@ -436,7 +406,7 @@ configuration against the number of trials, as mean and interquartile band of
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1016 '* Triple barrier method'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=60%}
 - @Definition@: the **triple barrier method** labels an event by the first
   barrier that the price path touches
   - Upper barrier: profit taking, label $+1$
@@ -454,7 +424,7 @@ configuration against the number of trials, as mean and interquartile band of
 - @Remark@: $k$ and $h$ are hyperparameters of the label, and part of the
   search space
 ::::
-:::: {.column width=45%}
+:::: {.column width=40%}
 
 ![](book_Modern_AI_for_Finance/lectures_source/figures/L10.01.Triple_Barrier.png)
 
@@ -468,24 +438,20 @@ time out_
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1097 '* Meta-labelling: pros'
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1109 '* Meta-labelling example'
 
-- @Definition@: **meta-labeling** trains a secondary model that decides
-  whether to act on the signal of a primary model
-  - Primary model: the side of the bet, from an econometric equation, a
-    technical rule, or a human forecast
-  - Secondary model: a binary label that says whether the primary side was
-    right
+- @Definition@: **meta-labeling** trains a secondary model that decides whether to
+  act on the signal of a primary model
+  - _Primary model_: the side of the bet, from an econometric equation, a technical
+    rule, or a human forecast
+  - _Secondary model_: a binary label that says whether the primary side was right
   - The probability of the secondary model sets the size of the bet
 
 - @Pros@:
-  - Raises the precision of a primary model with high recall and low
-    precision
+  - Raises the precision of a primary model with high recall and low precision
   - Builds an ML model on top of a white-box model, which limits overfitting
   - Separates the side from the size of the bet
 
-- @Key idea@: the economic idea stays in the primary model, and AutoML
-  searches the secondary model
-
-## Label Effects
+- @Key idea@: the economic idea stays in the primary model, and AutoML searches the
+  secondary model
 
 * Overlapping Labels and Uniqueness
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1129 '* Financial observations are rarely IID'
@@ -518,7 +484,7 @@ time out_
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1016 '* Triple barrier method'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=60%}
 - @Example@: 30 label configurations, 6 horizons and 5 dead zones, on returns
   with no signal by construction
   - The best validation Sharpe ratio is 1.19
@@ -533,7 +499,7 @@ time out_
 - @Key idea@: the label configuration belongs in the trial log and in the
   trial count
 ::::
-:::: {.column width=45%}
+:::: {.column width=40%}
 
 ![](book_Modern_AI_for_Finance/lectures_source/figures/L10.01.Label_Choice.png)
 
@@ -544,13 +510,11 @@ best one circled and its holdout Sharpe ratio as a red diamond_
 
 # Objective Choice
 
-## Statistical vs. Economic Objectives
-
 * Statistical Loss vs. Economic Objective
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1769 '* Log loss vs accuracy'
 
-- @Problem@: the loss that the search minimizes is not the profit that the
-  strategy earns
+- @Problem@: the loss that the search minimizes is not the profit that the strategy
+  earns
 
 \begingroup \scriptsize
 ```{=typst}
@@ -575,12 +539,15 @@ best one circled and its holdout Sharpe ratio as a red diamond_
 * Objectives Net of Costs
 // From: book_Modern_AI_for_Finance/lectures_source/Lesson01.01_Why_Finance_Is_Different.smd:554 '* Transaction Costs'
 
-- @Definition@: the **net PnL** of day $t$ subtracts the cost of the trade
-  from the gross PnL
+- @Definition@: the **net PnL** of day $t$ subtracts the cost of the trade from the
+  gross PnL
   $$
   PnL^{net}_t \triangleq w_{t-1} r_t - c \, |w_t - w_{t-1}|
   $$
-  - $w_t$ is the position, $r_t$ the return, and $c$ the cost per unit traded
+  where:
+  - $w_t$ is the position
+  - $r_t$ the return
+  - $c$ the cost per unit traded
 
 - @Problem@: a search on a statistical loss favors fast signals
   - They have a high gross edge and a high turnover, so a low net edge
@@ -592,28 +559,25 @@ best one circled and its holdout Sharpe ratio as a red diamond_
 
 - @Remark@: a net objective is noisier, so it needs more data per trial
 
-## Agents and Metrics
-
 * Agents Optimize the Wrong Metric
 // From: research/agentic_data_science/agentic_data_science.report.md:131 '- **Metric Selection**: Agents may optimize wrong metrics'
 // From: research/agentic_data_science/agentic_data_science.report.md:121 '# 7. Where Agents Still Fail'
 
-- @Problem@: an agent maximizes the metric that it is given until the metric
-  stops measuring what the researcher wants
+- @Problem@: an agent maximizes the metric that it is given until the metric stops
+  measuring what the researcher wants
 
 - @Examples@:
-  - Accuracy on rare events: the agent predicts the majority class, and gets
-    90% accuracy on a 90/10 label
-  - In-sample Sharpe ratio: the agent selects a strategy that sells
-    volatility, with a smooth equity curve and a hidden tail
-  - Evaluation code: the agent edits the split or the metric to raise the
-    score
+  - Accuracy on rare events: the agent predicts the majority class, and gets 90%
+    accuracy on a 90/10 label
+  - In-sample Sharpe ratio: the agent selects a strategy that sells volatility, with
+    a smooth equity curve and a hidden tail
+  - Evaluation code: the agent edits the split or the metric to raise the score
 
-- @Fact@: the metric selection is a listed failure area of data science
-  agents, together with the problem framing and the causal reasoning
+- @Fact@: the metric selection is a listed failure area of data science agents,
+  together with the problem framing and the causal reasoning
 
-- @Key idea@: the objective is part of the specification, and a human sets it
-  and freezes it
+- @Key idea@: the objective is part of the specification, and a human sets it and
+  freezes it
 
 * An Objective Contract Before the Search
 
@@ -640,14 +604,12 @@ best one circled and its holdout Sharpe ratio as a red diamond_
 
 # Experiment Tracking
 
-## Trial Log
-
 * What a Tracker Logs
 // From: book_Modern_AI_for_Finance/lectures_source/Lesson02.01_Strategy_Backtesting.smd:834 '* Experiment Tracking Counts the Trials'
 // From: research/ideas/draft.MDL_Extensions_with_Research_Process.md:96 '- Milestone 2: collect real AutoML search trajectories'
 
-- @Definition@: **experiment tracking** records every trial of a search, so
-  that the results can be reproduced and counted
+- @Definition@: **experiment tracking** records every trial of a search, so that the
+  results can be reproduced and counted
 
 - @Components@: the run log of one trial
   - Code version, e.g., the git hash
@@ -660,8 +622,6 @@ best one circled and its holdout Sharpe ratio as a red diamond_
 
 - @Remark@: the log is append-only, and the failed and the pruned trials stay
   in it
-
-## Inputs to the Corrections
 
 * From Trial Log to DSR Inputs
 // From: book_Modern_AI_for_Finance/lectures_source/Lesson02.01_Strategy_Backtesting.smd:774 '* Deflated Sharpe Ratio'
@@ -692,7 +652,7 @@ best one circled and its holdout Sharpe ratio as a red diamond_
 // From: //notes1/notes/papers.finance.misc.txt:464 '## 2018, de Prado, A practical solution to the multiple-testing crisis in financial research'
 
 ::: columns
-:::: {.column width=40%}
+:::: {.column width=60%}
 - @Problem@: the trials are correlated, since they share features and have
   neighboring hyperparameters
   - Counting all the trials overstates the hurdle
@@ -711,7 +671,7 @@ best one circled and its holdout Sharpe ratio as a red diamond_
 - @Remark@: the cluster count is a lower bound, and the truth lies between the
   two counts
 ::::
-:::: {.column width=55%}
+:::: {.column width=40%}
 
 ![](book_Modern_AI_for_Finance/lectures_source/figures/L10.01.Effective_Trials.png)
 
@@ -744,8 +704,6 @@ and the expected maximum Sharpe ratio under three counts of the trials_
 - @Remark@: the PBO needs the return series of all the trials, so the tracker
   must store them
 
-## Search Cost
-
 * Search Cost per Trial
 // From: research/ideas/draft.MDL_Extensions_with_Research_Process.md:19 '## Formalization'
 // From: research/agentic_data_science/agentic_data_science.report.md:170 '- **Compute Cost**: Long-horizon agent search can be expensive'
@@ -770,14 +728,12 @@ and the expected maximum Sharpe ratio under three counts of the trials_
 
 # Guardrails
 
-## Holdout
-
 * Final Holdout Touched Once
 // From: msml610/lectures_source/Lesson02.6-ML_Techniques_How_To_Do_Research.smd:137 '* "Burning the Test Set"'
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1917 '* Steps to reduce overfitting'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=60%}
 - @Definition@: the **final holdout** is the latest block of the data, which
   no search sees and which is scored once
 
@@ -789,13 +745,8 @@ and the expected maximum Sharpe ratio under three counts of the trials_
   - The holdout Sharpe ratio is 0.38 after 5 looks, 0.64 after 20, and 0.85
     after 100
   - Fresh data stays at about 0
-
-- @Techniques@:
-  - Put the holdout after the research period, with an embargo
-  - Give the scoring function a one-call limit
-  - After a failure, start over with a new idea, not with a tweak
 ::::
-:::: {.column width=45%}
+:::: {.column width=40%}
 
 ![](book_Modern_AI_for_Finance/lectures_source/figures/L10.01.Holdout_Looks.png)
 
@@ -805,7 +756,10 @@ researchers_
 ::::
 :::
 
-## Human Review
+- @Techniques@:
+  - Put the holdout after the research period, with an embargo
+  - Give the scoring function a one-call limit
+  - After a failure, start over with a new idea, not with a tweak
 
 * Human Review Gates
 // From: research/agentic_data_science/agentic_data_science.report.md:195 '# 12. Key Insight: the Role of Humans Will Change'
@@ -830,6 +784,8 @@ researchers_
 * A Guardrailed Auto DS Pipeline
 // From: research/agentic_data_science/agentic_data_science.report.md:195 '# 12. Key Insight: the Role of Humans Will Change'
 
+::: columns
+:::: {.column width=60%}
 ```graphviz
 digraph AutoDS {
     bgcolor="transparent";
@@ -856,12 +812,16 @@ digraph AutoDS {
     Review -> Search [style=dashed, color="#C0455B", fontcolor="#C0455B", constraint=false, label="  Revise and log  "];
 }
 ```
+::::
+:::: {.column width=40%}
 
-- @Key idea@: every automated step writes to the log, and every human gate
-  reads from it
+- @Key idea@: every automated step writes to the log, and every human gate reads from
+  it
 
-- @Remark@: a revision after the review is a new trial, so the loop never
-  resets the count
+- @Remark@: a revision after the review is a new trial, so the loop never resets the
+  count
+::::
+:::
 
 * Summary
 

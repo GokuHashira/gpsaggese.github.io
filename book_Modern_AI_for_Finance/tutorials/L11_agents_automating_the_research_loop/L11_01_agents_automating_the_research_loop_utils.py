@@ -344,9 +344,7 @@ def cell1_2_plot_benchmark_rank_noise(
         _LOG.info(
             "gap=%.3f: %s",
             gap,
-            ", ".join(
-                f"{n}: {p:.2f}" for n, p in zip(task_counts, probs)
-            ),
+            ", ".join(f"{n}: {p:.2f}" for n, p in zip(task_counts, probs)),
         )
         ax.plot(
             task_counts,
