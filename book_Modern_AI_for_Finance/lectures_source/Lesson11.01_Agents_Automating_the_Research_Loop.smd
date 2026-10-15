@@ -240,7 +240,7 @@ digraph AgentArchitecture {
 // From: research/agentic_data_science/sota_eda.md:446 '### Industry pattern: semantic grounding as "anti-hallucination infrastructure"'
 // From: research/agentic_data_science/agentic_data_science.report.md:148 '# 9. Emerging Architecture Pattern (Very Important)'
 
-- @Problem@: One word has many definitions, and the agent picks one silently
+- @Problem@: One word has many definitions, and the agent can pick any one silently
   - _Return_: Price or total return, simple or log, local currency or USD
   - _Small cap_: A fixed dollar threshold, or a percentile of the market caps at each
     date
@@ -258,16 +258,17 @@ digraph AgentArchitecture {
   metric to compute, not how to define it
 
 - @Key idea@: A fixed definition also removes a trial dimension, since the agent
-  cannot search over definitions of "return" until one looks good
+  cannot search over arbitrary definitions of "return" until one looks good
 
 # Automating the Research Loop
-
-## The Loop
 
 * The Research Loop: Hypothesis to Report
 
 // From: msml610/lectures_source/Lesson02.6-ML_Techniques_How_To_Do_Research.smd:268 '* Right and Wrong Approach to Research'
 // From: //notes1/notes/papers.finance.misc.txt:1157 '### Hypothesis driven development'
+
+// TODO(gp): Make sure this is correct according to our approach. E.g., "fix" is
+// dangerous
 
 - @Definition@: The **research loop** turns a hypothesis into evidence: Hypothesis,
   data, code, backtest, and report
@@ -333,8 +334,8 @@ digraph ResearchLoop {
 - @Key idea@: A pipeline of narrow steps with checks between them is easier to verify
   than one agent that does everything
 
-- @Remark@: The checks of each step are covered in detail in Lessons 02.01, 06.01,
-  and 10.01
+//- @Remark@: The checks of each step are covered in detail in Lessons 02.01, 06.01,
+//  and 10.01
 
 * Running Example: One Pass of the Loop
 
@@ -364,8 +365,6 @@ digraph ResearchLoop {
 - @Key idea@: The trace is the trial log, since every action that changes the
   strategy is a trial
 
-## Single Vs. Multi-Agent
-
 * Single-Agent Vs. Multi-Agent Workflows
 
 // From: book_Agentic_AI/lectures_source/Lesson01.1-What_Is_An_Agentic_AI.smd:514 '* Single-Agent vs. Multi-Agent Systems'
@@ -373,8 +372,8 @@ digraph ResearchLoop {
 // From: research/ideas/in_progress.Comparison_of_Data_Science_Agents.md:69 '## Key Examples'
 
 - @Definition@
-  - _Single agent_: One controller plans and calls every tool
-  - _Multi-agent_: Several agents with separate roles, prompts, and tools exchange
+  - **Single agent**: One controller plans and calls every tool
+  - **Multi-agent**: Several agents with separate roles, prompts, and tools exchange
     messages
 
 - @Pros@: Of a multi-agent workflow
@@ -424,8 +423,6 @@ digraph ResearchLoop {
 - @Example@: **RD-Agent(Q)** (Li et al., 2025) links a research stage and a
   development stage through a feedback stage, and a multi-armed bandit schedules them
 
-## Reasoning, Memory, and Planning
-
 * Reasoning and Planning in the Loop
 
 // From: book_Agentic_AI/lectures_source/Lesson01.1-What_Is_An_Agentic_AI.smd:498 '* Reactive vs. Deliberative Agents'
@@ -434,9 +431,9 @@ digraph ResearchLoop {
 // From: research/agentic_data_science/sota_eda.md:821 '### Common failure modes observed in benchmarks and deployments'
 
 - @Variants@: Planning styles
-  - _Reactive_: One step at a time from the last observation, e.g., ReAct
-  - _Plan then execute_: Write the plan first, e.g., a graph of tasks
-  - _Hybrid_: Plan, act, and re-plan when an observation diverges
+  - **Reactive**: One step at a time from the last observation, e.g., ReAct
+  - **Plan then execute**: Write the plan first, e.g., a graph of tasks
+  - **Hybrid**: Plan, act, and re-plan when an observation diverges
 
 - @Techniques@: Spend compute to buy reliability
   - A chain of thought before each action
@@ -457,8 +454,8 @@ digraph ResearchLoop {
 // From: book_Agentic_AI/lectures_source/Lesson05.1-Reasoning_Memory_and_Planning.smd:117 '* The Core Problem: Retrieval, Not Storage'
 
 - @Definition@
-  - _Working memory_: The context window of one episode, fast, bounded, and volatile
-  - _Long-term memory_: An external store that persists across episodes and is
+  - **Working memory**: The context window of one episode, fast, bounded, and volatile
+  - **Long-term memory**: An external store that persists across episodes and is
     retrieved when needed
 
 - @Examples@: The long-term memory of a research agent
@@ -476,8 +473,6 @@ digraph ResearchLoop {
 
 - @Key idea@: Memory turns repeated runs into a learning process, so it must follow
   the same split rules as the data
-
-## Strong and Weak Steps
 
 * Autonomy Per Step: Who Does What
 
@@ -539,10 +534,10 @@ digraph ResearchLoop {
 \endgroup
 
 - @Comparison@: Two tracks
-  - _Model-centric_: Train one model to run the whole analysis, e.g.,
-    **DeepAnalyze-8B** (2025)
-  - _System-centric_: Smaller models inside retrieval, semantic layers, and
-    verifiers, e.g., RAGvis and DS-STAR
+  - **Model-centric**: Train one model to run the whole analysis, e.g.,
+    _DeepAnalyze-8B_ (2025)
+  - **System-centric**: Smaller models inside retrieval, semantic layers, and
+    verifiers, e.g., _RAGvis_ and _DS-STAR_
 
 - @Key idea@: State-of-the-art claims depend on the benchmark, so compare the design
   choices, not the leaderboard positions
@@ -560,12 +555,13 @@ digraph ResearchLoop {
   - **Case-based reasoning** adapts the solution of a similar solved case
 
 - @Examples@
-  - **AgentAda** (Abaskohi et al., 2025) matches skills with hybrid RAG, and human
+  - _AgentAda_ (Abaskohi et al., 2025) matches skills with hybrid RAG, and human
     evaluators preferred its analyses 48.78% vs. 27.67% without skills
-  - **DS-Agent** (Guo et al., 2024) adapts past Kaggle solutions
+  - _DS-Agent_ (Guo et al., 2024) adapts past Kaggle solutions
 
-- @Applications@: A quant skill library, reviewed and tested once: A point-in-time
-  universe, IC by date, purged CV, and a cost-aware backtest
+- @Applications@:
+  - A quant skill library, reviewed and tested once
+  - A point-in-time universe, IC by date, purged CV, and a cost-aware backtest
 
 - @Cons@: The library limits coverage, and the agent repeats its patterns
 
@@ -574,7 +570,7 @@ digraph ResearchLoop {
 // From: research/agentic_data_science/agentic_data_science.report.md:76 '# 4. Research Trend: Agents as Search Systems'
 
 - @Definition@: A data science agent is a **search system** over possible analyses:
-  models, features, transformations, hyperparameters, metrics, and hypotheses
+  metrics, hypotheses, models, features, transformations, hyperparameters
 
 - @Comparison@: An agent is closer to AutoML, Bayesian optimization, and scientific
   discovery systems than to a chatbot
@@ -587,9 +583,6 @@ digraph ResearchLoop {
 
 - @Key idea@: The best result of a search is biased upward, more by the size of the
   search than by the skill of the searcher
-
-- @Remark@: The effective number of trials and the probability of backtest
-  overfitting of a search are covered in detail in Lesson 10.01
 
 # Evaluating Agents
 
@@ -901,7 +894,7 @@ and by all $k$ runs (red)_
 - @Key idea@: The faster the agent, the higher the hurdle, so the trial log must be
   part of the tool, not a habit of the agent
 
-- @Remark@: Multiple-testing corrections are covered in detail in Lesson 02.01
+//- @Remark@: Multiple-testing corrections are covered in detail in Lesson 02.01
 
 # Security and Provenance
 

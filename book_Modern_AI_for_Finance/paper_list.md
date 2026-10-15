@@ -854,3 +854,76 @@ search results only.
       Data Desk handles data changes and revisions.
   - Historical vintages: FRED-MD from 1999-08 and FRED-QD from 2018-05. The page
       also links the working papers, appendices, and Matlab code.
+
+# AutoDS / DS Bench / AutoML
+
+Learn about the AutoML SOTA #607, https://github.com/causify-ai/helpers/issues/607
+
+2021, AutoML: A Survey of the State-of-the-Art, https://arxiv.org/pdf/1908.00709
+2021, AutoML to Date and Beyond: Challenges and Opportunities https://arxiv.org/pdf/2010.10777
+https://arxiv.org/pdf/2410.02958
+
+https://arxiv.org/abs/2502.13897
+https://github.com/LiqiangJing/DSBench
+
+- **Yao et al.**: _"ReAct: Synergizing Reasoning and Acting in Language Models"_,
+  ICLR (2023)
+
+- **Wu et al.**: _"AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent
+  Conversation"_, arXiv (2023)
+
+- **Huang et al.**: _"Large Language Models Cannot Self-Correct Reasoning Yet"_, ICLR
+  (2024)
+
+- **Dhuliawala et al.**: _"Chain-of-Verification Reduces Hallucination in Large
+  Language Models"_, arXiv (2023)
+
+- **Guo et al.**: _"DS-Agent: Automated Data Science by Empowering Large Language
+  Models with Case-Based Reasoning"_, ICML (2024)
+
+- **Abaskohi et al.**: _"AgentAda: Skill-Adaptive Data Analytics for Tailored Insight
+  Discovery"_, arXiv (2025)
+
+- **Li et al.**: _"R&D-Agent-Quant: A Multi-Agent Framework for Data-Centric Factors
+  and Model Joint Optimization"_, arXiv (2025)
+
+- **Jing et al.**: _"DSBench: How Far Are Data Science Agents from Becoming Data
+  Science Experts?"_, ICLR (2025)
+
+- **Chan et al.**: _"MLE-bench: Evaluating Machine Learning Agents on Machine
+  Learning Engineering"_, arXiv (2024)
+
+- **Zhang et al.**: _"DataSciBench: An LLM Agent Benchmark for Data Science"_, arXiv
+  (2025)
+
+- **Huang et al.**: _"DA-Code: Agent Data Science Code Generation Benchmark for Large
+  Language Models"_, EMNLP (2024)
+
+- **Egg et al.**: _"DABstep: Data Agent Benchmark for Multi-step Reasoning"_, arXiv
+  (2025)
+
+- **Sahu et al.**: _"InsightBench: Evaluating Business Analytics Agents Through
+  Multi-Step Insight Generation"_, ICLR (2025)
+
+- **Gu et al.**: _"BLADE: Benchmarking Language Model Agents for Data-Driven
+  Science"_, EMNLP (2024)
+
+- **Chen et al.**: _"Evaluating Large Language Models Trained on Code"_, arXiv (2021)
+
+- **Yao et al.**: _"tau-bench: A Benchmark for Tool-Agent-User Interaction in
+  Real-World Domains"_, arXiv (2024)
+
+- **Starace et al.**: _"PaperBench: Evaluating AI's Ability to Replicate AI
+  Research"_, arXiv (2025)
+
+- **Greshake et al.**: _"Not What You've Signed Up For: Compromising Real-World
+  LLM-Integrated Applications with Indirect Prompt Injection"_, arXiv (2023)
+
+- **Shi et al.**: _"Prompt Injection Attack to Tool Selection in LLM Agents"_, arXiv
+  (2025)
+
+- **Rahman et al.**: _"LLM-Based Data Science Agents: A Survey of Capabilities,
+  Challenges, and Future Directions"_, arXiv (2025)
+
+- DS-STAR
+
