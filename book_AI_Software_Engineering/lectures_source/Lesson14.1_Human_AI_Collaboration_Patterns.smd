@@ -145,7 +145,7 @@ digraph CollabModes {
 * Review-Loop in Practice: A Pull-Request Cycle
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 - The loop repeats until the reviewer accepts the change
   - Each iteration narrows the gap between what was proposed and what is
     actually correct
@@ -305,7 +305,7 @@ digraph ReviewLoop {
 * Designing a Handoff: Worked Example
 
 ::: columns
-:::: {.column width=45%}
+:::: {.column width=50%}
 - @Steps@:
   1. Agent proposes an action
   2. Check: is it hard to reverse, or does it reach outside the repository

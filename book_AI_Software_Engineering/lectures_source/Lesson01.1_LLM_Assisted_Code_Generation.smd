@@ -330,7 +330,7 @@ digraph LostMiddle {
 
 // From internet resource Anthropic, "Prompt engineering overview"
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Components@ of a **well-formed code prompt**:
   - _System prompt_: role, conventions, constraints
   - _Context_: the specific files or snippets the task needs

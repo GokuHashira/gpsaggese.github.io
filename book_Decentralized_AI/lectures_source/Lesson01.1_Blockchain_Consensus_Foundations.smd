@@ -240,7 +240,7 @@ digraph ConsensusLoop {
 * Finality and Chain Reorganizations
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 
 - @Definition@: **Finality** is the point at which a block is considered
   permanent and can no longer be removed from the canonical chain
@@ -557,7 +557,7 @@ digraph PBFT {
 * HotStuff: Linear BFT
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 
 // From paper Yin et al., "HotStuff: BFT Consensus with Linearity and
 // Responsiveness" (2019)

@@ -203,7 +203,7 @@
 * Vector Database Pipeline: Worked Example
 
 ::: columns
-:::: {.column width=65%}
+:::: {.column width=70%}
 - @Solution@: an end-to-end pipeline separates a one-time offline stage
   from a per-query online stage
   1. (Offline) Chunk documents, embed each chunk, insert into an ANN index

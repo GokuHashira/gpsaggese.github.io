@@ -35,7 +35,7 @@
 * The Production Lifecycle of a Decision System
 
 ::: columns
-:::: {.column width=70%}
+:::: {.column width=75%}
 - **Definition**: the operational loop that keeps a decision system healthy has
   four repeating phases
   1. _Deploy_: ship the policy behind a rollout guard
@@ -109,7 +109,7 @@ digraph Lifecycle {
 * Serving a Causal Decision
 
 ::: columns
-:::: {.column width=54%}
+:::: {.column width=58%}
 - **Definition**: at serve time the system does not return $\EE[Y | \vx]$; it
   returns the action that maximizes _interventional_ expected utility
   $$
@@ -454,7 +454,7 @@ digraph Serve {
 // From: msml610/lectures_source/Lesson08.9-Effect_heterogeneity_and_Metalearners.smd:184 '* Cumulative Gain'
 
 ::: columns
-:::: {.column width=54%}
+:::: {.column width=58%}
 - **Definition**: deploy the action _only where the estimated effect is
   positive_, using the conditional effect $\tau(\vx)$ instead of the average
   $\EE[\tau]$

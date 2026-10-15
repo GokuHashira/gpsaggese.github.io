@@ -138,7 +138,7 @@
 * Search Over Reasoning: Tree and Graph of Thought
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Problem@: self-consistency samples _independent_ chains and cannot revisit
   a promising partial path
 

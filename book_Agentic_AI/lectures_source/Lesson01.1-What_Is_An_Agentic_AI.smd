@@ -98,7 +98,7 @@
 
 // TODO(ai_gp): Convert it into a table
 ::: columns
-:::: {.column width=48%}
+:::: {.column width=52%}
 **Chatbot**
 
 - Output: text only

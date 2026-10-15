@@ -139,7 +139,7 @@ digraph Repo {
 * Ambiguous vs. Unambiguous
 
 ::: columns
-:::: {.column width=48%}
+:::: {.column width=52%}
 - @Counterexample@: under-specified request
 ```text
 Add retry logic to
@@ -225,7 +225,7 @@ Non-goals: no caching,
 * A Spec Checklist
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 - @Algorithm@: before sending a coding prompt, check that
   1. The goal fits in one sentence
   2. Every input and output type is named
@@ -480,7 +480,7 @@ Plan (structured):
 // From paper Ridnik et al., "Code Generation with AlphaCodium: From Prompt
 // Engineering to Flow Engineering" (2024)
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 - @Definition@: **flow engineering** replaces a single prompt with a
   multi-stage loop of generation, test synthesis, execution, and repair
 
@@ -568,7 +568,7 @@ digraph Flow {
 * Decomposition Into Scoped Steps
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 - @Algorithm@: the running task, as scoped steps
   1. Add `RetryPolicy` with parameters and the retryable-status set
   2. Add unit tests for the policy alone
@@ -630,7 +630,7 @@ digraph Steps {
 * The Refinement Loop
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 - @Definition@: the **refinement loop** is the cycle
   `prompt -> generate -> execute -> observe -> refine`, repeated until the
   acceptance criteria pass
@@ -712,7 +712,7 @@ digraph Loop {
 * Summary of Prompt Engineering for Code
 
 ::: columns
-:::: {.column width=52%}
+:::: {.column width=55%}
 - **Specs**: state goal, interface, behavior, constraints, acceptance
   criteria, and non-goals, since unstated choices are resolved silently
 

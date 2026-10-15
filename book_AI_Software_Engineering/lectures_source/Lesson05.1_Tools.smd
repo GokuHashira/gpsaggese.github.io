@@ -374,7 +374,7 @@
 // From paper "The Causify AIgentic Development System", Parts 2 and 4
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=54%}
 
 - @Definition@: A directory is **runnable** when it carries its container and
   dependencies, so that it can be deployed as a unit
@@ -602,7 +602,7 @@ digraph RunnableRepo {
 // helpers_root/docs/tools/docker/all.dind_and_sibling_containers.how_to_guide.md
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=54%}
 
 // TODO(ai_gp): Too much details, point to blog and documentation
 
@@ -1009,7 +1009,7 @@ digraph AgenticLoop {
 // From helpers_root/docs/tools/git/all.git_hooks.how_to_guide.md
 
 ::: columns
-:::: {.column width=54%}
+:::: {.column width=58%}
 
 - @Definition@: A **git hook** is a script Git runs around an event such as a commit
 
@@ -1454,7 +1454,7 @@ digraph QualityGates {
 // From helpers_root/docs/tools/dev_system/all.devops_docker.reference.md
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=54%}
 
 - @Definition@: A **stage** is a step in the release workflow of an image
   - _local_: A private release candidate for one developer or server

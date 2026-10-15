@@ -105,7 +105,7 @@
   what actions it can take on its own
 
 ::: columns
-:::: {.column width=45%}
+:::: {.column width=50%}
 
 - @Overview@
   1. _Autocomplete_: Continues code at the cursor
@@ -203,7 +203,7 @@ digraph InteractionModels {
 * Agentic Assistance
 
 ::: columns
-:::: {.column width=60%}
+:::: {.column width=65%}
 
 - @Definition@: An **agentic assistant** pursues a stated goal by calling
   _tools_, observing the result, and deciding the next step
@@ -500,7 +500,7 @@ digraph AgentLoop {
 * Choosing a Surface
 
 ::: columns
-:::: {.column width=45%}
+:::: {.column width=50%}
 
 - @Steps@: Pick the surface based on the task
   1. _"Repeatable or scripted?"_ $\to$ CLI
@@ -640,7 +640,7 @@ digraph SurfaceChoice {
 * MCP: One Protocol for Many Tools
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 
 - @Problem@: $N$ assistants and $M$ tools need $N \times M$ bespoke integrations
 // From internet resource Model Context Protocol, "Specification"
@@ -865,7 +865,7 @@ digraph AsyncDay {
 * Summary
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - **Interaction model** sets the unit of work: A line for autocomplete, a scoped
   answer for chat, a whole task for an agent with tools
 - **Tools** differ less in the models they use than in the surface they put
