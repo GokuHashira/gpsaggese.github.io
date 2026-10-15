@@ -1,4 +1,4 @@
-// Index
+// # Index
 // - Causal Analysis for Finance
 //   - Causal Inference Foundations
 //   - Causality in Finance
@@ -16,6 +16,9 @@
 //   - AutoDS: Data Science Agents
 //   - DS Bench: Benchmarks for Data Science Agents
 //   - LLM Agent Security
+
+// > extract_toc_from_txt.py -i paper_list.md --max_level 2
+// > download_academic_paper_to_md.py -i URL --action save_to_papers_dir --summary_type all
 
 // TODO(ai_gp): Move this to the right section
 - [ ] Gu, Kelly and Xiu's "Empirical Asset Pricing via Machine Learning" (2020)
