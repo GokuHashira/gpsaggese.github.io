@@ -156,7 +156,7 @@
 | 09: Portfolio Optimization and Reinforcement Learning | N/A                                      |          |           |                                       |      |
 | **Research Loop**                                     |                                          |          |           |                                       |      |
 | 10: Auto DS                                           | Lesson10.01_Auto_DS.smd                  |          |           | L10_01_auto_ds.ipynb                  |      |
-| 11: Agents: Automating the Research Loop              | N/A                                      |          |           |                                       |      |
+| 11: Agents: Automating the Research Loop              | Lesson11.01...                           |          |           |                                       |      |
 | **Risk, Operations, and Governance**                  |                                          |          |           |                                       |      |
 | 12: Risk, Credit Risk, and Fraud                      | N/A                                      |          |           |                                       |      |
 | 13: Explainability and Robustness                     | N/A                                      |          |           |                                       |      |
