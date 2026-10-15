@@ -62,7 +62,7 @@
 // From: //notes1/notes/IN_PROGRESS.finance.Algorithmic_trading.Chan.2013.txt:94 '* Momentum strategies'
 
 ::: columns
-:::: {.column width=58%}
+:::: {.column width=63%}
 - @Definition@: **cross-sectional momentum** buys past winners and sells past
   losers
   - Rank stocks by cumulative return over the last $T = 12$ months, skipping
@@ -138,7 +138,7 @@ digraph MOM {
 // From: //notes1/notes/finance.all.txt:3831 '* Payoff of a put option at expiration'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: a **futures contract** is an obligation to buy or sell an asset
   at a price $F$ agreed today, with delivery at maturity $T$
   - The long payoff $S_T - F$ is linear in the spot price $S_T$
@@ -237,7 +237,7 @@ as a function of the spot price_
 // From: //notes1/notes/IN_PROGRESS.finance.Quantitative_trading.Chan.2009.txt:100 '* Maximum drawdown duration'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: the **drawdown** at time $t$ is the loss from the previous
   equity peak (the high watermark)
   $$
@@ -266,7 +266,7 @@ drawdown duration_
 // From: //notes1/notes/IN_PROGRESS.finance.portfolio_theory.txt:209 '* Portfolio frontier with a risk-free asset and a risky asset'
 
 ::: columns
-:::: {.column width=58%}
+:::: {.column width=63%}
 - @Definition@: the **Sharpe ratio** is the mean excess return per unit of
   volatility
   $$
@@ -322,7 +322,7 @@ drawdown duration_
 // From: //notes1/notes/IN_PROGRESS.finance.portfolio_theory.txt:664 '* Asset variance explained by the market: stylized fact'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Definition@: the **CAPM** (capital asset pricing model) explains an excess
   return by exposure to the market excess return
   $$
@@ -404,7 +404,7 @@ digraph CAPM {
 // From: //notes1/notes/IN_PROGRESS.finance.Machine_trading.Chan.2017.txt:209 '* Alphas'
 
 ::: columns
-:::: {.column width=58%}
+:::: {.column width=63%}
 - @Definition@: given a benchmark return $R_B$, a portfolio return splits into
   an exposure part and a residual part
   $$
@@ -456,7 +456,7 @@ digraph Decomp {
 // From: //notes1/notes/finance.all.txt:653 '** Level 2 quotes'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Definition@: the **limit order book** lists resting buy orders (bids) and
   sell orders (asks) by price level
 
@@ -557,7 +557,7 @@ digraph Decomp {
 // From: //notes1/notes/finance.all.txt:588 '** Minimum alpha to support turnover and trading costs'
 
 ::: columns
-:::: {.column width=58%}
+:::: {.column width=63%}
 - @Definition@: **explicit costs** are commissions, fees, and taxes, and
   **implicit costs** are slippage and opportunity cost
   - _Slippage_ is the gap between the decision price and the execution price
@@ -604,7 +604,7 @@ digraph Net {
 // From: //notes1/notes/finance.all.txt:194 '** Market impact'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: **market impact** is the effect of your own trading on the
   price: buying moves the price against the buyer
 
@@ -632,7 +632,7 @@ permanent part stays_
 // From: //notes1/notes/IN_PROGRESS.finance.Algorithmic_trading.Chan.2013.txt:62 '- Have low capacity so not interesting anymore for a large fund, but can be'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Definition@: **capacity** is the capital a strategy can deploy before costs
   and impact erase its edge
 
@@ -664,7 +664,7 @@ permanent part stays_
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1191 '## Stationarity vs memory dilemma'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Definition@: a **stationary** series has statistical properties (mean,
   variance, autocorrelation) that do not change over time
 
@@ -693,7 +693,7 @@ its returns (blue) fluctuate around a constant mean_
 // From: //notes1/notes/papers.finance.deep_learning.txt:1055 '- ! financial markets are affected by regimes'
 
 ::: columns
-:::: {.column width=58%}
+:::: {.column width=63%}
 - @Definition@: a **regime** is a period with a stable return distribution,
   and a **regime shift** is an abrupt change of mean, volatility, or
   correlations
@@ -777,7 +777,7 @@ probabilities_
 // From: //notes1/notes/IN_PROGRESS.finance.portfolio_theory.txt:80 '* CER model: test for normal distribution'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: **kurtosis** is the mean of the fourth power of the z-score
   $$
   \EE\left[\left(\frac{X - \mu}{\sigma}\right)^4\right]
@@ -864,7 +864,7 @@ freedom, both with unit variance_
 // From: msml610/lectures_source/Lesson10.1-Timeseries_forecasting.smd:893 '* GARCH(p, q): definition'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: **volatility clustering** means periods of large swings are
   interspersed with periods of calm
 
@@ -898,7 +898,7 @@ calm follows calm_
 // From: //notes1/notes/IN_PROGRESS.finance.portfolio_theory.txt:90 '* CER model: test for no autocorrelation'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Fact@: returns look like white noise
   - Autocorrelations are close to zero at all lags
   - Prices look like a random walk
@@ -965,7 +965,7 @@ $\alpha = 0.15$, $\beta = 0.80$)_
 // From: //notes1/notes/IN_PROGRESS.finance.Active_portfolio_management.Grinold_Kahn.1999.txt:75 '* Fundamental law of active management'
 
 ::: columns
-:::: {.column width=58%}
+:::: {.column width=63%}
 - @Motivation@: arbitrage competes predictable returns away, so the remaining
   signal is small next to the noise
 
@@ -996,7 +996,7 @@ $\alpha = 0.15$, $\beta = 0.80$)_
 // From: msml610/lectures_source/Lesson05.2-Overfitting.smd:763 '* Amount of Data and Model Complexity'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Problem@: there is one history, and overlapping labels and autocorrelation
   make the effective sample size far smaller than the row count
   - E.g., 10 years of daily rows give 2,520 observations but only about 120
@@ -1035,7 +1035,7 @@ $\alpha = 0.15$, $\beta = 0.80$)_
 // From: //notes1/notes/IN_PROGRESS.finance.Algorithmic_trading.Chan.2013.txt:28 '* Issues'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Definition@: **overfitting** occurs when a model fits the data more than is
   warranted, and **data snooping** is an accidental pattern that does not hold
   out of sample

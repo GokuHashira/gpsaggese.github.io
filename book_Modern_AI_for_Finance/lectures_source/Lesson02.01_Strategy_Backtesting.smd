@@ -170,7 +170,7 @@ digraph Backtest {
 // From: book_Modern_AI_for_Finance/lectures_source/Lesson01.01_Why_Finance_Is_Different.smd:554 '* Transaction Costs'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Fact@: net return is gross return minus turnover times cost per unit
   traded, so the **breakeven cost** is
   $$
@@ -262,7 +262,7 @@ edge at three rebalancing frequencies_
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1845 '* Look-ahead bias'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: **look-ahead bias** is the use of information that was not
   available at the time of the simulated decision
 
@@ -323,7 +323,7 @@ the next day (blue) and on the signal day (red)_
 // From: //notes1/notes/IN_PROGRESS.finance.Quantitative_trading.Chan.2009.txt:130 '* Does data suffer from survivorship bias?'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: **survivorship bias** occurs when the data omit assets that
   went bankrupt, merged, or delisted
 
@@ -445,7 +445,7 @@ the next day (blue) and on the signal day (red)_
 // From: //notes1/notes/IN_PROGRESS.finance.Algorithmic_trading.Chan.2013.txt:190 '* Data-snooping bias'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: **backtest overfitting** selects a strategy that monetizes
   random historical patterns, which are unlikely to recur
 
@@ -474,7 +474,7 @@ strategies, with the in-sample winner in red_
 // From: //notes1/notes/IN_PROGRESS.finance.Machine_learning_for_asset_managers.de_Prado.2020.md:704 '# B, Proof of the false strategy theorem'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Fact@: the expected maximum Sharpe ratio of $N$ independent zero-skill
   trials is
   $$
@@ -564,7 +564,7 @@ trials: closed form (blue) and Monte Carlo (red)_
 // From: //notes1/notes/papers.finance.misc.txt:841 '#### Controlling FDR'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: the **false discovery rate** is the expected fraction of
   false discoveries $V$ among the discoveries $R$
   $$
@@ -690,7 +690,7 @@ Bonferroni, and BH thresholds_
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1523 '* Purging / embargo of cross-validation'
 
 ::: columns
-:::: {.column width=42%}
+:::: {.column width=45%}
 - @Problem@: serially correlated features leak information from the test
   block into the training rows right after it
 
@@ -775,7 +775,7 @@ embargo_
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:2240 '* Deflated SR'
 
 ::: columns
-:::: {.column width=50%}
+:::: {.column width=55%}
 - @Definition@: the **deflated Sharpe ratio** is the PSR against the expected
   maximum Sharpe ratio of the trials
   $$
@@ -919,7 +919,7 @@ of trials, with the 95% level dashed_
 // From: book_Modern_AI_for_Finance/paper_list.md:83 '### [ ] 2025, López de Prado et al., "Causality and Factor Investing: A Primer"'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Definition@: a **confounder** $Z$ causes both the characteristic $X$ and the
   return $Y$, which creates an association between $X$ and $Y$ with no causal
   link
@@ -969,7 +969,7 @@ digraph Confounder {
 // From: book_Modern_AI_for_Finance/paper_list.md:73 '### [ ] 2026, López de Prado et al., "Correcting the Factor Mirage: A Research'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Definition@: a **collider** $C$ is caused by both $X$ and $Y$, and
   conditioning on it creates an association between $X$ and $Y$
 

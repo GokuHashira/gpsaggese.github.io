@@ -144,7 +144,7 @@
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:1536 '* The most pervasive mistake in financial research'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Intuition@: each level runs more analyses on the same history
   - _Profiler_: one fixed report, the same for any dataset
   - _AutoML_: hundreds to thousands of scored configurations
@@ -300,7 +300,7 @@ digraph Levels {
 // From:
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 - @Definition@: **coverage** is the fraction of days with a price, per asset
   and month
 
@@ -444,7 +444,7 @@ stocks with a price in the full and in the survivor-only database (bottom)_
 // From:
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 - @Definition@: a **stale price** repeats the last price because the asset
   did not trade
 
@@ -473,7 +473,7 @@ returns against the longest flat run for every stock (bottom)_
 // From: //notes1/notes/IN_PROGRESS.finance.Advances_in_Financial_ML.de_Prado.2018.md:927 '* ETF trick'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 - @Problem@: splits and dividends change the price, not the value of a
   holding
   - An unadjusted 2-for-1 split shows a -50% return
@@ -534,7 +534,7 @@ split (top), and daily raw returns with a robust band of 8 (bottom)_
 // From: research/agentic_data_science/AutoEDA_Plan.md:561 '### Issue 9.6: Out-of-Sample Validation System'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Problem@: EDA on the full history is already a fit
   - Choosing features, transforms, and filters after seeing 2023 makes 2023
     in-sample
@@ -616,7 +616,7 @@ digraph TimeSplit {
 // From: msml610/lectures_source/Lesson10.1-Timeseries_forecasting.smd:1376 '* Change Point Detection in Time Series'
 
 ::: columns
-:::: {.column width=58%}
+:::: {.column width=61%}
 - @Definition@: a **structural break** changes the data-generating process at
   an unknown date
 
@@ -761,7 +761,7 @@ and the absolute CUSUM statistics with the 5% critical value (bottom)_
 // From: book_Modern_AI_for_Finance/lectures_source/Lesson02.01_Strategy_Backtesting.smd:472 '* The False Strategy Theorem'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=58%}
 - @Example@: keep the best of $N$ noise features against noise returns, with
   5 years in-sample and 5 years of holdout
   - _10 looks_: best IC 0.05, at the single-test 5% threshold
@@ -814,7 +814,7 @@ on the holdout (red), with the 10%-90% band over 50 simulations_
 // From: research/agentic_data_science/sota_eda.md:557 '### Agent loop diagram'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Definition@: an **agentic EDA** system chooses what to analyze without a
   precise specification
   - It plans, writes code, runs it, reads the output, and picks the next step
