@@ -3,16 +3,6 @@
 // lesson_title=Lesson 02.3: Integrating Business Objective and Real-World Dynamics
 // slides_engine=typst
 
-// References:
-//- [B028] Kochenderfer, "Decision Making Under Uncertainty", 2015
-//- [B030] Sutton et al., "Reinforcement Learning: An Introduction", 2018
-//- [P036] Bottou et al., "Counterfactual Reasoning and Learning Systems: The
-//  Example of Computational Advertising", 2013 https://arxiv.org/abs/1209.0467
-//- [P042] Hafner et al., "Mastering Atari, Go, Chess and Shogi by Planning with
-//  a Learned World Model", 2023 https://arxiv.org/abs/2104.06294
-//- [P100] Kahneman & Tversky, "Prospect Theory: An Analysis of Decision under
-//  Risk", 1979 https://doi.org/10.2307/1914185
-
 # From Objectives to Actions
 
 ## Recap and Transition
@@ -584,3 +574,18 @@ digraph SCM_MDP {
 - @Key idea@: every technique in the rest of the book, Gaussian
   processes, policy learning, causal reinforcement learning, deployment and
   monitoring, refines one arrow in this pipeline; none of them replace it
+
+* References
+
+- [B028] Kochenderfer, "Decision Making Under Uncertainty", 2015
+
+- [B030] Sutton et al., "Reinforcement Learning: An Introduction", 2018
+
+- [P036] Bottou et al., "Counterfactual Reasoning and Learning Systems: The
+  Example of Computational Advertising", 2013 https://arxiv.org/abs/1209.0467
+
+- [P042] Hafner et al., "Mastering Atari, Go, Chess and Shogi by Planning with a
+  Learned World Model", 2023 https://arxiv.org/abs/2104.06294
+
+- [P100] Kahneman & Tversky, "Prospect Theory: An Analysis of Decision under
+  Risk", 1979 https://doi.org/10.2307/1914185

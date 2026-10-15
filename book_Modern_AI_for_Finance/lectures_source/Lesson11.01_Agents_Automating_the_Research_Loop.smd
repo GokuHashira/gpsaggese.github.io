@@ -3,35 +3,6 @@
 // lesson_title=Lesson 11.01: Agents: Automating the Research Loop
 // slides_engine=typst
 
-// References:
-// - Yao et al.: _"ReAct: Synergizing Reasoning and Acting in Language Models"_,
-//   ICLR (2023)
-// - Wu et al.: _"AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent
-//   Conversation"_, arXiv (2023)
-// - Huang et al.: _"Large Language Models Cannot Self-Correct Reasoning Yet"_,
-//   ICLR (2024)
-// - Dhuliawala et al.: _"Chain-of-Verification Reduces Hallucination in Large
-//   Language Models"_, arXiv (2023)
-// - Guo et al.: _"DS-Agent"_, ICML (2024)
-// - Abaskohi et al.: _"AgentAda"_, arXiv (2025)
-// - Jing et al.: _"DSBench"_, ICLR (2025)
-// - Chan et al.: _"MLE-bench"_, arXiv (2024)
-// - Zhang et al.: _"DataSciBench"_, arXiv (2025)
-// - Huang et al.: _"DA-Code"_, EMNLP (2024)
-// - Egg et al.: _"DABstep"_, arXiv (2025)
-// - Sahu et al.: _"InsightBench"_, ICLR (2025)
-// - Gu et al.: _"BLADE"_, EMNLP (2024)
-// - Chen et al.: _"Evaluating Large Language Models Trained on Code"_, arXiv
-//   (2021)
-// - Yao et al.: _"tau-bench"_, arXiv (2024)
-// - Starace et al.: _"PaperBench"_, arXiv (2025)
-// - Greshake et al.: _"Not What You've Signed Up For"_, arXiv (2023)
-// - Shi et al.: _"Prompt Injection Attack to Tool Selection in LLM Agents"_,
-//   arXiv (2025)
-// - Rahman et al.: _"LLM-Based Data Science Agents: A Survey"_, arXiv (2025)
-// - Lopez de Prado: _"A Practical Solution to the Multiple-Testing Crisis in
-//   Financial Research"_ (2018)
-
 * Roadmap
 
 - This lesson covers @tool-using agents@: Function calling with finance tools,
@@ -52,8 +23,6 @@
   agent traces
 
 # Tool-Using Agents
-
-## Motivation
 
 * From Chat Model to Research Agent
 
@@ -102,8 +71,6 @@
 
 - @Remark@: The rest of the lesson builds, evaluates, verifies, and secures the agent
   that answers this request
-
-## Function Calling
 
 * Function Calling: Tools as Typed Schemas
 
@@ -185,8 +152,6 @@
 - @Key idea@: A narrow, typed action space is also a safety mechanism, since the
   agent cannot take an action outside the set
 
-## Retrieval
-
 * Retrieval Pipelines for Financial Data
 
 // From: book_Agentic_AI/lectures_source/Lesson07.1-Tool_use_and_retrieval.smd:80 '* RAG as a Special Case of Tool Use'
@@ -209,8 +174,6 @@
   - Generate from the retrieved context only, with a citation per sentence
 
 - @Key idea@: The as-of filter belongs inside the retrieval tool, not in the prompt
-
-## Architecture
 
 * Agent Architecture
 

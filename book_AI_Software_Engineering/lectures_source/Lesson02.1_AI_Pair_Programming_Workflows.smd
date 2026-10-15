@@ -3,42 +3,6 @@
 // lesson_title=Lesson 02.01: AI Pair Programming Workflows
 // slides_engine=typst
 //
-// References:
-// - Laster, "Learning GitHub Copilot: Multiplying Your Coding Productivity
-//   Using AI":
-//   https://www.oreilly.com/library/view/learning-github-copilot/9781098164645/
-// - Williams et al., "Pair Programming Illuminated":
-//   https://dl.acm.org/doi/10.5555/548833
-// - Williams et al., "Strengthening the Case for Pair Programming":
-//   http://sunnyday.mit.edu/16.355/williams.pdf
-// - Peralta et al., "Why Are Agentic Pull Requests Merged or Rejected? An
-//   Empirical Study": https://arxiv.org/abs/2605.22534
-// - Murphy-Hill et al., "Adoption and Impact of Command-Line AI Coding
-//   Agents: A Study of Microsoft's Early 2026 Rollout of Claude Code and
-//   GitHub Copilot CLI": https://arxiv.org/abs/2607.01418
-// - Chen et al., "Understanding How Enterprises Adopt the Model Context
-//   Protocol for LLM-Driven Software Engineering":
-//   https://arxiv.org/abs/2606.09182
-// - Geng et al., "Effective Strategies for Asynchronous Software Engineering
-//   Agents": https://arxiv.org/abs/2603.21489
-// - Agarwal et al., "AI IDEs or Autonomous Agents? Measuring the Impact of
-//   Coding Agents on Software Development": https://arxiv.org/abs/2601.13597
-// - Hou et al., "Model Context Protocol (MCP): Landscape, Security Threats,
-//   and Future Research Directions": https://arxiv.org/abs/2503.23278
-// - Sapkota et al., "Vibe Coding vs. Agentic Coding: Fundamentals and
-//   Practical Implications of Agentic AI": https://arxiv.org/abs/2505.19443
-// - Wang et al., "AI Agentic Programming: A Survey of Techniques,
-//   Challenges, and Opportunities": https://arxiv.org/abs/2508.11126
-// - Nguyen et al., "An Empirical Evaluation of GitHub Copilot's Code
-//   Suggestions": https://sarahnadi.org/assets/pdf/pubs/NguyenMSR22.pdf
-// - Cursor, "Cursor Docs": https://cursor.com/docs
-// - GitHub, "GitHub Copilot Documentation": https://docs.github.com/copilot
-// - Model Context Protocol, "Specification":
-//   https://modelcontextprotocol.io/specification/2025-11-25
-// - Anthropic, "Introducing the Model Context Protocol":
-//   https://www.anthropic.com/news/model-context-protocol
-// - Anthropic, "Where to run Claude Code":
-//   https://code.claude.com/docs/en/platforms
 
 # AI Pair Programming Workflows
 
@@ -913,3 +877,56 @@ mindmap
 
 - What is the right ratio of dispatched asynchronous tasks to reviewer capacity,
   before the review queue becomes the new bottleneck?
+
+* References
+
+- Laster, "Learning GitHub Copilot: Multiplying Your Coding Productivity Using
+  AI":
+  https://www.oreilly.com/library/view/learning-github-copilot/9781098164645/
+
+- Williams et al., "Pair Programming Illuminated":
+  https://dl.acm.org/doi/10.5555/548833
+
+- Williams et al., "Strengthening the Case for Pair Programming":
+  http://sunnyday.mit.edu/16.355/williams.pdf
+
+- Peralta et al., "Why Are Agentic Pull Requests Merged or Rejected? An
+  Empirical Study": https://arxiv.org/abs/2605.22534
+
+- Murphy-Hill et al., "Adoption and Impact of Command-Line AI Coding Agents: A
+  Study of Microsoft's Early 2026 Rollout of Claude Code and GitHub Copilot
+  CLI": https://arxiv.org/abs/2607.01418
+
+- Chen et al., "Understanding How Enterprises Adopt the Model Context Protocol
+  for LLM-Driven Software Engineering": https://arxiv.org/abs/2606.09182
+
+- Geng et al., "Effective Strategies for Asynchronous Software Engineering
+  Agents": https://arxiv.org/abs/2603.21489
+
+- Agarwal et al., "AI IDEs or Autonomous Agents? Measuring the Impact of Coding
+  Agents on Software Development": https://arxiv.org/abs/2601.13597
+
+- Hou et al., "Model Context Protocol (MCP): Landscape, Security Threats, and
+  Future Research Directions": https://arxiv.org/abs/2503.23278
+
+- Sapkota et al., "Vibe Coding vs. Agentic Coding: Fundamentals and Practical
+  Implications of Agentic AI": https://arxiv.org/abs/2505.19443
+
+- Wang et al., "AI Agentic Programming: A Survey of Techniques, Challenges, and
+  Opportunities": https://arxiv.org/abs/2508.11126
+
+- Nguyen et al., "An Empirical Evaluation of GitHub Copilot's Code Suggestions":
+  https://sarahnadi.org/assets/pdf/pubs/NguyenMSR22.pdf
+
+- Cursor, "Cursor Docs": https://cursor.com/docs
+
+- GitHub, "GitHub Copilot Documentation": https://docs.github.com/copilot
+
+- Model Context Protocol, "Specification":
+  https://modelcontextprotocol.io/specification/2025-11-25
+
+- Anthropic, "Introducing the Model Context Protocol":
+  https://www.anthropic.com/news/model-context-protocol
+
+- Anthropic, "Where to run Claude Code":
+  https://code.claude.com/docs/en/platforms

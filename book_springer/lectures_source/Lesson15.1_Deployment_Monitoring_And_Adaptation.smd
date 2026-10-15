@@ -3,13 +3,6 @@
 // lesson_title=Lesson 15.1: Deployment, Monitoring, and Adaptation
 // slides_engine=typst
 
-// References:
-//- Kohavi, Tang, Xu: "Trustworthy Online Controlled Experiments" (2020)
-//- Sculley et al.: "Hidden Technical Debt in Machine Learning Systems" (2015)
-//- VanderWeele, Ding: "Sensitivity Analysis in Observational Research: Introducing the E-value" (2017)
-//- Perdomo, Zrnic, Mendler-Dunner, Hardt: "Performative Prediction" (2020)
-//- Pearl, Glymour, Jewell: "Causal Inference in Statistics: A Primer" (2016)
-
 # Overview
 
 * Deployment, Monitoring, and Adaptation
@@ -698,3 +691,16 @@ digraph Gain {
 
 - **Key idea**: the hardest part of a causal decision system is not building it,
   but keeping its _causal justification_ true after it ships
+
+* References
+
+- Kohavi, Tang, Xu: "Trustworthy Online Controlled Experiments" (2020)
+
+- Sculley et al.: "Hidden Technical Debt in Machine Learning Systems" (2015)
+
+- VanderWeele, Ding: "Sensitivity Analysis in Observational Research:
+  Introducing the E-value" (2017)
+
+- Perdomo, Zrnic, Mendler-Dunner, Hardt: "Performative Prediction" (2020)
+
+- Pearl, Glymour, Jewell: "Causal Inference in Statistics: A Primer" (2016)

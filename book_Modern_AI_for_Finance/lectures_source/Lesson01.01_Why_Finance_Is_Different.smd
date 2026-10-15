@@ -3,16 +3,6 @@
 // lesson_title=Lesson 01.01: Why Finance Is Different
 // slides_engine=typst
 
-// References:
-// - Chan: _"Quantitative Trading"_ (2009)
-// - Chan: _"Algorithmic Trading"_ (2013)
-// - Chan: _"Machine Trading"_ (2017)
-// - Lopez de Prado: _"Advances in Financial Machine Learning"_ (2018)
-// - Lopez de Prado: _"Machine Learning for Asset Managers"_ (2020)
-// - Grinold and Kahn: _"Active Portfolio Management"_ (1999)
-// - Hasbrouck: _"Securities Trading: Principles and Procedures"_ (2017)
-// - Kakushadze and Serur: _"151 Trading Strategies"_ (2018)
-
 * Roadmap
 
 - This lesson covers the **finance primer**: instruments, returns, risk and the

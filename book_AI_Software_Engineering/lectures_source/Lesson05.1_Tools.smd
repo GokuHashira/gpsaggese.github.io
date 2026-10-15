@@ -2,30 +2,7 @@
 // course_title=AI Software Engineering
 // lesson_title=Lesson 05.1: Tools for AI-Assisted Software Development
 // slides_engine=typst
-// References:
-// - Causify, "The Causify AIgentic Development System":
-//   helpers_root/papers/AIgentic_Development_System
-// - Causify, "helpers" development system documentation:
-//   helpers_root/docs
-// - Procida, "Diataxis: A systematic framework for technical
-//   documentation": https://diataxis.fr/
-// - Google, "Engineering Practices: Code Review":
-//   https://google.github.io/eng-practices/review/
-// - Potvin and Levenberg, "Why Google Stores Billions of Lines of Code in a
-//   Single Repository" (CACM, 2016): https://research.google/pubs/pub45424/
-// - Meta, Microsoft, and Uber engineering blogs on monorepo vs. multi-repo
-//   practice at scale
-// - Anthropic, "Claude Code: Remote Control":
-//   https://code.claude.com/docs/en/remote-control
-// - Anthropic, "Claude Code: Security Guidance":
-//   https://code.claude.com/docs/en/security-guidance
-// - Gitleaks, "Gitleaks Action":
-//   https://github.com/gitleaks/gitleaks-action
-// - Semgrep, "Semgrep Documentation": https://semgrep.dev/docs/
-// - Allure, "Allure Report Documentation": https://allurereport.org/docs/
-// - Codecov, "Codecov Documentation": https://docs.codecov.com/
-// - Petazzoni, "Do not use Docker-in-Docker for CI":
-//   https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/
+
 // TODO(gp): At the end of each part add part of the table from
 // book_AI_Software_Engineering/lectures_source/Lesson05.1_Tools.tools_reference.md
 // TODO(gp): List of skills and rules organized and standardized
@@ -1652,3 +1629,39 @@ digraph ReleaseFlow {
 // TODO(gp): Look into governance/provenance frameworks for AI-authored code:
 //   SLSA build provenance, org audit-trail and policy tooling, and published
 //   responsible-AI-coding guidelines
+
+* References
+
+- Causify, "The Causify AIgentic Development System":
+  helpers_root/papers/AIgentic_Development_System
+
+- Causify, "helpers" development system documentation: helpers_root/docs
+
+- Procida, "Diataxis: A systematic framework for technical documentation":
+  https://diataxis.fr/
+
+- Google, "Engineering Practices: Code Review":
+  https://google.github.io/eng-practices/review/
+
+- Potvin and Levenberg, "Why Google Stores Billions of Lines of Code in a Single
+  Repository" (CACM, 2016): https://research.google/pubs/pub45424/
+
+- Meta, Microsoft, and Uber engineering blogs on monorepo vs. multi-repo
+  practice at scale
+
+- Anthropic, "Claude Code: Remote Control":
+  https://code.claude.com/docs/en/remote-control
+
+- Anthropic, "Claude Code: Security Guidance":
+  https://code.claude.com/docs/en/security-guidance
+
+- Gitleaks, "Gitleaks Action": https://github.com/gitleaks/gitleaks-action
+
+- Semgrep, "Semgrep Documentation": https://semgrep.dev/docs/
+
+- Allure, "Allure Report Documentation": https://allurereport.org/docs/
+
+- Codecov, "Codecov Documentation": https://docs.codecov.com/
+
+- Petazzoni, "Do not use Docker-in-Docker for CI":
+  https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/

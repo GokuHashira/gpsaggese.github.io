@@ -3,39 +3,6 @@
 // lesson_title=Lesson 06.01: Auto EDA
 // slides_engine=typst
 
-// References:
-// - Tukey: _"Exploratory Data Analysis"_ (1977)
-// - Rubin: _"Inference and Missing Data"_, Biometrika (1976)
-// - Cont: _"Empirical Properties of Asset Returns: Stylized Facts and
-//   Statistical Issues"_, Quantitative Finance (2001)
-// - Lo and MacKinlay: _"An Econometric Analysis of Nonsynchronous Trading"_,
-//   Journal of Econometrics (1990)
-// - Shumway: _"The Delisting Bias in CRSP Data"_, Journal of Finance (1997)
-// - Kaufman et al.: _"Leakage in Data Mining: Formulation, Detection, and
-//   Avoidance"_, ACM TKDD (2012)
-// - Ploberger and Kramer: _"The CUSUM Test with OLS Residuals"_, Econometrica
-//   (1992)
-// - Inclan and Tiao: _"Use of Cumulative Sums of Squares for Retrospective
-//   Detection of Changes of Variance"_, JASA (1994)
-// - Simmons, Nelson, and Simonsohn: _"False-Positive Psychology"_,
-//   Psychological Science (2011)
-// - Gelman and Loken: _"The Statistical Crisis in Science"_, American
-//   Scientist (2014)
-// - Hamilton: _"A New Approach to the Economic Analysis of Nonstationary Time
-//   Series and the Business Cycle"_, Econometrica (1989)
-// - Lopez de Prado: _"Advances in Financial Machine Learning"_ (2018)
-// - Dibia: _"LIDA"_, ACL System Demonstrations (2023)
-// - Hong et al.: _"Data Interpreter: An LLM Agent for Data Science"_,
-//   Findings of ACL (2025)
-// - Nam et al.: _"DS-STAR"_, TMLR (2026)
-// - Helali et al.: _"Reliable and Cost-Effective Exploratory Data Analysis
-//   via Graph-Guided RAG"_, EMNLP (2025)
-// - Jing et al.: _"DSBench"_, ICLR (2025)
-// - Huang et al.: _"DA-Code"_, EMNLP (2024)
-// - Egg et al.: _"DABstep"_, arXiv (2025)
-// - Li et al.: _"R&D-Agent-Quant"_, NeurIPS Datasets and Benchmarks (2025)
-// - Lin et al.: _"FactorEngine"_, arXiv (2026)
-
 * Roadmap
 
 - This lesson covers the **levels of EDA automation**: rule-based profilers,

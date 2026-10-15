@@ -3,15 +3,6 @@
 // lesson_title=Lesson 10.01: Auto DS
 // slides_engine=typst
 
-// References:
-// - Lopez de Prado: _"Advances in Financial Machine Learning"_ (2018)
-// - Lopez de Prado: _"Machine Learning for Asset Managers"_ (2020)
-// - Bailey and Lopez de Prado: _"The Deflated Sharpe Ratio"_, Journal of
-//   Portfolio Management (2014)
-// - Bailey et al.: _"The Probability of Backtest Overfitting"_, Journal of
-//   Computational Finance (2016)
-//   TODO(gp): Check the year: online 2016, print issue may be 2017
-
 * Roadmap
 
 - This lesson covers **AutoML for finance**: A search over a predefined space of
