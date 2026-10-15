@@ -19,9 +19,6 @@
 
 // TODO(ai_gp): Move this to the right section
 - [ ] Gu, Kelly and Xiu's "Empirical Asset Pricing via Machine Learning" (2020)
-  - It found that trees and neural nets roughly doubled the predictive performance of
-    linear models on US stocks
-  - Momentum, liquidity and volatility were the most important inputs
 
 # Causal Analysis for Finance
 
@@ -29,928 +26,271 @@
 
 - [ ] 2025, Hünermund Et Al., "Causal Inference and Data Fusion in Econometrics"
   - **Url**: https://arxiv.org/abs/1912.09104
-  - Reviews causal inference methods from the AI literature and their use in
-    econometrics
-  - Targets hard data problems: unobserved confounding, selection-biased samples,
-    surrogate experiments with imperfect compliance, and transfer of causal knowledge
-    across different populations
-  - Argues that graph-based methods give one unified framework, algorithmic
-    identification criteria, and a middle ground between structural econometrics and
-    potential outcomes
-
 - [ ] 2020, Imbens, "Potential Outcome and Directed Acyclic Graph Approaches to
-  Causality: Relevance for Empirical Practice in Economics"
+      Causality: Relevance for Empirical Practice in Economics"
   - **Url**: https://arxiv.org/abs/1907.07271
-  - Essay that compares the potential outcome framework (Rubin, building on Neyman)
-    with graphical approaches based on directed acyclic graphs
-  - Reviews the DAG literature, including Pearl and Mackenzie's The Book of Why
-  - Weighs the questions each framework answers well. Argues that much work in
-    economics is closer to the potential outcome framework
-
 - [ ] 2020, Sharma Et Al., "DoWhy: An End-to-End Library for Causal Inference"
   - **Url**: https://arxiv.org/abs/2011.04216
-  - Open-source Python library that makes causal assumptions first-class objects,
-    based on causal graphs
-  - API follows four steps: model the data with a causal graph, identify the effect,
-    estimate it, and refute the estimate
-  - Includes robustness checks: placebo tests, bootstrap tests, and tests for
-    unobserved confounding. Works with EconML and CausalML for estimation
-
 - [ ] 2018, Pearl Et Al., "The Book of Why: The New Science of Cause and Effect"
   - **Url**: https://bayes.cs.ucla.edu/WHY/
-  - Book for general readers on the basics of cause and effect, by Pearl and
-    Mackenzie
-  - Argues that the old slogan "correlation is not causation" once led to a virtual
-    ban on causal talk. Causal analysis now sits at the center of AI and other
-    applications
-  - Chapters cover the ladder of causation, confounding and deconfounding,
-    counterfactuals, and mediation
-
 - [ ] 2017, Peters Et Al., "Elements of Causal Inference: Foundations and Learning
-  Algorithms"
-  - **Url**: https://mitp-content-server.mit.edu/books/content/sectbyfn?collid=books_pres_0&id=11283&fn=11283.pdf
-  - Concise, self-contained introduction to causal models and how to learn them from
-    data. Free open access PDF from MIT Press
-  - Shows how to compute intervention distributions, infer causal models from
-    observational and interventional data, and use causal ideas in machine learning
-  - Written for readers with a machine learning or statistics background Includes
-    exercises and code snippets
-
+      Algorithms"
+  - **Url**:
+    https://mitp-content-server.mit.edu/books/content/sectbyfn?collid=books_pres_0&id=11283&fn=11283.pdf
 - [ ] 2009, Pearl, "Causality: Models, Reasoning, and Inference"
   - **Url**: https://bayes.cs.ucla.edu/BOOK-2K/
-  - Second edition. Comprehensive exposition of modern causal analysis. Unifies the
-    probabilistic, manipulative, counterfactual, and structural approaches to
-    causation
-  - Gives simple mathematical tools to link causal connections to statistical
-    associations
-  - Chapters cover causal diagrams and identification of causal effects, structural
-    models in social science and economics, and structure-based counterfactuals
 
 ## Causality in Finance
 
 - [ ] 2026, López De Prado Et Al., "Correcting the Factor Mirage: A Research Protocol
-  for Causal Factor Investing"
+      for Causal Factor Investing"
   - **Url**: https://ssrn.com/abstract=5931616
-  - Proves that specification errors can make factor strategies underperform and
-    possibly lose money, even if all risk premia are constant and estimated with the
-    correct sign
-  - Names the factor mirage: models that look strong statistically but are
-    structurally flawed. Over-controlling for colliders raises the risk of few-shot
-    p-hacking and bad outcomes
-  - Proposes changes to the econometric canon, using machine learning and causal
-    inference. Published in The Journal of Portfolio Management
-
 - [ ] 2025, López De Prado Et Al., "Causality and Factor Investing: A Primer"
   - **Url**: https://ssrn.com/abstract=5277078
-  - Notes that most factor strategies miss their in-sample promise. Names a less
-    discussed cause: use of an econometric canon that ignores causal structure
-    P-hacking and backtest overfitting get more blame
-  - Introduces the factor mirage: a factor model that looks statistically valid but
-    is causally misspecified
-  - Shows how collider bias and confounder bias in standard regressions give
-    misleading inferences and poor out-of-sample performance
-
 - [ ] 2024, López De Prado Et Al., "The Case for Causal Factor Investing"
   - **Url**: https://ssrn.com/abstract=4774522
-  - Factor model estimates of risk premia are unbiased only if the model is correctly
-    specified. Correct specification needs knowledge of the causal graph of the data
-    generating process
-  - Researchers pick specifications with associational arguments such as explanatory
-    power, not with causal tools such as do-calculus. Models are likely misspecified
-    and premia are biased
-  - Calls for rebuilding factor investing on causal foundations
-
 - [ ] 2023, López De Prado, "Causal Factor Investing: Can Factor Investing Become
-  Scientific?"
+      Scientific?"
   - **Url**: https://ssrn.com/abstract=4205613
-  - Monograph, published as a Cambridge Elements title in 2023. The link is the SSRN
-    version. Argues that almost all factor investing papers make associational claims
-    and ignore the causal content of factor models
-  - Authors do not identify the causal graph, justify specifications with
-    correlations, and propose no experiments to falsify causal mechanisms Without a
-    causal theory, findings are likely false
-  - Separates type-A and type-B spurious claims. Proposes fixes to make the field
-    scientific
-
 - [ ] 2023, Jensen Et Al., "Is There a Replication Crisis in Finance?"
   - **Url**: https://ssrn.com/abstract=3774514
-  - Answers claims that most finance studies cannot be replicated or rest on multiple
-    testing of too many factors. Builds and estimates a Bayesian model of factor
-    replication
-  - Finds that most asset pricing factors replicate. They cluster into 13 themes, and
-    most themes are significant parts of the tangency portfolio
-  - Factors work out of sample in a new data set covering 93 countries. The large
-    number of observed factors strengthens the evidence
-
 - [ ] 2022, Chen Et Al., "Open Source Cross-Sectional Asset Pricing"
   - **Url**: https://ssrn.com/abstract=3604626
-  - Provides open data and code that reproduce nearly all cross-sectional stock
-    return predictors. Covers 319 characteristics from earlier meta-studies
-  - Compares reproduced t-stats to the original papers. For the 161 characteristics
-    that were clearly significant, 98% of long-short portfolios have t-stats above
-    1.96
-  - A regression of reproduced t-stats on original t-stats gives a slope of 0.88 and
-    an R^2 of 82%
-
 - [ ] 2020, Hou Et Al., "Replicating Anomalies"
   - **Url**: https://ssrn.com/abstract=2961979
-  - Builds a data library of 452 anomalies (447 in the SSRN draft). Limits microcap
-    influence with NYSE breakpoints and value-weighted returns
-  - Finds that 65% of anomalies fail the single test hurdle of |t| 1.96. The failure
-    rate rises to 82% with the multiple test hurdle of 2.78
-  - Replicated anomalies have economic magnitudes much smaller than originally
-    reported. Concludes that capital markets are more efficient than previously
-    recognized
-
 - [ ] 2016, Harvey Et Al., "...and the Cross-Section of Expected Returns"
   - **Url**: https://ssrn.com/abstract=2249314
-  - Hundreds of factors try to explain expected returns. Given this data mining, the
-    usual t-ratio above 2.0 is too weak for a new factor
-  - Introduces a multiple testing framework that allows for correlated tests and
-    publication bias. Gives historical significance cutoffs from 1967 to today
-  - Estimates that a new factor needs a t-ratio above 3.0. Argues that most claimed
-    findings in financial economics are likely false
 
 ## Causal Structure From Text
 
 - [ ] 2025, Saklad Et Al., "Can Large Language Models Infer Causal Relationships from
-  Real-World Text?"
+      Real-World Text?"
   - **Url**: https://arxiv.org/abs/2505.18931
-  - Tests whether LLMs infer causal relations from real-world academic text, not from
-    short synthetic text
-  - Builds a benchmark (ReCITE) from academic literature. Texts vary in length,
-    complexity, and domain
-  - The best model reaches an average F1 of only 0.535
-
 - [ ] 2025, Garg Et Al., "Causal Claims in Economics"
   - **Url**: https://arxiv.org/abs/2501.06873
-  - Maps each paper into an evidence-annotated claim graph. Nodes are standardized
-    economic concepts. Edges are stated relationships, labeled by evidentiary basis
-  - Builds graphs for 44,852 economics papers from 1980-2023 with a multi-stage AI
-    workflow
-  - The share of causal edges rises from 7.7% in 1990 to 31.7% in 2020 Causal
-    narrative structure and novelty are positively associated with top-five
-    publication and long-run citations
-
 - [ ] 2024, Zhang Et Al., "Causal Graph Discovery with Retrieval-Augmented Generation
-  based Large Language Models"
+      based Large Language Models"
   - **Url**: https://arxiv.org/abs/2402.15301
-  - Proposes an LLM method (LACR) for causal graph recovery. It uses knowledge in the
-    LLM, knowledge extracted from a scientific publication database, and experiment
-    data
-  - Prompts the LLM to extract associations among factors. Then it verifies causality
-    for each association
-  - Gives better graph quality than other LLM-based methods on benchmark datasets. It
-    reacts to new evidence in the literature
-
 - [ ] 2023, Antonucci Et Al., "Zero-shot Causal Graph Extrapolation From Text via
-  LLMs"
+      LLMs"
   - **Url**: https://arxiv.org/abs/2312.14670
-  - Evaluates LLMs on inferring causal relations from natural language without
-    training samples
-  - LLMs are competitive with traditional NLP and deep learning on a benchmark of
-    pairwise relations
-  - Extends the approach to causal graphs through iterated pairwise queries
-    Preliminary test on biomedical abstracts with expert-validated graphs
-
 - [ ] 2023, Zecevic Et Al., "Causal Parrots: Large Language Models May Talk Causality
-  But Are Not Causal"
+      But Are Not Causal"
   - **Url**: https://arxiv.org/abs/2308.13067
-  - Argues that LLMs cannot be causal. Defines the meta SCM: a structural causal
-    model whose variables encode causal facts about other SCMs
-  - Conjectures that LLM successes come from correlations between causal facts in the
-    training text. The LLMs recite causal knowledge
-  - Empirical analysis supports this: current LLMs are weak "causal parrots"
-
 - [ ] 2023, Jin Et Al., "Can Large Language Models Infer Causation From Correlation?"
   - **Url**: https://arxiv.org/abs/2306.05836
-  - Proposes the Corr2Cause task: given correlational statements, find the causal
-    relation between the variables
-  - Dataset has more than 200K samples. Evaluates seventeen LLMs
-  - Models score close to random. Finetuning helps in distribution but fails when
-    variable names and wording change
-
 - [ ] 2023, Kiciman Et Al., "Causal Reasoning and Large Language Models: Opening a
-  New Frontier for Causality"
+      New Frontier for Causality"
   - **Url**: https://arxiv.org/abs/2305.00050
-  - Behavioral study of how well LLMs generate causal arguments across many tasks
-  - GPT-3.5 and GPT-4 beat existing algorithms on pairwise causal discovery (97%),
-    counterfactual reasoning (92%), and event causality (86%)
-  - Failure modes are unpredictable. The authors point to combining LLMs with
-    existing causal techniques
-
 - [ ] 2022, Yang Et Al., "A Survey on Extraction of Causal Relations From Natural
-  Language Text"
+      Language Text"
   - **Url**: https://arxiv.org/abs/2101.06426
-  - Surveys causality extraction. Covers explicit intra-sentential, implicit, and
-    inter-sentential causality
-  - Lists benchmark datasets and assessment methods for causal relation extraction
-  - Reviews knowledge-based, statistical ML-based, and deep learning-based methods
-    Ends with open challenges
-
 - [ ] 2020, Mariko Et Al., "Financial Document Causality Detection Shared Task
-  (FinCausal 2020)"
+      (FinCausal 2020)"
   - **Url**: https://arxiv.org/abs/2012.02505
-  - Presents the FinCausal 2020 shared task on causality detection in financial
-    documents and the FinCausal dataset
-  - Two sub-tasks: binary classification (Task 1) and relation extraction (Task 2)
-  - 16 teams submitted runs. 13 of them wrote system description papers
 
 ## Paper-to-Code and LLM Quant Agents
 
 - [ ] 2026, Lin Et Al., "FactorEngine: A Program-level Knowledge-Infused Factor
-  Mining Framework for Quantitative Investment"
+      Mining Framework for Quantitative Investment"
   - **Url**: https://arxiv.org/abs/2603.16365
-  - Mines alpha factors as Turing-complete code. It separates logic revision from
-    parameter optimization, LLM-guided search from Bayesian search, and LLM use from
-    local computation
-  - A bootstrapping module turns unstructured financial reports into executable
-    factor programs. It uses a multi-agent extraction, verification, and code
-    generation loop
-  - Backtests on real-world OHLCV data show higher IC/ICIR and better AR/Sharpe than
-    baselines
-
 - [ ] 2025, Li Et Al., "R&D-Agent-Quant: A Multi-Agent Framework for Data-Centric
-  Factors and Model Joint Optimization"
+      Factors and Model Joint Optimization"
   - **Url**: https://arxiv.org/abs/2505.15155
-  - Multi-agent framework (RD-Agent(Q)) that automates quant research and development
-    by co-optimizing factors and models
-  - A Research stage forms hypotheses and tasks. A Development stage uses a code
-    agent (Co-STEER) and real-market backtests. A feedback stage and a multi-armed
-    bandit scheduler link the stages
-  - Reports up to 2X higher annualized returns than classical factor libraries, with
-    70% fewer factors
-
 - [ ] 2025, Seo Et Al., "Paper2Code: Automating Code Generation From Scientific
-  Papers in Machine Learning"
+      Papers in Machine Learning"
   - **Url**: https://arxiv.org/abs/2504.17192
-  - Presents PaperCoder, a multi-agent LLM framework that turns ML papers into code
-    repositories
-  - Three stages: planning, analysis, and generation. Specialized agents handle each
-    stage
-  - Evaluated with model-based and human evaluation, including the paper authors.
-    Also beats strong baselines on PaperBench
-
 - [ ] 2025, Starace Et Al., "PaperBench: Evaluating AI's Ability to Replicate AI
-  Research"
+      Research"
   - **Url**: https://arxiv.org/abs/2504.01848
-  - Benchmark where agents replicate 20 ICML 2024 Spotlight and Oral papers from
-    scratch: understand, write the codebase, run experiments
-  - Rubrics hold 8,316 gradable tasks, co-developed with the paper authors An
-    LLM-based judge grades the attempts
-  - The best agent scores 21.0% (Claude 3.5 Sonnet (New) with open-source
-    scaffolding) Models do not yet beat the human baseline of ML PhDs
-
 - [ ] 2023, Blecher Et Al., "Nougat: Neural Optical Understanding for Academic
-  Documents"
+      Documents"
   - **Url**: https://arxiv.org/abs/2308.13418
-  - Visual Transformer OCR model. It converts scientific document PDFs into a markup
-    language
-  - Targets the loss of semantic information in PDFs, especially math expressions
-  - Evaluated on a new dataset of scientific documents. Models and code are released
 
 # Causal Macroeconomic Modeling
 
 ## Macro Variables in Asset Pricing
 
 - [ ] 2023, Bryzgalova Et Al., "Bayesian Solutions for the Factor Zoo: We Just Ran
-  Two Quadrillion Models"
+      Two Quadrillion Models"
   - **Url**: https://ssrn.com/abstract=3481736
-  - Proposes a Bayesian framework for linear asset pricing models. It is simple,
-    robust, and works in high dimensional problems
-  - For one model, it estimates prices of risk for tradable and non-tradable factors
-    It flags weakly identified factors
-  - For competing models, it picks the best one if a dominant one exists Otherwise it
-    builds a Bayesian model average SDF (BMA-SDF). Across 2.25 quadrillion models,
-    BMA-SDF beats existing models in-sample and out-of-sample
-
 - [ ] 2021, Giglio Et Al., "Asset Pricing with Omitted Factors"
   - **Url**: https://ssrn.com/abstract=2865922
-  - Standard risk premia estimators are biased when priced factors are omitted from
-    the model
-  - Proposes a three-pass method for the risk premium of an observable factor. It
-    uses principal components of test asset returns to recover the factor space. Then
-    it runs cross-sectional and time-series regressions
-  - It handles measurement error in the factor and detects spurious factors Applied
-    to a large panel of equity and non-equity portfolios
-
 - [ ] 2018, Barillas Et Al., "Comparing Asset Pricing Models"
   - **Url**: https://ssrn.com/abstract=2676709
-  - Derives a Bayesian asset pricing test. It is computed in closed form from the
-    standard F-statistic
-  - Extends the test to model probabilities for all models built from subsets of a
-    set of candidate traded factors
-  - Finds that the Hou, Xue, and Zhang (2015) and Fama and French (2015, 2016) models
-    are dominated by models with a momentum factor and monthly updated value and
-    profitability factors
-
 - [ ] 2008, Welch Et Al., "A Comprehensive Look at the Empirical Performance of
-  Equity Premium Prediction"
+      Equity Premium Prediction"
   - **Url**: https://ssrn.com/abstract=517667 ???
-  - Re-examines variables proposed to predict the equity premium. Examples: dividend
-    price ratios, earnings-price ratios, book-market ratios, interest rates, and the
-    consumption-based ratio cay. Tests are in-sample and out-of-sample, as of 2005
-  - Finds that over the last 30 years the prediction models failed both in-sample and
-    out-of-sample. The models are unstable
-  - Finds that the models would not have helped an investor who had only the
-    information available at the time to time the market
-
 - [ ] 2005, Bernanke Et Al., "What Explains the Stock Market's Reaction to Federal
-  Reserve Policy?"
+      Reserve Policy?"
   - **Url**: https://ssrn.com/abstract=890610
-  - Studies how unanticipated changes in the federal funds rate target move equity
-    prices. Goal: size the typical reaction and find its sources
-  - Finds that an unanticipated 25 basis point rate cut goes with a rise of about 1
-    percent in stock prices
-  - Uses the methods of Campbell and Ammer. Most of the effect comes through
-    forecasted equity risk premiums. Very little comes through the real interest rate
-
 - [ ] 2001, Lettau Et Al., "Resurrecting the (C)CAPM: A Cross-Sectional Test When
-  Risk Premia Are Time-Varying"
+      Risk Premia Are Time-Varying"
   - **Url**: https://ssrn.com/abstract=935320
-  - Tests whether the CAPM and the consumption CAPM explain the cross-section of
-    average stock returns. The pricing kernel is a conditional linear factor model,
-    since risk premia vary over time
-  - The conditioning variable proxies for fluctuations in the log
-    consumption-aggregate wealth ratio
-  - Conditional models beat unconditional ones. They do about as well as the
-    Fama-French three-factor model on size and book-to-market portfolios
-
 - [ ] 2000, Pastor Et Al., "Comparing Asset Pricing Models: an Investment
-  Perspective"
+      Perspective"
   - **Url**: https://ssrn.com/abstract=217512 ???
-  - Studies the portfolio choices of mean-variance investors. They use sample
-    evidence to update prior beliefs centered on a risk-based or a
-    characteristic-based pricing model
-  - With dogmatic beliefs and no limit on position size, optimal portfolios differ
-    across models by economically significant amounts
-  - Modest doubt about the models' pricing ability shrinks the differences Realistic
-    limits on position size shrink them more, to zero in some cases
-
 - [ ] 1991, Ferson Et Al., "The Variation of Economic Risk Premiums"
   - **Url**: https://ssrn.com/abstract=3281992
-  - Analyzes the predictable components of monthly stock and bond portfolio returns
-  - Most of the predictability links to sensitivity to economic variables in a
-    rational asset pricing model with multiple betas
-  - The stock market risk premium matters most for stocks. Interest rate risk
-    premiums matter most for bonds. Time variation in the premium for beta risk
-    matters more than time variation in the betas
-
 - [ ] 1986, Chen Et Al., "Economic Forces and the Stock Market"
   - **Url**: https://doi.org/10.1086/296344
-  - Tests whether innovations in macroeconomic variables are risks that the stock
-    market rewards
-  - Variables: the spread between long and short interest rates, expected and
-    unexpected inflation, industrial production, and the spread between high and low
-    grade bonds. These sources of risk are significantly priced
-  - Neither the market portfolio nor aggregate consumption is priced separately Oil
-    price risk is not separately rewarded
 
 ## Bayesian Macroeconometrics
 
 - [ ] 2016, Herbst Et Al., "Bayesian Estimation of DSGE Models"
-  - **Url**: https://press.princeton.edu/books/hardcover/9780691161082/bayesian-estimation-of-dsge-models
-  - Book on computational methods for Bayesian analysis of DSGE models. Such models
-    serve academic research, forecasting, and central bank policy work
-  - Covers MCMC for linearized DSGE models, sequential Monte Carlo for parameter
-    inference, and particle filter likelihoods for nonlinear models
-  - Explains the theory behind the algorithms. Gives empirical applications and
-    advice on tuning the methods and checking accuracy
-
+  - **Url**:
+    https://press.princeton.edu/books/hardcover/9780691161082/bayesian-estimation-of-dsge-models
 - [ ] 2015, Schorfheide Et Al., "Real-Time Forecasting with a Mixed-Frequency VAR"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2366046 ???
-  - Builds a VAR for series observed at two frequencies: quarterly and monthly Uses
-    state-space form and Bayesian estimation with a Minnesota-style prior
-  - Shows how to compute the marginal data density. This lets the data pick the
-    hyperparameters
-  - Real-time test against a quarterly VAR and MIDAS regressions: information that
-    arrives within the quarter improves forecasts
-
 - [ ] 2015, Giannone Et Al., "Prior Selection for Vector Autoregressions"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2164591 ???
-  - VARs have many parameters. Inference is unstable and out-of-sample forecasts are
-    poor, especially with many variables
-  - Informative priors shrink the model toward a simpler benchmark. The paper treats
-    the tightness of the prior as extra parameters in a hierarchical model and picks
-    it optimally
-  - Reports good results for out-of-sample forecasts, factor models, and impulse
-    response estimates
-
 - [ ] 2011, Del Negro Et Al., "Bayesian Macroeconometrics"
-  - **Url**: https://www.newyorkfed.org/medialibrary/media/research/economists/delnegro/B9AF4A64-F0AB-F7AF-1B0CB70D57957496.pdf
-  - Handbook chapter on Bayesian methods for macroeconomics. Starts from the
-    challenges macroeconomists face in data-rich settings
-  - Covers reduced-form and structural VARs, linearized and nonlinear DSGE models,
-    and ways to test how well DSGE models fit the data
-  - Ends with model uncertainty: how to choose and decide across several models
-
+  - **Url**:
+    https://www.newyorkfed.org/medialibrary/media/research/economists/delnegro/B9AF4A64-F0AB-F7AF-1B0CB70D57957496.pdf
 - [ ] 2010, Koop Et Al., "Bayesian Multivariate Time Series Methods for Empirical
-  Macroeconomics"
+      Macroeconomics"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1514412
-  - Monograph on VARs, factor-augmented VARs, and time-varying parameter versions of
-    these models, including multivariate stochastic volatility
-  - These models have many parameters, so over-parameterization can arise Bayesian
-    methods are a way to avoid it
-  - Explains Bayesian inference and the MCMC algorithms for state space models Gives
-    practical advice and empirical illustrations
-
 - [ ] 2010, Bańbura Et Al., "Large Bayesian vector auto regressions"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1292332
-  - Shows that a VAR with Bayesian shrinkage is a good tool for large dynamic models
-  - Shrinkage is set in relation to the cross-sectional dimension. Then small
-    monetary VARs forecast better when extra macro variables and sectoral information
-    are added
-  - Large VARs with shrinkage give credible impulse responses. They suit structural
-    analysis
-
 - [ ] 2007, Gelman Et Al., "Data Analysis Using Regression and
-  Multilevel/Hierarchical Models"
+      Multilevel/Hierarchical Models"
   - **Url**: https://sites.stat.columbia.edu/gelman/arm/
-  - Textbook for applied researchers who fit linear, nonlinear, and multilevel
-    regression models
-  - Covers regression, multilevel and hierarchical models, causal inference, and
-    research design. Uses R and WinBUGS
-  - Examples come mostly from the authors' own applied research. The book site links
-    to data, software, and errata
-
 - [ ] 2007, Smets Et Al., "Shocks and Frictions in US Business Cycles: A Bayesian
-  DSGE Approach"
+      DSGE Approach"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1687574
-  - Estimates a DSGE model of the US economy with Bayesian likelihood methods and
-    seven macro time series
-  - The model has many real and nominal frictions and seven types of structural
-    shocks It competes with Bayesian VARs in out-of-sample prediction
-  - Tests which frictions matter. Uses the model to study the sources of business
-    cycles, the effect of productivity on hours worked, and the Great Moderation
-
 - [ ] 2007, Ghysels Et Al., "MIDAS Regressions: Further Results and New Directions"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=885683
-  - Studies MIDAS regressions: regressions that use time series sampled at different
-    frequencies
-  - Main focus is volatility. The method also applies in macroeconomics and finance.
-    It joins new volatility estimators with the older distributed lag literature
-  - Compares lag structures that keep the model parsimonious. Proposes new extensions
-    The empirical part covers the risk-return tradeoff, microstructure noise, and
-    volatility forecasting
-
 - [ ] 2006, Sims Et Al., "Were There Regime Switches in U.S. Monetary Policy?"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=579022
-  - Multivariate model identifies monetary policy and allows simultaneity and regime
-    switching in coefficients and variances. Uses US data since 1959
-  - Best fit: only the variances of structural disturbances change. If coefficients
-    may change too, the best fit changes only the policy rule, with three main
-    regimes and one rare regime
-  - Regime differences are too small to explain the rise and fall of inflation in the
-    1970s and 1980s. Monetary targeting was central in the early 1980s
-
 - [ ] 2005, Primiceri, "Time Varying Structural Vector Autoregressions and Monetary
-  Policy"
+      Policy"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=352960
-  - Models monetary policy and the private sector as a time-varying structural VAR
-    Both the coefficients and the covariance matrix of the innovations vary over time
-  - Gives a simple way to model the law of motion of the covariance matrix Proposes
-    an efficient MCMC algorithm for the posterior
-  - Finds that systematic policy responded more aggressively to inflation and
-    unemployment over forty years, with a negligible effect on the rest of the
-    economy Non-policy shocks matter more for the high inflation and unemployment
-    episodes
-
 - [ ] 2003, Smets Et Al., "An Estimated Dynamic Stochastic General Equilibrium Model
-  of the Euro Area"
+      of the Euro Area"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=358102
-  - Builds and estimates a model of the euro area with sticky prices and wages, habit
-    formation, capital adjustment costs, and variable capacity utilisation
-  - Bayesian estimation on seven macro series: GDP, consumption, investment, prices,
-    real wages, employment, and the nominal interest rate. Ten structural shocks
-  - Uses the model to study the effects of the shocks, their role in euro area
-    business cycles, and the output gap: actual output minus model-based potential
-    output
-
 - [ ] 2003, Mariano Et Al., "A New Coincident Index of Business Cycles Based on
-  monthly and quarterly series"
+      monthly and quarterly series"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=317983
-  - Common monthly coincident indexes, such as the composite index and the
-    Stock-Watson index, ignore quarterly indicators like real GDP. They also lack
-    economic interpretation
-  - Extends the Stock-Watson index. Applies maximum likelihood factor analysis to
-    quarterly real GDP and monthly coincident indicators
-  - The new index relates to latent monthly real GDP
-
 - [ ] 1998, Bai Et Al., "Estimating and Testing Linear Models with Multiple
-  Structural Changes"
+      Structural Changes"
   - **Url**: https://dspace.mit.edu/handle/1721.1/63516
-  - Studies least squares estimation of linear models with several structural breaks
-    at unknown dates, including the estimated break dates
-  - Tests whether change exists and how many breaks occur, including a test of l
-    breaks against l+1 breaks. This supports a specific-to-general way to pick the
-    number of breaks
-  - Covers partial structural change, where only some parameters shift. Derives
-    convergence rates for the break fractions. Also describes a way to find the break
-    points one at a time
-
 - [ ] 1989, Hamilton, "A New Approach to the Economic Analysis of Nonstationary Time
-  Series and the Business Cycle"
-  - **Url**: https://www.econometricsociety.org/publications/econometrica/1989/03/01/new-approach-economic-analysis-nonstationary-time-series-and
-  - Proposes a tractable model of regime change. The parameters of an autoregression
-    follow a discrete-state Markov process. The shifts are not observed, so the data
-    must reveal them
-  - Gives a maximum likelihood algorithm and a basis for forecasting
-  - Applied to postwar US real GNP: switches from positive to negative growth recur
-    over the cycle. This could give an objective rule to date recessions A typical
-    recession links to a permanent drop of about 3% in the level of GNP
-
+      Series and the Business Cycle"
+  - **Url**:
+    https://www.econometricsociety.org/publications/econometrica/1989/03/01/new-approach-economic-analysis-nonstationary-time-series-and
 - [ ] 1986, Litterman, "Forecasting with Bayesian Vector Autoregressions: Five Years
-  of Experience"
-  - **Url**: https://www.minneapolisfed.org/research/working-papers/forecasting-with-bayesian-vector-autoregressions-five-years-of-experience
-  - Reports five years of real forecasting with Bayesian vector autoregressions
-    (BVARs)
-  - The BVAR is inexpensive and reproducible. On average it is as accurate as the
-    best known commercial forecasting services
-  - Covers the forecasting problem, the case for the Bayesian approach, how to
-    implement it, and five years of results from one small BVAR model
-
+      of Experience"
+  - **Url**:
+    https://www.minneapolisfed.org/research/working-papers/forecasting-with-bayesian-vector-autoregressions-five-years-of-experience
 - [ ] 1984, Doan Et Al., "Forecasting and Conditional Projection Using Realistic
-  prior distributions"
+      prior distributions"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=305579 ???
-  - Presents a forecasting method based on Bayesian estimation of VARs
-  - Applied to ten macro variables. Out-of-sample forecasts improve on univariate
-    equations. The prior damps cross-variable effects, but the estimates still
-    capture substantial interaction
-  - Shows how to make conditional projections to compare policy options, with a
-    December 1982 Congressional Budget Office forecast as the example. Warns that
-    such models describe statistical interdependence, not causal links
-
 - [ ] 1980, Sims, "Macroeconomics and Reality"
-  - **Url**: https://www.econometricsociety.org/publications/econometrica/1980/01/01/macroeconomics-and-reality
-  - Summarizes objections to existing econometric methods in macroeconomics. Some
-    objections are recent and some are old
-  - Argues that, taken together, they make it unlikely that macroeconomic models are
-    over-identified in the way standard statistical theory assumes
-  - Explores what follows from this. Gives an example of econometric work in a
-    nonstandard style that answers the objections
+  - **Url**:
+    https://www.econometricsociety.org/publications/econometrica/1980/01/01/macroeconomics-and-reality
 
 ## Identification of Dynamic Causal Effects
 
 - [ ] 2025, Ferreira Et Al., "Bayesian Local Projections"
   - **Url**: https://www.bcb.gov.br/content/publicacoes/WorkingPaperSeries/WP581.pdf
-  - Proposes Bayesian local projections: informative priors regularize the local
-    projection regressions. Targets the bias versus variance trade-off between local
-    projections and VARs
-  - Impulse responses show richer adjustment dynamics than VAR ones, with comparable
-    estimation uncertainty. Efficiency improves on standard and smooth local
-    projections
-  - Also tested for forecasting: competitive with Bayesian VARs in a multivariate
-    out-of-sample exercise
-
 - [ ] 2023, Bauer Et Al., "A Reassessment of Monetary Policy Surprises and
-  High-Frequency Identification"
+      High-Frequency Identification"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4086229
-  - Responds to concerns that high-frequency rate surprises around FOMC announcements
-    may not be valid instruments for monetary policy effects
-  - Two fixes: add Fed Chair speeches to the announcements (roughly doubles their
-    number and importance), and orthogonalize surprises against macro and financial
-    data known before each announcement
-  - Asset price effects stay largely unchanged. Macro effects are larger and more
-    significant than in earlier high-frequency studies
-
 - [ ] 2021, Miranda-Agrippino Et Al., "The Transmission of Monetary Policy Shocks"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2957644
-  - Combines a new identification that accounts for informational rigidities with a
-    flexible method that bridges VARs and local projections
-  - Says much of the lack of robustness in earlier results comes from full
-    information assumptions paired with severely misspecified models
-  - Finds a monetary tightening is contractionary, with no price puzzle and no output
-    puzzle
-
 - [ ] 2021, Plagborg-Møller Et Al., "Local Projections and VARs Estimate the Same
-  Impulse Responses"
+      Impulse Responses"
   - **Url**: https://www.mikkelpm.com/files/lp_var.pdf
-  - Proves that local projections and VARs estimate the same impulse responses The
-    result is nonparametric and needs only unrestricted lag structures
-  - So the two are dimension reduction techniques with a common target but different
-    finite-sample properties. Short-run, long-run, and sign restriction
-    identification work with either
-  - An instrument can be ordered first in a recursive VAR, even under
-    non-invertibility. Linear VARs are as robust to non-linearities as linear local
-    projections
-
 - [ ] 2018, Nakamura Et Al., "High-Frequency Identification of Monetary
-  Non-Neutrality: The Information Effect"
+      Non-Neutrality: The Information Effect"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2298991 ???
-  - Treats unexpected interest rate changes in a 30-minute window around scheduled
-    Fed announcements as news about monetary policy
-  - After a rate hike, nominal and real rates rise roughly one for one several years
-    out. Expected inflation barely moves. Output growth forecasts rise, the opposite
-    of standard models
-  - Argues Fed announcements also shift beliefs about other economic fundamentals. In
-    their model this information effect matters for the output effect of policy
-    shocks
-
 - [ ] 2018, Stock Et Al., "Identification and Estimation of Dynamic Causal Effects in
-  Macroeconomics Using External Instruments"
+      Macroeconomics Using External Instruments"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3106657 ???
-  - Explains external instruments: outside as-if random variation used to identify
-    dynamic causal effects of macro shocks. It is the time series counterpart of
-    microeconometric IV
-  - Gives conditions on instruments and controls for valid inference on structural
-    impulse responses
-  - Compares a one-step IV regression with a two-step VAR method. Under a restrictive
-    condition the one-step method holds even if the VAR is not invertible, so
-    comparing the two tests invertibility
-
 - [ ] 2018, Arias Et Al., "Inference Based on Structural Vector Autoregressions
-  Identified With Sign and Zero Restrictions: Theory and Applications"
+      Identified With Sign and Zero Restrictions: Theory and Applications"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2580264
-  - Argues that common algorithms for sign and zero restrictions add sign
-    restrictions on variables meant to be unrestricted. This biases results and gives
-    misleading confidence intervals
-  - Proposes a faster algorithm that adds no extra restrictions
-  - Applies it to optimism shocks and business cycles, and to deficit-financed tax
-    cuts versus spending. Finds little support for the clear answers of earlier
-    studies
-
 - [ ] 2016, Ramey, "Macroeconomic Shocks and Their Propagation"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2732455 ???
-  - Handbook chapter. Starts with why identifying macro shocks is hard, then surveys
-    recent identification methods
-  - Reviews monetary, fiscal, and technology shocks in detail. Each section adds new
-    estimates that compare and synthesize the literature
-  - Asks how much of output and hours fluctuations the leading shocks explain
-    Concludes we are much closer to understanding the shocks than twenty years ago
-
 - [ ] 2015, Baumeister Et Al., "Sign Restrictions, Structural Vector Autoregressions,
-  and Useful Prior Information"
+      and Useful Prior Information"
   - **Url**: https://www.nber.org/papers/w20741
-  - Gives a simpler analytical description and algorithm for Bayesian inference in
-    SVARs. It covers over, just, and under identified models
-  - Shows the traditional sign restriction approach carries implicit informative
-    priors. Their influence does not vanish as the sample grows
-  - Argues researchers should state and defend their prior beliefs. Illustrates with
-    a simple model of the US labor market
-
 - [ ] 2015, Gertler Et Al., "Monetary Policy Surprises, Credit Costs, and Economic
-  Activity"
+      Activity"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2450924 ???
-  - Combines a monetary VAR with high-frequency identification of policy shocks
-    Output and inflation responses match textbook theory and standard VAR analysis
-  - Small moves in short rates lead to large moves in credit costs and activity Term
-    premia and credit spreads drive much of the credit cost response
-  - Forward guidance matters for the strength of transmission
-
 - [ ] 2010, Rubio-Ramírez Et Al., "Structural Vector Autoregressions: Theory of
-  Identification and Algorithms for Inference"
+      Identification and Algorithms for Inference"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1296848
-  - Notes there were no workable rank conditions to check whether an SVAR is globally
-    identified. Efficient small-sample inference algorithms were also missing for
-    some restrictions, such as long-run ones
-  - Gives general rank conditions for over and exactly identified models, checked as
-    a matrix filling exercise. For exactly identified models the check reduces to
-    counting
-  - Develops efficient algorithms for small-sample estimation and inference
-
 - [ ] 2009, Kilian, "Not All Oil Price Shocks Are Alike: Disentangling Demand and
-  Supply Shocks in the Crude Oil Market"
+      Supply Shocks in the Crude Oil Market"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=975262 ???
-  - Splits the real price of crude oil into four shocks: supply shocks from OPEC
-    political events, other supply shocks, demand for industrial commodities, and oil
-    market specific demand
-  - Uses a new measure of global real economic activity. Estimates the size, timing,
-    and effects of each shock for 1975 to 2005
-  - Finds the source of an oil price rise matters for the effect on US real GDP and
-    CPI inflation. Policy responses should account for the cause
-
 - [ ] 2005, Jordà, "Estimation and Inference of Impulse Responses by Local
-  Projections"
+      Projections"
   - **Url**: https://www.aeaweb.org/articles?id=10.1257/0002828053828518
-  - Estimates a separate local projection at each horizon instead of extrapolating
-    from a fitted VAR
-  - Uses simple regressions in standard software. Is more robust to misspecification,
-    makes joint or pointwise inference simple, and allows flexible nonlinear
-    specifications
-  - Backed by Monte Carlo evidence and an application to a simple closed economy New
-    Keynesian model
-
 - [ ] 2005, Uhlig, "What Are the Effects of Monetary Policy on Output? Results from
-  an agnostic identification procedure"
+      an agnostic identification procedure"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=199742 ???
-  - Agnostic identification: sign restrictions on the responses of prices,
-    nonborrowed reserves, and the federal funds rate to a monetary policy shock. No
-    restriction on real GDP
-  - Finds contractionary monetary policy shocks have an ambiguous effect on real GDP
-    Other results largely confirm earlier VAR findings
-  - A counterfactual with policy shocks set to zero after December 1979 stays close
-    to actual real GDP. So the label "Volcker recession" looks misplaced
-
 - [ ] 2004, Romer Et Al., "A New Measure of Monetary Shocks: Derivation and
-  Implications"
+      Implications"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=428360 ???
-  - Argues common policy measures, such as the federal funds rate, mix in non-policy
-    forces and Fed responses to expected conditions. This biases estimated effects
-  - Builds a US shock series for 1969 to 1996. Controls for Fed forecasts of output
-    and inflation and uses changes in the intended funds rate around scheduled FOMC
-    meetings
-  - Finds large, fairly quick, and significant effects on output and inflation
-    Effects are stronger and faster than with earlier measures
 
 ## Causal Graphs and Discovery for Time Series
 
 - [ ] 2021, Lorch Et Al., "DiBS: Differentiable Bayesian Structure Learning"
   - **Url**: https://arxiv.org/abs/2105.11839
-  - Bayesian structure learning: infers graph structure while reasoning about
-    uncertainty. Uses a fully differentiable framework on a latent probabilistic
-    graph
-  - Makes no assumption on the form of the local conditional distributions Infers
-    graph and parameters jointly, including nonlinear models such as neural networks
-  - Builds a variational inference method for distributions over structural models
-    Reports it beats related approaches on simulated and real data
-
 - [ ] 2020, Runge, "Discovering Contemporaneous and Lagged Causal Relations in
-  Autocorrelated Nonlinear Time Series Datasets"
+      Autocorrelated Nonlinear Time Series Datasets"
   - **Url**: https://arxiv.org/abs/2003.03685
-  - PCMCI+: a conditional independence method for causal discovery in observational
-    time series. Covers linear and nonlinear, lagged and contemporaneous links.
-    Assumes causal sufficiency
-  - Extends PCMCI to contemporaneous links. Optimizes the conditioning sets to make
-    CI tests more reliable under strong autocorrelation
-  - Reports higher adjacency detection power, better contemporaneous orientation
-    recall, and better control of false positives. Runs much faster than the PC
-    algorithm
-
 - [ ] 2020, Pamfil Et Al., "DYNOTEARS: Structure Learning from Time-Series Data"
   - **Url**: https://arxiv.org/abs/2002.00498
-  - Score-based structure learning for dynamic Bayesian networks. Estimates
-    contemporaneous (intra-slice) and time-lagged (inter-slice) relations together
-  - Minimizes a penalized loss under a smooth acyclicity constraint
-  - Beats other methods on simulated data, mostly in high dimensions. Applied to real
-    data from finance and molecular biology
-
 - [ ] 2019, Runge Et Al., "Detecting and Quantifying Causal Associations in Large
-  nonlinear time series datasets"
+      nonlinear time series datasets"
   - **Url**: https://arxiv.org/abs/1702.07007
-  - PCMCI: reconstructs causal networks from large observational time series Combines
-    linear or nonlinear conditional independence tests with a causal discovery
-    algorithm
-  - Targets data that is high-dimensional and nonlinear, with limited sample size
-  - Tested on a climate teleconnection between the tropical Pacific and
-    extra-tropical temperatures, and on large synthetic data. Reports higher
-    detection power than alternatives
-
 - [ ] 2015, Brodersen Et Al., "Inferring Causal Impact Using Bayesian Structural
-  time-series models"
+      time-series models"
   - **Url**: https://arxiv.org/abs/1506.00356
-  - Infers the causal impact of a market intervention on an outcome over time Uses a
-    diffusion-regression state-space model. A synthetic control gives the
-    counterfactual response
-  - Versus difference-in-differences: shows how impact evolves, takes empirical
-    priors in a Bayesian setup, and handles local trends, seasonality and covariates
-  - Uses MCMC for inference. Tested on simulated data and on an online advertising
-    campaign. Implemented in the CausalImpact R package
-
 - [ ] 2013, Moneta Et Al., "Causal Inference by Independent Component Analysis:
-  Theory and Applications"
+      Theory and Applications"
   - **Url**: https://www.lem.sssup.it/WPLem/documents/ciica.pdf
-  - Presents a method to estimate structural vector autoregressive (SVAR) models It
-    uses non-normality to recover the causal structure behind the data
-  - Applied to microeconomic data: firm growth and firm performance
-  - Applied to macroeconomic data: the effects of monetary policy
-
 - [ ] 2010, Hyvärinen Et Al., "Estimation of a Structural Vector Autoregression Model
-  Using Non-Gaussianity"
+      Using Non-Gaussianity"
   - **Url**: https://jmlr.org/papers/v11/hyvarinen10a.html
-  - Combines a non-Gaussian model of instantaneous effects with autoregressive models
-    The result is a structural vector autoregression (SVAR) model
-  - Shows the model is identifiable without prior knowledge of the network structure
-  - Gives efficient estimation methods and tests for the significance of causal
-    influences. Applied to financial and brain imaging data
-
 - [ ] 2010, White Et Al., "Granger Causality and Dynamic Structural Systems"
   - **Url**: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1578749 ???
-  - Defines direct and total structural causality in a general dynamic structural
-    system. Covers structural VARs and recursive time-series natural experiments
-  - Links Granger (G-)causality to structural causality: under conditional
-    exogeneity, G-causality holds if and only if a matching form of structural
-    causality holds
-  - Proposes new tests for G-causality and conditional exogeneity. Applies them to
-    oil and gasoline prices, monetary policy and industrial production, and stock
-    returns and macroeconomic announcements
-
 - [ ] 2003, Demiralp Et Al., "Searching for the Causal Structure of a Vector
-  Autoregression"
+      Autoregression"
   - **Url**: https://ssrn.com/abstract=388840
-  - A structural VAR needs a causal order among the contemporaneous variables
-    Identifying transformations are not unique. It is widely believed the order must
-    come from prior theory or other criteria not rooted in the data
-  - Applies graph-theoretic search based on conditional independence to select the
-    causal order, or to narrow it to a small equivalence class. Builds on Swanson and
-    Granger (1997)
-  - Monte Carlo study of the PC algorithm shows how accuracy varies with signal
-    strength at realistic sample lengths. Concludes that graph-theoretic methods may
-    help SVAR analysis
-
 - [ ] 2003, Friedman Et Al., "Being Bayesian About Network Structure: A Bayesian
-  Approach to Structure Discovery in Bayesian Networks"
+      Approach to Structure Discovery in Bayesian Networks"
   - **Url**: https://ai.stanford.edu/~nir/Papers/FK1Full.pdf
-  - Computes the posterior probability of a feature of a Bayesian network: the total
-    posterior of all models that contain it. Useful when data is modest and many
-    structures have non-negligible posterior
-  - Shows how to sum efficiently over the exponential number of networks consistent
-    with a fixed variable order
-  - Runs MCMC over orders, not structures. The order space is smaller and more
-    regular Compared with full model averaging, MCMC over structures, and a
-    non-Bayesian bootstrap on synthetic and real data
-
 - [ ] 1997, Swanson Et Al., "Impulse Response Functions Based on a Causal Approach to
-  Residual Orthogonalization in Vector Autoregressions"
+      Residual Orthogonalization in Vector Autoregressions"
   - **Url**: https://doi.org/10.1080/01621459.1997.10473634
-  - Proposes a data-determined method to test structural models of the errors in a
-    vector autoregression
-  - Standard t statistics can test the overidentifying restrictions that a model
-    implies. The method also compares prior knowledge of the error structure with the
-    properties of the data
-  - Aims to make error orderings for impulse response and variance decomposition
-    analyses sensible, given the data. Illustrated with two economic examples
-
 - [ ] 1969, Granger, "Investigating Causal Relations by Econometric Models and
-  Cross-spectral Methods"
-  - **Url**: https://jeti.uni-freiburg.de/studenten_seminar/stud_sem_SS_09/grangercausality.pdf
-  - Asks how to tell the direction of causality between two related variables, and
-    whether feedback exists. Gives testable definitions of causality and feedback,
-    shown on simple two-variable models
-  - Discusses apparent instantaneous causality. Says it often comes from slow
-    information recording or from too narrow a set of possible causal variables
-  - Splits the cross spectrum into two parts, one per causal direction in a feedback
-    system. This gives measures of causal lag and strength Generalizes with the
-    partial cross spectrum
+      Cross-spectral Methods"
+  - **Url**:
+    https://jeti.uni-freiburg.de/studenten_seminar/stud_sem_SS_09/grangercausality.pdf
 
 ## Real-Time Macroeconomic Data
 
 - [ ] 2021, McCracken Et Al., "FRED-QD: A Quarterly Database for Macroeconomic
-  Research"
+      Research"
   - **Url**: https://ssrn.com/abstract=3843838 ???
-  - Presents FRED-QD, a large quarterly macro database. It is updated regularly
-    through FRED. It is closely modeled on the Stock and Watson (2012) dataset
-  - Factors from FRED-QD behave like those from the original Stock and Watson dataset
-    The dominant factors are insensitive to outliers
-  - Studies how unit root tests guide the choice of transformation codes. Factors
-    from the data help forecast many macro series. The choice of transformation codes
-    changes forecast accuracy
-
 - [ ] 2016, McCracken Et Al., "FRED-MD: A Monthly Database for Macroeconomic
-  Research"
+      Research"
   - **Url**: https://ssrn.com/abstract=2646151
-  - Describes a large monthly macro database. Goal: a convenient starting point for
-    empirical work that needs big data
-  - The data are updated monthly from FRED and are public. The database spares
-    researchers from managing data changes and revisions
-  - Factors from the data have the same predictive content as factors from vintages
-    of the Stock-Watson dataset. Diffusion indexes built from the factors may help
-    study business cycle chronology
-
 - [ ] 2011, Croushore, "Frontiers of Real-Time Data Analysis"
   - **Url**: https://ssrn.com/abstract=1118356
-  - Surveys research on data revisions. Topics: properties of revisions, structural
-    modeling, forecasting, monetary policy analysis, and current analysis of business
-    conditions
-  - Reports progress in building better real-time data sets around the world
-  - Says more research is needed in key areas, and that existing work points to more
-    fruitful topics
-
 - [ ] 2001, Croushore Et Al., "A Real-Time Data Set for Macroeconomists"
   - **Url**: https://ssrn.com/abstract=170531
-  - Presents a real-time data set. It holds vintages, or snapshots, of the major
-    macro data available at quarterly intervals in real time
-  - Uses: test the robustness of published econometric results, analyze policy, and
-    forecast
-  - Shows how variables behave across vintages. Re-runs key macro papers on different
-    vintages. Shows how revisions can affect policy analysis and forecasts
-
 - [ ] 2001, Orphanides, "Monetary Policy Rules Based on Real-Time Data"
   - **Url**: https://ssrn.com/abstract=70448 ???
-  - Measures the information problems in simple monetary policy rules, using Taylor's
-    rule as the example
-  - Real-time policy recommendations differ considerably from those based on ex post
-    revised data. They are revised substantially even a year after the quarter
-  - Reaction functions estimated on revised data can mislead about historical policy
-    With Fed staff forecasts, forward-looking rules describe 1987 to 1992 policy
-    better than Taylor-type rules
-
 - [ ] 2006, Federal Reserve Bank of St. Louis, "ALFRED: Archival Federal Reserve
-  Economic Data"
+      Economic Data"
   - **Url**: https://alfred.stlouisfed.org/
-  - Web database of data vintages. It retrieves each economic data release that was
-    available on a specific date in history
-  - The page tagline reads: economic data time travel since 2006. For the most
-    current release, the page points to FRED
-
 - [ ] N.d., Federal Reserve Bank of St. Louis, "FRED-MD and FRED-QD: Monthly and
-  Quarterly Databases for Macroeconomic Research"
+      Quarterly Databases for Macroeconomic Research"
   - **Url**: https://www.stlouisfed.org/research/economists/mccracken/fred-databases
-  - Web page hosting the monthly FRED-MD and quarterly FRED-QD databases. They are
-    built for big data empirical analysis
-  - Both are updated in real time through FRED and are public. The St. Louis Fed Data
-    Desk handles data changes and revisions
-  - Historical vintages: FRED-MD from 1999-08 and FRED-QD from 2018-05. The page also
-    links the working papers, appendices, and Matlab code
 
 # AutoDS / DS Bench / AutoML
 
@@ -960,255 +300,79 @@ Learn about the AutoML SOTA #607, https://github.com/causify-ai/helpers/issues/6
 
 - [ ] 2021, He Et Al., "AutoML: A Survey of the State-of-the-Art"
   - **Url**: https://arxiv.org/abs/1908.00709
-  - Review of the state of the art in AutoML, organized along the pipeline: data
-    preparation, feature engineering, hyperparameter optimization, and neural
-    architecture search (NAS)
-  - Focuses most on NAS. Summarizes the performance of representative NAS algorithms
-    on CIFAR-10 and ImageNet. Discusses one-stage and two-stage NAS, one-shot NAS,
-    and joint hyperparameter and architecture optimization
-  - Closes with open problems of existing AutoML methods
-
 - [ ] 2021, Karmaker Et Al., "AutoML to Date and Beyond: Challenges and
-  Opportunities"
+      Opportunities"
   - **Url**: https://arxiv.org/abs/2010.10777
-  - Review article. Describes the end-to-end ML pipeline and the subtasks that AutoML
-    has automated so far
-  - Highlights the subtasks that people still do by hand: understanding data
-    attributes, defining prediction problems, building training sets, and selecting a
-    technique. This limits access to ML for domain experts
-  - Proposes a seven-level taxonomy of AutoML systems by level of autonomy, and a
-    roadmap to automate more of the pipeline
-
 - [ ] 2024, Trirat Et Al., "AutoML-Agent: A Multi-Agent LLM Framework for
-  Full-Pipeline AutoML"
+      Full-Pipeline AutoML"
   - **Url**: https://arxiv.org/abs/2410.02958
-  - Multi-agent LLM framework for full-pipeline AutoML, from data retrieval to model
-    deployment. It takes the user's task description and returns a deployment-ready
-    model
-  - Uses retrieval-augmented planning to explore more candidate plans. Each plan
-    splits into sub-tasks that specialized agents solve in parallel
-  - Multi-stage verification checks executed results and guides code generation.
-    Tested on seven downstream tasks and fourteen datasets
 
 ## LLM Agent Foundations
 
 - [ ] 2023, Yao Et Al., "ReAct: Synergizing Reasoning and Acting in Language Models"
   - **Url**: https://arxiv.org/abs/2210.03629
-  - Prompts LLMs to interleave reasoning traces and task-specific actions. Reasoning
-    helps to induce, track, and update action plans. Actions query external sources
-    such as a Wikipedia API
-  - Reduces the hallucination and error propagation of chain-of-thought on HotpotQA
-    and Fever
-  - On ALFWorld and WebShop it beats imitation and reinforcement learning methods by
-    an absolute 34% and 10% success rate, with one or two in-context examples.
-    Published at ICLR 2023
-
 - [ ] 2023, Wu Et Al., "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent
-  Conversation"
+      Conversation"
   - **Url**: https://arxiv.org/abs/2308.08155
-  - Open-source framework to build LLM applications from multiple agents that
-    converse to solve tasks
-  - Agents are customizable and conversable. They combine LLMs, human input, and
-    tools. Developers program conversation patterns in natural language and in code
-  - Example applications span math, coding, question answering, operations research,
-    and online decision-making
-
 - [ ] 2024, Huang Et Al., "Large Language Models Cannot Self-Correct Reasoning Yet"
   - **Url**: https://arxiv.org/abs/2310.01798
-  - Examines intrinsic self-correction: an LLM revises its answer using only its own
-    abilities, with no external feedback
-  - Finds that LLMs struggle to self-correct their reasoning without external
-    feedback. Performance sometimes gets worse after self-correction
-  - Offers suggestions for future research and practice. Published at ICLR 2024
-
 - [ ] 2023, Dhuliawala Et Al., "Chain-of-Verification Reduces Hallucination in Large
-  Language Models"
+      Language Models"
   - **Url**: https://arxiv.org/abs/2309.11495
-  - Chain-of-Verification (CoVe): the model drafts an answer, plans verification
-    questions, answers them independently, and writes a final verified answer
-  - Answering the questions independently keeps the answers from being biased by the
-    draft
-  - Reduces hallucination on list questions from Wikidata, closed-book MultiSpanQA,
-    and long-form text generation
 
 ## AutoDS: Data Science Agents
 
 - [ ] 2024, Guo Et Al., "DS-Agent: Automated Data Science by Empowering Large
-  Language Models with Case-Based Reasoning"
+      Language Models with Case-Based Reasoning"
   - **Url**: https://arxiv.org/abs/2402.17453
-  - LLM agent framework with case-based reasoning (CBR) that automates data science
-    tasks: understand the task, then build and train the best-fit ML model
-  - Development stage: an automatic iteration loop that uses expert knowledge from
-    Kaggle and feedback. Deployment stage: a simplified CBR that adapts past
-    successful solutions to generate code directly
-  - With GPT-4 it reaches a 100% success rate in the development stage. In deployment
-    it improves the average one-pass rate by 36% across other LLMs. Costs $1.60 and
-    $0.13 per run. Published at ICML 2024
-
 - [ ] 2025, Abaskohi Et Al., "AgentAda: Skill-Adaptive Data Analytics for Tailored
-  Insight Discovery"
+      Insight Discovery"
   - **Url**: https://arxiv.org/abs/2504.07421
-  - LLM-powered analytics agent that learns and uses new analytics skills. It picks
-    the skill it needs from a library: clustering, predictive modeling, BERT-based
-    NLP, and others
-  - Three steps: a question generator, a hybrid RAG-based skill matcher, and a code
-    generator that works from the skill documentation
-  - Introduces KaggleBench to evaluate it. In a human study 48.78% of evaluators
-    preferred AgentAda, against 27.67% for the unskilled agent
-
 - [ ] 2025, Li Et Al., "R&D-Agent-Quant: A Multi-Agent Framework for Data-Centric
-  Factors and Model Joint Optimization"
+      Factors and Model Joint Optimization"
   - **Url**: https://arxiv.org/abs/2505.15155
-  - Multi-agent framework (RD-Agent(Q)) that automates quant research and development
-    by co-optimizing factors and models
-  - A Research stage forms hypotheses and tasks. A Development stage uses a code
-    agent (Co-STEER) and real-market backtests. A feedback stage and a multi-armed
-    bandit scheduler link the stages
-  - Reports up to 2X higher annualized returns than classical factor libraries, with
-    70% fewer factors
-
 - [ ] 2025, Rahman Et Al., "LLM-Based Data Science Agents: A Survey of Capabilities,
-  Challenges, and Future Directions"
+      Challenges, and Future Directions"
   - **Url**: https://arxiv.org/abs/2510.04023
-  - Survey with a lifecycle-aligned taxonomy of data science agents. Maps 45 systems
-    onto six stages of the data science process, from business understanding to
-    deployment and monitoring
-  - Annotates each agent on five design dimensions: reasoning and planning style,
-    modality integration, tool orchestration depth, learning and alignment methods,
-    and trust, safety, and governance
-  - Finds that most systems neglect business understanding, deployment, and
-    monitoring. Over 90% lack explicit trust and safety mechanisms
-
 - [ ] 2025, Nam Et Al., "DS-STAR: Data Science Agent for Solving Diverse Tasks across
-  Heterogeneous Formats and Open-Ended Queries"
+      Heterogeneous Formats and Open-Ended Queries"
   - **Url**: https://arxiv.org/abs/2509.21825
-  - Data science agent that processes and integrates data across heterogeneous
-    formats. It writes research reports for open-ended queries, beyond simple QA
-  - Reports state-of-the-art results on DABStep, DABStep-Research, KramaBench, and
-    DA-Code
-  - Largest gains are on hard QA tasks that need multi-file processing. Its reports
-    were preferred over the best baseline in over 88% of cases
 
 ## DS Bench: Benchmarks for Data Science Agents
 
 - [ ] 2025, Jing Et Al., "DSBench: How Far Are Data Science Agents from Becoming Data
-  Science Experts?"
+      Science Experts?"
   - **Url**: https://arxiv.org/abs/2409.07703
   - **Code**: https://github.com/LiqiangJing/DSBench
-  - Benchmark of 466 data analysis tasks and 74 data modeling tasks, sourced from
-    Eloquence and Kaggle competitions
-  - Realistic settings: long contexts, multimodal task backgrounds, large data files,
-    multi-table structures, and end-to-end data modeling
-  - The best agent solves only 34.12% of the analysis tasks and has a 34.74% Relative
-    Performance Gap (RPG). Published at ICLR 2025
-
 - [ ] 2024, Chan Et Al., "MLE-bench: Evaluating Machine Learning Agents on Machine
-  Learning Engineering"
+      Learning Engineering"
   - **Url**: https://arxiv.org/abs/2410.07095
-  - Benchmark of 75 ML engineering competitions from Kaggle. Tasks include training
-    models, preparing datasets, and running experiments. Human baselines come from
-    the public leaderboards
-  - The best setup, OpenAI's o1-preview with AIDE scaffolding, reaches at least a
-    Kaggle bronze medal in 16.9% of competitions
-  - Also studies resource scaling for agents and the impact of pre-training
-    contamination
-
 - [ ] 2025, Zhang Et Al., "DataSciBench: An LLM Agent Benchmark for Data Science"
   - **Url**: https://arxiv.org/abs/2502.13897
-  - Benchmark built from curated, challenging prompts with uncertain ground truth and
-    metrics. A semi-automated pipeline makes ground truth with LLM self-consistency
-    and human verification
-  - A Task-Function-Code (TFC) framework scores each code execution outcome with
-    defined metrics and programmatic rules
-  - Tests 6 API-based, 8 open-source general, and 9 open-source code models.
-    API-based models beat open-source ones on all metrics.
-    Deepseek-Coder-33B-Instruct is the best open-source model
-
 - [ ] 2024, Huang Et Al., "DA-Code: Agent Data Science Code Generation Benchmark for
-  Large Language Models"
+      Large Language Models"
   - **Url**: https://arxiv.org/abs/2410.07331
-  - Code generation benchmark for agent-based data science tasks. Tasks are hard, use
-    real and diverse data, and need complex data science programming languages
-  - Runs in a controllable, executable environment. The authors build the DA-Agent
-    baseline
-  - The best current LLMs reach only 30.5% accuracy. Published at EMNLP 2024
-
 - [ ] 2025, Egg Et Al., "DABstep: Data Agent Benchmark for Multi-step Reasoning"
   - **Url**: https://arxiv.org/abs/2506.23719
-  - Over 450 real-world tasks from a financial analytics platform. Tasks combine
-    code-based data processing with reasoning over heterogeneous documentation
-  - Factoid-style answers with automatic correctness checks. Comes with a public
-    leaderboard and toolkit
-  - The best agent reaches only 14.55% accuracy on the hardest tasks
-
 - [ ] 2025, Sahu Et Al., "InsightBench: Evaluating Business Analytics Agents Through
-  Multi-Step Insight Generation"
+      Multi-Step Insight Generation"
   - **Url**: https://arxiv.org/abs/2407.06423
-  - 100 datasets from business use cases such as finance and incident management.
-    Each has planted insights
-  - Evaluates end-to-end analytics: formulate questions, interpret answers, and
-    summarize insights and actions. LLaMA-3 acts as the evaluator
-  - The baseline agent AgentPoirot beats approaches that focus on single queries,
-    such as Pandas Agent. Published at ICLR 2025
-
 - [ ] 2024, Gu Et Al., "BLADE: Benchmarking Language Model Agents for Data-Driven
-  Science"
+      Science"
   - **Url**: https://arxiv.org/abs/2408.09667
-  - Benchmark of 12 datasets and research questions from the scientific literature.
-    Ground truth comes from independent analyses by expert data scientists
-  - Computational methods match different representations of an analysis to the
-    ground truth
-  - Language models often stop at basic analyses. Agents that interact with the data
-    show more diverse, but still non-optimal, analytical decisions. Published at
-    EMNLP 2024
-
 - [ ] 2021, Chen Et Al., "Evaluating Large Language Models Trained on Code"
   - **Url**: https://arxiv.org/abs/2107.03374
-  - Introduces Codex, a GPT model fine-tuned on public GitHub code. A production
-    version powers GitHub Copilot
-  - Releases HumanEval, an evaluation set for the functional correctness of programs
-    synthesized from docstrings
-  - Codex solves 28.8% of the problems, GPT-3 solves 0%, and GPT-J solves 11.4%.
-    Repeated sampling raises Codex to 70.2% with 100 samples per problem
-
 - [ ] 2024, Yao Et Al., "tau-bench: A Benchmark for Tool-Agent-User Interaction in
-  Real-World Domains"
+      Real-World Domains"
   - **Url**: https://arxiv.org/abs/2406.12045
-  - Benchmark that emulates conversations between a simulated user and an agent with
-    domain-specific API tools and policy guidelines
-  - Scores a run by comparing the final database state with the annotated goal state.
-    A new metric, pass^k, measures reliability over repeated trials
-  - Function calling agents such as gpt-4o succeed on under 50% of the tasks. pass^8
-    is below 25% in retail
-
 - [ ] 2025, Starace Et Al., "PaperBench: Evaluating AI's Ability to Replicate AI
-  Research"
+      Research"
   - **Url**: https://arxiv.org/abs/2504.01848
-  - Benchmark where agents replicate 20 ICML 2024 Spotlight and Oral papers from
-    scratch: understand, write the codebase, run experiments
-  - Rubrics hold 8,316 gradable tasks, co-developed with the paper authors An
-    LLM-based judge grades the attempts
-  - The best agent scores 21.0% (Claude 3.5 Sonnet (New) with open-source
-    scaffolding) Models do not yet beat the human baseline of ML PhDs
 
 ## LLM Agent Security
 
 - [ ] 2023, Greshake Et Al., "Not What You've Signed Up For: Compromising Real-World
-  LLM-Integrated Applications with Indirect Prompt Injection"
+      LLM-Integrated Applications with Indirect Prompt Injection"
   - **Url**: https://arxiv.org/abs/2302.12173
-  - Shows indirect prompt injection: attackers plant prompts in data that an
-    LLM-integrated application is likely to retrieve, so they need no direct
-    interface
-  - Gives a taxonomy of impacts from a computer security view: data theft, worming,
-    and information ecosystem contamination
-  - Demonstrates attacks on Bing's GPT-4 powered Chat, code-completion engines, and
-    synthetic GPT-4 applications. Effective mitigations are lacking
-
 - [ ] 2025, Shi Et Al., "Prompt Injection Attack to Tool Selection in LLM Agents"
   - **Url**: https://arxiv.org/abs/2504.19793
-  - Introduces ToolHijacker, a no-box prompt injection attack on tool selection. It
-    injects a malicious tool document into the tool library
-  - Crafting the document is an optimization problem, solved with a two-phase
-    strategy. The agent then picks the attacker's tool for the attacker-chosen task
-  - Beats manual and automated injection baselines. The tested defenses (StruQ,
-    SecAlign, and detection-based methods) are insufficient
