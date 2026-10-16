@@ -43,7 +43,7 @@ import logging
 import helpers.hintrospection as hintros
 import helpers.hnotebook as hnotebook
 
-import factor_investing_utils as utils
+import L07_01_factor_investing_utils as utils
 
 print("statsmodels version: ", statsmodels.__version__)
 

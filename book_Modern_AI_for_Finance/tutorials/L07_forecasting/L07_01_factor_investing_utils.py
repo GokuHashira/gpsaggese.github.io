@@ -10,7 +10,7 @@ known mean, and run on it the two procedures used in factor research:
 
 Import as:
 
-import factor_investing_utils as fainvuti
+import L07_01_factor_investing_utils as fainvuti
 """
 
 import dataclasses
