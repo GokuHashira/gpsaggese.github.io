@@ -334,7 +334,7 @@ Learn about the AutoML SOTA #607, https://github.com/causify-ai/helpers/issues/6
 - [ ] 2025, Li Et Al., "R&D-Agent-Quant: A Multi-Agent Framework for Data-Centric
       Factors and Model Joint Optimization"
   - **Url**: https://arxiv.org/abs/2505.15155
-- [ ] 2025, Rahman Et Al., "LLM-Based Data Science Agents: A Survey of Capabilities,
+- [.] 2025, Rahman Et Al., "LLM-Based Data Science Agents: A Survey of Capabilities,
       Challenges, and Future Directions"
   - **Url**: https://arxiv.org/abs/2510.04023
 - [ ] 2025, Nam Et Al., "DS-STAR: Data Science Agent for Solving Diverse Tasks across
