@@ -11,46 +11,53 @@
 - On-board papers / books / ...
   - Human guides the search
 - Parse papers from PDF into markdown
-
 - Filter based on:
   - Keywords (e.g., microeconomic, macroeconomic)
   - Regions (e.g., APAC, EMEA, US)
   - Citations
   - Quality of the researchers
 
+## Extract Causal Claims
 - Extract causal claims
   - (Cause, effect, sign)
   - Context
   - Annotate with reference for human analysis
 
+## Normalize Variables
 - Normalize variables
   - E.g., monetary tightening, policy rate hike, increase in federal fund rate
   - Use specialized LLM (trained on finance literature)
   - Review by human
   - Create operators (increase, delay, ...)
 
-- How to handle equilibrium?
-- How to handle delays
-
-- Create DAG with
+## Create DAG
+- Research questions
+  - How to handle equilibrium?
+  - How to handle delays?
+- Create DAG with:
   - Nodes: variables
   - Edges: relationships
   - Enforce DAG-ness (e.g., remove feedback loops)
 
+## Map Nodes to Data
 - Map nodes to timeseries to data store (e.g., Atlas, ...)
   - Assess quality of each timeseries
     - E.g., coverage, time span, gaps
 
+## Reduce DAG
 - DAG "reduction"
   - Not all the edges are meaningful
-    - Test for causality / association / ...
+    - Test for causality / conditional independence / association / ...
   - Not all the nodes are predictive or have high-quality data
   - Propose missing nodes and edges from LLM or human knowledge
+  - "Usual" causal flow
 
+## Optimize Against Proxy
 - Optimize against a proxy
   - E.g., use model to predict supply and demand, instead of prices
   - Regularize to control complexity vs predictive power
 
+## Formalize Hypotheses
 - Formalize set of hypothesis to test
   - Create a Bayesian prior from the DAG
   - Fit
