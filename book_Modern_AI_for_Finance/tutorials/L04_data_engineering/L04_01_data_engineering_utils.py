@@ -129,10 +129,9 @@ def simulate_fundamentals(
     v[:, 0] = rng.standard_normal(n_stocks)
     innovation_scale = np.sqrt(1.0 - persistence**2)
     for q in range(1, n_quarters):
-        v[:, q] = (
-            persistence * v[:, q - 1]
-            + innovation_scale * rng.standard_normal(n_stocks)
-        )
+        v[:, q] = persistence * v[
+            :, q - 1
+        ] + innovation_scale * rng.standard_normal(n_stocks)
     surprise = rng.standard_normal((n_stocks, n_quarters))
     # Simulate the release lag in days.
     lag = 25.0 + rng.gamma(3.0, 10.0, size=(n_stocks, n_quarters))
@@ -294,9 +293,7 @@ def build_signal(
         "datetime64[ns]"
     )
     signal_first = _pivot_by_quarter(fund_df, "signal_first").astype(float)
-    signal_restated = _pivot_by_quarter(fund_df, "signal_restated").astype(
-        float
-    )
+    signal_restated = _pivot_by_quarter(fund_df, "signal_restated").astype(float)
     # By default there is no restatement.
     restate_rows = np.full(rdq.shape, n_months)
     restate_values = signal_restated
@@ -399,7 +396,9 @@ def simulate_monthly_returns(
     )
     shocks = rng.standard_t(dof, size=(n_months, n_stocks))
     shocks = shocks * np.sqrt((dof - 2.0) / dof)
-    returns = monthly_drift + value_beta * v_prev + reaction + monthly_vol * shocks
+    returns = (
+        monthly_drift + value_beta * v_prev + reaction + monthly_vol * shocks
+    )
     returns_df = pd.DataFrame(
         returns, index=month_ends, columns=pd.Index(stocks)
     )
@@ -1047,7 +1046,9 @@ def cell3_1_plot_adjusted_prices(
     fig, axes = _new_figure(figsize, nrows=2)
     # Plot the growth of $1 with and without dividends.
     ax = axes[0, 0]
-    price_index = adjusted_df["split_adjusted"] / adjusted_df["split_adjusted"].iloc[0]
+    price_index = (
+        adjusted_df["split_adjusted"] / adjusted_df["split_adjusted"].iloc[0]
+    )
     total_index = (
         adjusted_df["fully_adjusted"] / adjusted_df["fully_adjusted"].iloc[0]
     )
@@ -1096,9 +1097,7 @@ def cell3_1_plot_adjusted_prices(
     return fig
 
 
-def make_adjustment_table(
-    adjusted_df: pd.DataFrame, date: str
-) -> pd.DataFrame:
+def make_adjustment_table(adjusted_df: pd.DataFrame, date: str) -> pd.DataFrame:
     """
     Compare the price known on a past date with the adjusted price today.
 
@@ -1171,9 +1170,7 @@ def compute_close_in_utc(start: str, end: str) -> pd.DataFrame:
     return close_df
 
 
-def list_non_24_hour_days(
-    start: str, end: str, *, time_zone: str
-) -> pd.Series:
+def list_non_24_hour_days(start: str, end: str, *, time_zone: str) -> pd.Series:
     """
     List the local days that do not have 24 hours.
 

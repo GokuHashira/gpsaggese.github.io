@@ -180,9 +180,7 @@ display(ic_by_lag_s.to_frame())
 signal_asof_df = utils.build_signal(
     fund_df, month_ends, mode="first", assumed_lag_days=0
 )
-ic_asof_s = utils.compute_monthly_ic(
-    signal_asof_df, returns_df, min_stocks=500
-)
+ic_asof_s = utils.compute_monthly_ic(signal_asof_df, returns_df, min_stocks=500)
 ic_asof = float(ic_asof_s.mean())
 print("ic_asof=", ic_asof)
 
