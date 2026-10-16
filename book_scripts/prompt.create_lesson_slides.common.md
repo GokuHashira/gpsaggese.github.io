@@ -24,6 +24,9 @@
 
 ## Create a Skeleton of Slides
 - Create a list of slide titles only, about 30-35 slides covering the topics
+  - Group the slides under `#` headers
+  - Use `##` headers only for a group of at least 5 slides, following "Section
+    Structure" in `.claude/skills/slides.rules.md`
 - Show the list to the user and wait for approval
   - Skip the approval only if the user asks for it explicitly
 - If you have doubts or something is not clear, stop and ask questions before

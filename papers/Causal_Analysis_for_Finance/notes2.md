@@ -1,11 +1,38 @@
 # Goal
-- Build a tool to be used to (partially) automate idea generation and refinement
-- The goal is not to remove humans from the loop, but automate the boring part
-  - Humans to supervise and direct
-- Difficult to automate the entire flow
-  - The goal is automate 80-90% -> speed up = ...
-    - Speed up = manual minutes / tool minutes, measured per stage
-    - See "Human Review Gates and Metrics"
+- The Theory Store turns a corpus of quantitative economics and finance papers into
+  testable, auditable hypotheses
+  - Every claim traces to a page span in a paper
+  - Every test is counted in a ledger, so backtests are deflated honestly
+- The goal is not to remove humans from the loop
+  - Automate the repetitive stages: parse, extract, normalize, map to data,
+    bookkeeping
+  - Humans choose papers, approve names and DAGs, and pass the final gate
+- Target: automate 80-90% of the effort
+  - Speed up = manual minutes / tool minutes, measured per stage
+  - Human gates bound the speed up: 5x at 80%, 10x at 90%
+
+- Non-goals
+  - Do not discover causality from data alone
+  - Do not treat agreement between papers as causal truth
+  - Do not replace the researcher
+  - Do not discover causality from data alone
+  - Do not auto-generate trading strategies
+  - Do not treat agreement between papers as causal truth (Publication bias exists)
+
+## Applications
+
+- The applications of the Theory Store are:
+  - Literature meta-analysis
+    - Find which papers agree with each other or disagree, by looking at the causal
+      structures
+  - Replication of papers
+    - Create financial models descripted by papers / books
+  - Ask to a corpus of papers questions like "what drives inflation expectations?"
+  - Find gap: list variable pairs that no paper tests, giving the researchers a map
+    of open questions
+  - Economic prior for ML: use the reduced DAG to pick features, set lags, and
+    regularize
+    - A model that follows a causal story overfits less
 
 # Workflow
 
