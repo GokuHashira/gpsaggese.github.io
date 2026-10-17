@@ -786,7 +786,7 @@ digraph Containers {
 * Automating PR Review with AI (2/2)
 
 // From helpers_root/docs/tools/all.code_review_tools.reference.md
-// From helpers_root/docs/code_guidelines/all.code_review.how_to_guide.md
+// From helpers_root/docs/coding/all.code_review.how_to_guide.md
 
 - @Examples@: Hosted review systems
   - _GitHub Copilot Code Review_: In-platform, minimal setup, shallow analysis
