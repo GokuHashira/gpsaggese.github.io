@@ -317,7 +317,7 @@
 
 * Single vs Multiple Repo
 
-// From helpers_root/docs/tools/all.integrate_repos.how_to_guide.md
+// From helpers_root/docs/tools/git/all.integrate_repos.how_to_guide.md
 // From paper "The Causify AIgentic Development System", Part 2
 
 - @Problem@: Teams want the _modularity_ of many repositories and the _environment
@@ -430,8 +430,8 @@ digraph RunnableRepo {
 
 * Package Structure and Import Conventions
 
-// From helpers_root/docs/tools/all.imports_and_packages.how_to_guide.md
-// From helpers_root/docs/tools/all.import_check.reference.md
+// From helpers_root/docs/tools/codebase/all.imports_and_packages.how_to_guide.md
+// From helpers_root/docs/tools/codebase/all.import_check.reference.md
 
 - @Goal@: Python packages simplify client imports, hide which file holds the code,
   group related units, and make import loops preventable
@@ -759,7 +759,7 @@ digraph Containers {
 
 * Automating PR Review with AI (1/2)
 
-// From helpers_root/docs/tools/all.ai_review.how_to_guide.md
+// From helpers_root/docs/tools/ai/all.ai_review.how_to_guide.md
 
 - @Goal@: Turn a review pass into a list of located, actionable comments instead of
   prose
@@ -785,7 +785,7 @@ digraph Containers {
 
 * Automating PR Review with AI (2/2)
 
-// From helpers_root/docs/tools/all.code_review_tools.reference.md
+// From helpers_root/docs/tools/ai/all.code_review_tools.reference.md
 // From helpers_root/docs/coding/all.code_review.how_to_guide.md
 
 - @Examples@: Hosted review systems
@@ -1135,8 +1135,8 @@ digraph QualityGates {
 
 * Code Coverage Tracking and Enforcement
 
-// From helpers_root/docs/tools/all.codecov.how_to_guide.md
-// From helpers_root/docs/tools/all.code_coverage_subprocess.how_to_guide.md
+// From helpers_root/docs/tools/testing_profiling/all.codecov.how_to_guide.md
+// From helpers_root/docs/tools/testing_profiling/all.code_coverage_subprocess.how_to_guide.md
 
 - @Definition@: Coverage is collected per **test suite**, and each suite uploads
   under its own flag
@@ -1330,7 +1330,7 @@ digraph QualityGates {
 
 * Invoke Workflows: A Centralized Task Registry
 
-// From helpers_root/docs/tools/all.invoke_workflows.how_to_guide.md
+// From helpers_root/docs/tools/invoke/all.invoke_workflows.how_to_guide.md
 // From paper "The Causify AIgentic Development System", Part 4
 
 - @Definition@: `invoke` provides Makefile-like targets written in Python

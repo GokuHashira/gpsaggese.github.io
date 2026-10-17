@@ -28,7 +28,7 @@
     - `helpers_root/docs/work_organization/all.issue_workflow.explanation.md`
     - `helpers_root/docs/work_organization/all.use_github.how_to_guide.md`
     - `helpers_root/docs/coding/all.submit_code_for_review.how_to_guide.md`
-    - `helpers_root/docs/tools/all.auto_task.how_to_guide.md`
+    - `helpers_root/docs/tools/ai/all.auto_task.how_to_guide.md`
     - `.claude/templates/auto_task.template.md`, `specs.template.md`,
       `github_PR_plan.template.md`
   - [x] Read the doc style: Diataxis file names, `all.writing_docs.how_to_guide.md`
