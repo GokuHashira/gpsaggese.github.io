@@ -1,19 +1,19 @@
 # Contributors
 
-| Name                  | Personal email          | School email                 | GitHub                       | Project       |
-| --------------------- | ----------------------- | ---------------------------- | ---------------------------- | ------------- |
-| Giles (Greene?)       | gilesgreene20@gmail.com | -                            | gilesgreene                  | ?             |
-| Dev Trusharkumar Shah | -                       | dnts5203@umd.edu             | Delvitron1019 | ?             |
-| Ameer Shaik           | -                       | sohail08@umd.edu             | sohail-umd                   | ?             |
-| Simran Kharbanda      | -                       | simrank@umd.edu              | -                            | ?             |
-| Lucas Caicedo         | -                       | lucas.caicedo@gwmail.gwu.edu | caicedoss                    | ?             |
-| Javin Ahuja           | -                       | jahuja@terpmail.umd.edu      | Jav359003                    | Noesis        |
-| Aahan Rembersu        | -                       | arembers@terpmail.umd.edu    | aahanrembersu07              | Racket sports |
-| Niveda Jawahar        | -                       | nivedaj@umd.edu              | Niveda-227                   | ?             |
-| Krishna Buddi         | -                       | kbuddi@umd.edu               | -                            | ?             |
-| Ibrahim Ahmed         | -                       | ibrahima@umd.edu             | Worldsoldure00 | ?             |
-| Mohammed Syed         | -                       | syed@umd.edu                 | Eyepatch0 | ?             |
-| Shobha Gupta          | -                       | gupta29@umd.edu              | Under-the-stars              | ?             |
+| Name                  | Personal email              | School email                 | GitHub              | Project                 |
+| --------------------- | --------------------------- | ---------------------------- | ------------------- | ----------------------- |
+| Giles Greene          | gilesgreene20@gmail.com     | -                            | gilesgreene         | Noesis                  |
+| Dev Trusharkumar Shah | -                           | dnts5203@umd.edu             | Delvitron1019       | Auto DS                 |
+| Ameer Shaik           | -                           | sohail08@umd.edu             | sohail-umd          | Auto DS                 |
+| Simran Kharbanda      | simrank3574@gmail.com       | simrank@umd.edu              | Sim2200             | Noesis                  |
+| Lucas Caicedo         | -                           | lucas.caicedo@gwmail.gwu.edu | caicedoss           | Noesis                  |
+| Javin Ahuja           | -                           | jahuja@terpmail.umd.edu      | Jav359003           | Noesis                  |
+| Aahan Rembersu        | aahanrembersu07@gmail.com   | arembers@terpmail.umd.edu    | aahanrembersu07     | Racket sports           |
+| Niveda Jawahar        | -                           | nivedaj@umd.edu              | Niveda-227          | Skill and luck          |
+| Krishna Buddi         | -                           | kbuddi@umd.edu               | KrishnaKishoreBuddi | Skill and luck          |
+| Ibrahim Ahmed         | ibrahim.iftaquar@gmail.com  | ibrahima@umd.edu             | Worldsoldure00      | Growth hacking          |
+| Mohammed Syed         | syed.mohammed0975@gmail.com | syed@umd.edu                 | Eyepatch0           | MCTS / AlphaZero        |
+| Shobha Gupta          | s2002290902g@gmail.com      | gupta29@umd.edu              | Under-the-stars     | Age and startup success |
 
 ## Resources
 
