@@ -3,8 +3,8 @@
 **Giacinto Paolo (GP) Saggese, PhD**\
 saggese@gmail.com | [LinkedIn](https://www.linkedin.com/in/gpsaggese/) |
 [GitHub](https://github.com/gpsaggese) | [Website](https://gpsaggese.github.io/)\
-Cell: +1-408-431-1286 (USA) | +971-50-136-3186 (UAE)\
-Abu Dhabi (UAE)
+Cell: +971-50-136-3186 (UAE) | +1-408-431-1286 (USA)\
+Abu Dhabi (UAE) / Washington DC (USA)
 
 Dear Madam / Sir,
 
@@ -29,14 +29,12 @@ publications](https://gpsaggese.github.io/05_publications/) give me the research
 foundation to teach these topics at the graduate level.
 
 As an **entrepreneur**: I have built 3 companies from first prototype to exit,
-raising almost $10M and selling them for a combined $30M.
-[ZeroSoft](https://www.crunchbase.com/organization/zerosoft) built simulation
+raising almost $10M and selling them for a combined $30M. ZeroSoft built simulation
 technology that made IC verification 3-10x faster, won customers including NVIDIA and
-Cisco, produced two patents, and was [acquired by
-Synopsys](https://mergr.com/synopsys-acquires-zerosoft). I then co-founded June
+Cisco, produced two patents, and was acquired by Synopsys. I then co-founded June
 Inc. (Series A/B, $4M), which was acquired by a hedge fund. Today I am co-founder and
-CTO of [Causify.ai](https://causify.ai), where I supported a $5M fundraise and the
-product strategy to $1M ARR.
+CTO of Causify.ai, where I supported a $5M fundraise and the product strategy to $1M
+ARR.
 
 As a **startup advisor**, I have been an instructor for [NSF
 I-Corps](https://www.nsf.gov/funding/initiatives/i-corps), the premier program of the
@@ -49,12 +47,10 @@ Accelerator](https://www.rhsmith.umd.edu/centers-initiatives/supply-chain-manage
 
 As a **researcher and engineer** I have worked across hardware, software, and
 finance. After a postdoc at the University of Illinois Urbana-Champaign, I was Senior
-Software Architect at [NVIDIA](https://www.nvidia.com/en-us/) and Senior Member of
-Technical Staff at [Synopsys](https://www.synopsys.com/). I then moved to quantitative
-finance and machine learning as Head of Alt-Data Group at [Teza
-Technologies](https://www.teza.com/) and Portfolio Manager at [Engineers
-Gate](https://www.eglp.com/). Today I am Machine Learning Research Lead at [ADIA
-Lab](https://www.adialab.ae/).
+Software Architect at NVIDIA and Senior Member of Technical Staff at Synopsys. I then
+moved to quantitative finance and machine learning as Head of Alt-Data Group at Teza
+Technologies and Portfolio Manager at Engineers Gate. Today I am Machine Learning
+Research Lead at ADIA Lab.
 
 I would bring to MBZUAI a combination of classroom experience at scale, a research
 record in causal AI and machine learning systems, and first-hand experience of
