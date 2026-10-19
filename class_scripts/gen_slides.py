@@ -59,15 +59,11 @@ import logging
 import os
 import shlex
 import shutil
-from typing import List
+
+import helpers.hselect_action as hselacti
+from helpers import hdbg, hgit, hparser, hprint, hsystem
 
 import class_scripts.common_utils as csccouti
-import helpers.hdbg as hdbg
-import helpers.hgit as hgit
-import helpers.hparser as hparser
-import helpers.hprint as hprint
-import helpers.hselect_action as hselacti
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -284,7 +280,7 @@ def _generate(
 
 
 def _process_standalone_file(
-    input_file: str, args: argparse.Namespace, actions: List[str]
+    input_file: str, args: argparse.Namespace, actions: list[str]
 ) -> None:
     """
     Generate the slides PDF for a markdown file outside of any course dir.
@@ -322,7 +318,7 @@ def _process_standalone_file(
 
 
 def _process_course_lesson(
-    input_spec: str, args: argparse.Namespace, actions: List[str]
+    input_spec: str, args: argparse.Namespace, actions: list[str]
 ) -> None:
     """
     Generate and/or release the slides PDF for a course lecture.
@@ -375,7 +371,7 @@ def _process_course_lesson(
 
 
 def _process_lesson_spec(
-    input_spec: str, args: argparse.Namespace, actions: List[str]
+    input_spec: str, args: argparse.Namespace, actions: list[str]
 ) -> None:
     """
     Generate and/or release the slides PDF for a single input specification.

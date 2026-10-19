@@ -1,62 +1,81 @@
-// type=UMD_slides
-// course_title=Causal Analysis for Finance
+// type=ADIA_slides
+// course_title=Abu Dhabi Investment Authority
 // lesson_title=The Theory Store: From Finance Papers to Testable Hypotheses
+// Authors=GP, Rui, Emanuele (FA), ...
 // slides_engine=typst
 
-* Roadmap
+// TODO(ai_gp): Replace the color in parenthesis with the color
+// Two sources of a factor mirage: an omitted confounder Z (purple) and a controlled collider C (red) both create an association between X and Y.
+// Two sources of a factor mirage: an omitted confounder \purple{Z} and a controlled collider \red{C} both create an association between X and Y.
 
-- **The Theory Store**: why finance needs a pipeline that turns papers into
-  testable and auditable hypotheses, and what the pipeline does not try to do
-- **From papers to claims**: build a paper bank, parse each paper, and extract
-  causal claims with a provenance pointer on each one
-- **Building the causal graph**: normalize variables, build and merge DAGs, and
-  map each node to point-in-time data
-- **Validating the graph**: reduce the DAG, check identification, test the
-  implied independencies, and flag the "factor mirage"
-- **From graph to verified code**: generate code, verify it against the paper,
-  and deflate backtests with a hypothesis ledger
-- **Evaluation and related work**: the pilot, its metrics, prior work, and the
-  open questions
+* Summary
+
+- @What@ the Theory Store is (and what is not)
+
+- @Why@: What are the advantages (and its limitations) of the Theory Store?
+
+- @How@ to build the Theory Store?
+  - From papers to claims
+  - Building the causal graph
+  - Validating the graph
+  - From graph to verified code
+  - Model evaluation
+
+- @When@ can the Theory Store be available?
+  - Build incrementally to deliver value quickly
+
+- @Related work@
+
+// TODO(ai_gp): Create headers following the summary slide like
+// # What the Theory Store?
+// # Why the Theory Store
+// # How to build the Theory Store?
+// ## From papers to claims
+// ## ...
+// # When can the Theory Store be available?
+// # Related work
 
 # The Theory Store
 
-* Why a Theory Store
+* The Theory Store: Motivation
 // From: papers/Causal_Analysis_for_Finance/notes.md:1 '# Goal'
 // From: papers/Causal_Analysis_for_Finance/notes.md:335 '## Causality in Finance'
 
-- @Problem@: factor papers make _associational_ claims
-  - They state no causal graph and run no falsification test
-    (Lopez de Prado, 2023)
-  - Replication studies check the numbers, but none tests the causal
-    specification (Hou et al., 2020; Jensen et al., 2023)
+- @Problem@: most papers make _associational_ claims
+  - They state no causal graph and run no falsification test (Lopez de Prado, 2023)
+  - Replication studies check the numbers, but none tests the causal specification
+    (Hou et al., 2020; Jensen et al., 2023)
 
-- @Problem@: hundreds of factors were tested on the same data
-  - Because of multiple testing, a new factor needs a t-statistic of at least
-    3.0, not the usual 2.0 (Harvey et al., 2016)
+- @Problem@: hundreds of alpha / factors were tested on the same data
+  - Multiple testing leads to high rate of false discovery (Harvey et al., 2016)
+  - Reproducibility crisis
 
-- @Question@: can a machine read the literature and return theories that we
-  can test, audit, and falsify?
+- @Intuition@: a **paper** should be a causal theory plus one empirical test
+  - Formalize the theory, and the test can be reproduced, challenged, falsified
 
-- @Intuition@: a paper is a compressed causal theory plus one empirical test
-  - Unpack the theory, and the test can be rerun, checked, and challenged
+- @Question@: can a machine read the literature and return theories that humans
+  can test, understand, and falsify?
 
-* The Theory Store: Goal
+* The Theory Store: Goals
 // From: papers/Causal_Analysis_for_Finance/notes.md:1 '# Goal'
 // From: papers/Causal_Analysis_for_Finance/notes.md:10 '- Target: automate 80-90% of the effort'
 
+- @Goal@:
+  - Turn a corpus of finance and economics papers into **testable** and **auditable**
+    hypotheses
+  - Count number of hypothesis to properly account for data mining and overfitting
+  - Automate the repetitive stages, keep humans at the gates
+    - _Tool_: parse, extract, normalize, map to data, bookkeeping
+    - _Human_: choose papers, approve names and DAGs, pass the final gate
+  - Build a comprehensive understanding of economic / financial systems that can
+    be queried, reasoned about (by humans and machines), actioned, ...
+
 ::: columns
 :::: {.column width=60%}
-- @Goal@: turn a corpus of finance and economics papers into **testable**
-  and **auditable** hypotheses
-  - Every claim traces to a page span in a paper
-  - Every test is counted in a ledger
 
-- @Key idea@: automate the repetitive stages, keep humans at the gates
-  - Tool: parse, extract, normalize, map to data, bookkeeping
-  - Human: choose papers, approve names and DAGs, pass the final gate
-
-- @Remark@: the target is to automate 80-90% of the effort
+- @Benefits@: the target is to automate 80-90% of the repeatitive effort
   - Human gates bound the speed up $S$, as in Amdahl's law
+
 ::::
 :::: {.column width=40%}
 
@@ -81,26 +100,21 @@ $$
 ::::
 :::
 
-* Scope and Constraints
-// From: papers/Causal_Analysis_for_Finance/notes.md:14 '- Scope'
-// From: papers/Causal_Analysis_for_Finance/notes.md:26 '- Constraints'
+* Constraints
 
-- @Scope@: start where the ground truth is public
-  - **Empirical papers** first: equilibrium and theory papers go to a separate
-    path
-  - **Cross-sectional anomalies** as the first domain: small DAGs and public
-    replication code
-  - **Public data only**: the simulator must run without proprietary data
-// TODO(gp): Decide if macro nodes, time unrolling, and point-in-time data stay in this deck or go to the companion paper
-  - **Firm-level nodes**: macro nodes, time unrolling of macro series, and
-    point-in-time macro data go to a companion paper
+- The Theory Store:
 
-- @Constraints@: the Theory Store follows and enforces the rules of the
-  research process
-  - Split the data before any test
-  - Generate hypotheses, then try to falsify them
-  - Prefer economic reasoning to black-box or gray-box machine learning
-  - Deflate the Sharpe ratio, and use an embargo between data splits
+  - Must @be modular@
+    - Generate and validate causal hypotheses
+    - Let users falsify / evaluate performance of theory with their own flow
+
+  - Must @follow and enforce@ all the rules of our research process
+    - Split the data before any test
+    - Generate hypotheses, then try to falsify them
+    - Use economic reasoning (and not black-box or gray-box machine learning)
+    - Deflate the Sharpe ratio
+    - Use an embargo between data splits
+    - ...
 
 * Non-Goals
 // From: papers/Causal_Analysis_for_Finance/notes.md:31 '- Non-goals'
@@ -124,14 +138,12 @@ $$
 
 - @Remark@: agreement between papers is weak evidence because publication bias
   exists
-  - An identified DAG still rests on the assumptions of the Theory Spec, which
-    stay untested
 
 * Applications
 // From: papers/Causal_Analysis_for_Finance/notes.md:42 '## Applications'
 
 ::: columns
-:::: {.column width=55%}
+:::: {.column width=60%}
 - @Applications@:
   1. **Literature meta-analysis**: compare the causal structures of papers to
      find which papers agree or disagree
@@ -143,11 +155,8 @@ $$
      describe
   5. **Economic prior for ML**: use the reduced DAG to pick features, set
      lags, and regularize
-
-- @Intuition@: a model that follows a causal story overfits less
-  - It searches a smaller space of models, fixed before it sees the data
 ::::
-:::: {.column width=45%}
+:::: {.column width=40%}
 
 ```graphviz[width=100%]
 digraph Applications {
@@ -185,6 +194,9 @@ caption=The applications split into reading the literature (blue) and using the 
 
 ::::
 :::
+
+- @Intuition@: a model that follows a causal story overfits less
+  - It searches a smaller space of models, fixed before it sees the data
 
 * Pipeline Overview
 // From: papers/Causal_Analysis_for_Finance/notes.md:57 '# Workflow'
@@ -331,9 +343,11 @@ caption=The Theory Store pipeline: rose stages end in a human gate, blue stages 
 
 ::: columns
 :::: {.column width=62%}
-- @Definition@: a **Theory Spec** is one typed object per paper that every
-  stage reads and writes
-  - The DAG is one view of it
+- @Definition@: a **Theory Spec**
+  - Represents a causal theory
+  - Is one typed object that every pipeline stage reads and writes
+  - A bare DAG lacks "data recipes", estimators, and timing, so it is not enough to
+    generate code
 
 - @Components@:
   - `nodes`: name, observed or latent, data recipe, unit, time index, level
@@ -341,9 +355,6 @@ caption=The Theory Store pipeline: rose stages end in a human gate, blue stages 
   - `assumptions`: e.g., no unobserved confounding
   - `estimand`: e.g., ATE of a characteristic on next-month return
   - `empirical_spec`: regressions, sorts, controls, fixed effects, sample
-
-- @Remark@: a bare DAG lacks data recipes, estimators, and timing, so it is
-  not enough to generate code
 ::::
 :::: {.column width=38%}
 
@@ -371,6 +382,8 @@ estimand: ATE
 empirical_spec: decile_sort
 ```
 
+(For illustration purpose only!)
+
 ::::
 :::
 
@@ -379,18 +392,13 @@ empirical_spec: decile_sort
 
 ::: columns
 :::: {.column width=65%}
+
 - @Goal@: collect the papers, books, and reports that the pipeline reads
   - A human guides the search and approves the final list
 
-- @Techniques@: filter the candidates by
-  - Keywords (e.g., microeconomic, macroeconomic)
-  - Region (e.g., APAC, EMEA, US)
-  - Citations, and quality of the researchers and institution
+- @Algorithm@: Candidate papers (orange) pass automated filters (blue) and a human
+  gate (rose) before entering the paper bank (green)
 
-- @Key idea@: prefer the **identification design** to author prestige and
-  citations
-  - Citations lag and favor known authors
-  - Label each paper by its evidence: causal design vs other
 ::::
 :::: {.column width=35%}
 
@@ -436,10 +444,16 @@ digraph PaperBank {
 }
 ```
 label=fig:paper-bank
-caption=Candidate papers (orange) pass automated filters (blue) and a human gate (rose) before entering the paper bank (green).
 
 ::::
 :::
+
+- @Techniques@: filter the candidates by:
+  - Keywords (e.g., microeconomic, macroeconomic)
+  - Region (e.g., APAC, EMEA, US)
+  - Citations (citations lag and favor known authors)
+  - Quality of the researchers and institution
+  - Label each paper by its evidence: causal design, association, ...
 
 * Parse Into One Representation
 // From: papers/Causal_Analysis_for_Finance/notes.md:59 '## Build Paper Bank'
@@ -451,11 +465,12 @@ caption=Candidate papers (orange) pass automated filters (blue) and a human gate
   - Sections, equations, tables, bibliography, and source anchors
   - Later stages read only this representation, so they are format agnostic
 
+// TODO(ai_gp): Split "Front end" and "Tool"
 ```{=typst}
 #styled-table(
   headers: ("Format", "Front end", "Fidelity"),
   rows: (
-    ("LaTeX", "Parse the source: flatten inputs, expand macros, read equations, tables, labels, and the bib file", "Exact equations and tables"),
+    ("LaTeX", "Parse the source", "Exact equations and tables"),
     ("Markdown", "Parse the AST (e.g., with pandoc)", "Depends on the converter that made the Markdown"),
     ("PDF", "Layout and OCR extraction (e.g., Nougat, Marker, GROBID)", "Equation and table errors possible"),
   ),
@@ -464,7 +479,7 @@ caption=Candidate papers (orange) pass automated filters (blue) and a human gate
 )
 ```
 
-- @Remark@: prefer LaTeX, then Markdown, then PDF
+- @Remark@: LaTeX > Markdown > PDF
   - Tables become verification targets for the generated code
 
 * Extract Causal Claims
@@ -474,16 +489,13 @@ caption=Candidate papers (orange) pass automated filters (blue) and a human gate
 :::: {.column width=58%}
 - @Definition@: a **causal claim** is one record per relationship in a paper
   - `(cause, effect, sign, lag, region, period, design)`
-  - Status: `stated` (the paper says it) or `inferred` (the LLM deduced it)
+  - Status:
+    - `stated` (the paper says it)
+    - `inferred` (the LLM deduced it)
   - Context and a reference, for human analysis
 
 - @Definition@: a **provenance pointer** locates the claim in its source
-  - PDF: page and span
-  - LaTeX: file, line, and label
-  - Markdown: heading path and line
-
-- @Key idea@: a provenance pointer on every item is the main defense against
-  hallucinated edges
+  - A provenance pointer on every item is the main defense against hallucinated edges
   - A human checks a claim in seconds by opening the pointer
 ::::
 :::: {.column width=42%}
@@ -510,6 +522,8 @@ provenance:
   span: [431, 618]
 ```
 
+(For illustration purpose only!)
+
 ::::
 :::
 
@@ -529,7 +543,8 @@ provenance:
 - @Example@: _"high-accrual firms earn low returns"_ is `stated`, but
   _"accruals cause low returns"_ is `inferred`
 
-- @Solution@: no stage depends _silently_ on an `inferred` claim
+- @Solution@:
+  - No stage depends _silently_ on an `inferred` claim
   - A human sees every use of one at the next gate
 ::::
 :::: {.column width=40%}
@@ -658,19 +673,15 @@ caption=Three phrases from different papers (orange) map to one canonical id wit
 
 ::: columns
 :::: {.column width=58%}
-- @Definition@: the **DAG** of a paper has variables as nodes and claimed
-  causal relationships as edges
-  - The delay operator becomes the lag of the edge
+- @Definition@: the **DAG** of a paper has
+  - Economic / financial variables as nodes
+  - Claimed causal relationships as edges (with operators such as delays, ...)
 
-- @Problem@: theories contain feedback loops, but a DAG has no cycle
-
-- @Naive Solution@: remove one edge of each loop
-  - Cons: arbitrary, and loses real feedback
-
-- @Solution@: unroll in time ($X_t \to Y_{t+1}$, $Y_t \to X_{t+1}$)
-
-- @Remark@: route equilibrium papers to a structural-equations and solver
-  path, not to a DAG
+- @Problem@: theories can contain feedback loops, but a DAG has no cycle
+  (open research problem)
+- @Solution@:
+  - Unroll in time ($X_t \to Y_{t+1}$, $Y_t \to X_{t+1}$)
+  - Route equilibrium papers to a structural-equations and solver path, not to a DAG
 ::::
 :::: {.column width=42%}
 
@@ -754,12 +765,35 @@ caption=A feedback loop between fund flows (green) and returns (blue) becomes a 
 ::::
 :::
 
+* Map Nodes to Data
+// From: papers/Causal_Analysis_for_Finance/notes.md:138 '## Map Nodes to Data'
+
+- @Goal@: map each node to a time series in a data store (e.g., ADIA Atlas, ...)
+  - Assess the quality of each series: coverage, time span, gaps
+
+- Data source to handle the common data problems
+
+  ```{=typst}
+  #styled-table(
+    headers: ("Source of bias", "Example", "Fix"),
+    rows: (
+      ("Revisions", "Macro series (e.g., GDP) change after the first release", "Use point-in-time vintages"),
+      ("Release timing", "A series comes out weeks after its period ends", "Encode the availability timing of each series"),
+      ("Reporting lag", "Annual reports come out months after the fiscal year ends", "Use firm data only after its filing date"),
+      ("Fiscal-year alignment", "Firms end their fiscal year in different months", "Align firms on availability, not on period end"),
+    ),
+    col-widths: (1fr, 2fr, 1.8fr),
+    width: 95%,
+  )
+  ```
+
 * Conflicts Between Papers
 // From: papers/Causal_Analysis_for_Finance/notes.md:119 '## Create DAG'
 
 ::: columns
 :::: {.column width=62%}
 - @Problem@: papers disagree on the sign, region, and period of an edge
+  - How to merge DAGs?
 
 - @Naive Solution@: keep the majority sign, drop the other claims
   - Cons: loses the conditions under which each effect holds
@@ -864,37 +898,10 @@ digraph Conflict {
 }
 ```
 label=fig:conflict
-caption=Two papers with opposite signs on X to Y merge into one regime edge whose sign depends on the region (purple).
+caption=Two papers with opposite signs on X to Y merge into one regime edge whose sign depends on the region
 
 ::::
 :::
-
-* Map Nodes to Data
-// From: papers/Causal_Analysis_for_Finance/notes.md:138 '## Map Nodes to Data'
-
-- @Goal@: map each node to a time series in a data store (e.g., Atlas)
-  - Assess the quality of each series: coverage, time span, gaps
-
-- @Problem@: **look-ahead bias**, i.e., a backtest uses a value before the
-  market knew it
-
-// TODO(gp): Check the examples in the table: self-made illustrations of the notes
-```{=typst}
-#styled-table(
-  headers: ("Source of bias", "Example", "Fix"),
-  rows: (
-    ("Revisions", "Macro series (e.g., GDP) change after the first release", "Use point-in-time vintages"),
-    ("Release timing", "A series comes out weeks after its period ends", "Encode the availability timing of each series"),
-    ("Reporting lag", "Annual reports come out months after the fiscal year ends", "Use firm data only after its filing date"),
-    ("Fiscal-year alignment", "Firms end their fiscal year in different months", "Align firms on availability, not on period end"),
-  ),
-  col-widths: (1fr, 2fr, 1.8fr),
-  width: 95%,
-)
-```
-
-- @Remark@: reporting lags and fiscal-year alignment are the main failure
-  points of generated code
 
 * Merge DAGs Across Papers
 // From: papers/Causal_Analysis_for_Finance/notes.md:150 '## Merge DAGs'
@@ -905,7 +912,7 @@ caption=Two papers with opposite signs on X to Y merge into one regime edge whos
 - @Goal@: combine the per-paper DAGs into one **literature-level graph**
   - Canonical ids make the merge possible
 
-- @Techniques@: vote, union, or weighted average over the edges
+- @Techniques@: vote, union, weighted average, condition over the edges
 
 - @Intuition@: ensemble learning, where the "models" are papers
 
@@ -913,7 +920,7 @@ caption=Two papers with opposite signs on X to Y merge into one regime edge whos
   skeleton before it orients the edges (Zhang et al., 2024)
 
 - @Remark@: a strong vote is not causal truth: publication bias can make
-  many papers repeat one error
+or   many papers repeat one error
 ::::
 :::: {.column width=45%}
 
@@ -1020,19 +1027,16 @@ caption=Two paper DAGs merge into a literature graph whose edge labels count the
 
 ::: columns
 :::: {.column width=58%}
-- @Problem@: the merged DAG is large and partly wrong
+- @Problem@: the merged DAG is large and potentially (partly) wrong
   - Not every edge is meaningful
   - Not every node is predictive or has high-quality data
 
 - @Solution@: **DAG reduction**
   - Test if the data is consistent with each edge (e.g., conditional
-    independence)
+    independence, usual causal battery of tests)
   - Drop the nodes with poor data or no predictive power
   - Propose missing nodes and edges from an LLM or a human
 
-- @Key idea@: use only the discovery split, and log every test and every
-  proposed edge in the ledger
-  - The objective of the reduction is still open
 ::::
 :::: {.column width=42%}
 
@@ -1255,7 +1259,7 @@ caption=Two sources of a factor mirage: an omitted confounder Z (purple) and a c
 ::::
 :::
 
-* Proxy Targets and Bayesian Priors
+* Proxy Targets and Bayesian Priors (Research idea)
 // From: papers/Causal_Analysis_for_Finance/notes.md:177 '## Optimize Against Proxy'
 // From: papers/Causal_Analysis_for_Finance/notes.md:183 '## Formalize Hypotheses'
 
@@ -1278,8 +1282,6 @@ caption=Two sources of a factor mirage: an omitted confounder Z (purple) and a c
   $$
   - $s_e \in \{-1, +1\}$ = sign on which the papers agree
   - $\sigma_e$ shrinks as the number of papers and the design quality grow
-
-- @Key idea@: log each proxy choice and each fit in the ledger
 
 # From Graph to Verified Code
 
@@ -1362,17 +1364,17 @@ caption=An LLM code agent (blue) composes a tested library (violet) to turn a Th
 :::: {.column width=55%}
 - @Goal@: check that the generated code reproduces the paper
   - Run the code in a sandbox
-  - Compare its output $\hat{\theta}$ with the tables of the paper:
-    $$
-    |\hat{\theta} - \theta_{paper}| \le \varepsilon
-    $$
+  - Compare its output $\hat{\theta}$ with the tables of the paper
 
 - @Solution@: route each mismatch back to the stage that caused it
-  - Wrong data recipe $\to$ Extract Causal Claims
-  - Missing confounder $\to$ Theory Spec (Normalize Variables and Create DAG)
-  - Bug $\to$ Generate Code
+  - Wrong data recipe
+  - Missing confounder
+  - Bug
+  - ...
 
 - @Applications@: this stage delivers the replication of papers
+  - A possible solution to the replication crisis!
+
 ::::
 :::: {.column width=45%}
 
@@ -1426,53 +1428,26 @@ caption=Each mismatch with the tables of the paper (rose) is routed back, along 
 * The Hypothesis Ledger
 // From: papers/Causal_Analysis_for_Finance/notes.md:258 '## Hypothesis Ledger and Data Splits'
 
-- @Problem@: **double dipping**
-  - DAG reduction tests edges, then backtesting reuses the same data
-  - A backtest that ignores the earlier tests overstates its significance
-  - To deflate by the tested hypotheses, the pipeline needs a count of them
+- @Problem@: A backtest that ignores the earlier tests overstates its significance
+  - To deflate by the tested hypotheses, the pipeline needs a count of the hypothesis
+  - The seven-step protocol of Lopez de Prado and Zoonekynd ends with a multiple
+    testing adjustment
+  - A new factor needs $t \ge 3.0$ (Harvey et al., 2016)
 
-- @Definition@: the **hypothesis ledger** holds one record per test
-  - Edge tests in DAG reduction
-  - Edges proposed by an LLM or by a human
-  - Proxy choices and prior fits
-
-// TODO(gp): Check the ledger rows: self-made illustration
-```{=typst}
-#styled-table(
-  headers: ("Id", "Stage", "What was tested", "Split", "Outcome"),
-  rows: (
-    ("1", "Reduce DAG", [Edge $X -> Y$ fails a CI test], "Discovery", "Dropped"),
-    ("2", "Reduce DAG", [LLM proposes edge $Z -> X$], "Discovery", "Kept"),
-    ("3", "Proxy", "Predict demand instead of price", "Discovery", "Chosen"),
-    ("4", "Prior fit", [Prior on $beta_(X -> M)$], "Discovery", "Fitted"),
-    ("5", "Backtest", "Strategy from the reduced DAG", "Validation", [Deflated by $N = 5$]),
-  ),
-  col-widths: (0.3fr, 1fr, 2.2fr, 1fr, 1.6fr),
-  bold-first-col: false,
-  width: 95%,
-)
-```
-
-* Data Splits and Deflated Backtests
-// From: papers/Causal_Analysis_for_Finance/notes.md:267 '- Three data splits'
-// From: papers/Causal_Analysis_for_Finance/notes.md:271 '- Deflate the backtest statistics by the size of the ledger'
+- @Solution 1@: two data splits, each with one use
+  - _Discovery_: DAG reduction and proxy choice
+  - _Validation_: backtesting, touched once, at the final gate (embargo)
 
 ::: columns
 :::: {.column width=60%}
-- @Solution@: three data splits, each with one use
-  - **Discovery**: DAG reduction and proxy choice
-  - **Validation**: backtesting
-  - **Final OOS**: touched once, at the final gate
 
-- @Solution@: deflate the backtest statistics by the size $N$ of the ledger
-  - E.g., Bonferroni at a 5% family-wise error needs $|t| \ge t^*$, with
-    $t^* = \Phi^{-1}(1 - 0.025 / N)$
-  - $t^*$ is 1.96 for $N = 1$, 2.81 for $N = 10$, 3.48 for $N = 100$
+- @Solution 2@: the **hypothesis ledger** holds one record per every test
+  - Edge tests in DAG reduction
+  - Edges proposed by an LLM or by a human
+  - Generalize the notion of "backtesting overfitting" to "research overfitting"
 
-- @Remark@: the literature asks for the same discipline
-  - The seven-step protocol of Lopez de Prado and Zoonekynd ends with a
-    multiple testing adjustment
-  - A new factor needs $t \ge 3.0$ (Harvey et al., 2016)
+- Holy grail of theories like Minimum Description Length
+  - Quantify each decisions in terms of bits of complexity
 ::::
 :::: {.column width=40%}
 
@@ -1535,17 +1510,14 @@ caption=Green data splits are used in order, and the violet ledger counts every 
 
 ::: columns
 :::: {.column width=60%}
-- @Algorithm@: validate a proposal
-  1. Create a proposal from the formalized hypotheses
-// TODO(gp): Check who votes and on which criteria
-  2. Vote on the proposal
+- @Definition@: **human gate** is when a human sees an artifact of Theory Store and
+  accepts / edits / rejects it
+
+- @Algorithm@: Research
+  1. Propose a formalized hypotheses (Theory Store)
+  2. Researcher vote on the proposal
   3. Backtest on the validation split, deflated by the ledger
   4. Final gate: run on the final OOS split, untouched until now
-
-- @Definition@: at a **human gate**, a human sees a compact artifact with
-  provenance, then accepts, edits, or rejects it
-  - Gates: paper list, normalization, DAG, reduction, and the proposal
-  - Every human decision is logged
 ::::
 :::: {.column width=40%}
 
@@ -1603,38 +1575,43 @@ caption=A proposal passes a vote and a final gate (rose) around a backtest defla
 * Pilot and Evaluation
 // From: papers/Causal_Analysis_for_Finance/notes.md:289 '## Pilot and Evaluation'
 
-- @Goal@: pilot the pipeline on **cross-sectional anomaly papers**
-  - Public ground truth for code: 319 characteristics with code and data
-    (Chen and Zimmermann, 2022)
+- Possible first targets:
+  - Microeconomic papers
+  - Macroeconomic papers
+  - ...
 
-// TODO(gp): Decide who builds the gold graph and for how many papers
-- @Problem@: no gold set of causal graphs for finance papers exists
-  - Building it is an open requirement
+- Reproduce some paper end-to-end
 
-```{=typst}
-#styled-table(
-  headers: ("Target", "Metrics"),
-  rows: (
-    ("Extraction", "Normalized structural Hamming distance (SHD), edge-level precision and recall, per-node and per-edge LLM judging (ReCITE style)"),
-    ("Code", "Correlation with the published signal, matching t-statistics, rubric score"),
-    ("Validation", "Share of papers with a flagged mirage"),
-    ("Process", "Minutes per stage (tool vs manual baseline), acceptance rate per human gate"),
-    ("Baselines", "Direct paper-to-code without a DAG; pipeline without the causal validation step"),
-    ("Ablation", "Same papers as PDF, LaTeX, and Markdown, to measure how parse errors propagate"),
-  ),
-  col-widths: (1fr, 4fr),
-  width: 95%,
-)
-```
+- Reproduce some of the research we already have in production
 
-- @Definition@: **SHD** counts the edge insertions, deletions, and flips that
-  turn the extracted graph into the gold graph
+- Detect and flag papers with factor mirage
+
+* Many Open Research Questions
+// From: papers/Causal_Analysis_for_Finance/notes.md:390 '# Open research questions'
+
+- @Questions@:
+  - How to represent concepts, e.g., with knowledge graphs?
+  - How to handle equilibrium papers that do not fit a DAG?
+  - What objective should the reduced DAG optimize?
+    - E.g., out-of-sample fit, number of untestable assumptions, agreement with
+      the literature-level graph
+  - Who builds the gold graph of causal claims?
+  - How to verify against tables that code generates and the source includes as
+    external files?
+  - How to extend the pipeline to macro nodes, time unrolling, and point-in-time macro
+    data?
+  - ...
+
+- @Goal@: "Solve" finance
+  - Enable machine (supervised by humans) to reason about economic / financial
+    systems
+  - Create and falsify automatically theories
+  - Speed up and increase quality of quant research
 
 * Related Work: Causality and Finance
 // From: papers/Causal_Analysis_for_Finance/notes.md:321 '## Causal Inference Foundations'
 // From: papers/Causal_Analysis_for_Finance/notes.md:335 '## Causality in Finance'
 
-// TODO(gp): Check the one line summaries against the papers: they come from the old notes
 ```{=typst}
 #styled-table(
   headers: ("Work", "What it gives the Theory Store"),
@@ -1679,38 +1656,3 @@ caption=A proposal passes a vote and a final gate (rose) around a backtest defla
   width: 100%,
 )
 ```
-
-// TODO(gp): Check the gap claim: it is a synthesis of the related work notes, not a literature search
-- @Key idea@: no prior system joins claim extraction, causal identification,
-  and verified code for finance papers
-
-* Open Research Questions
-// From: papers/Causal_Analysis_for_Finance/notes.md:390 '# Open research questions'
-
-- @Question@: how to represent concepts, e.g., with knowledge graphs?
-
-- @Question@: how to handle equilibrium papers that do not fit a DAG?
-
-- @Question@: what objective should the reduced DAG optimize?
-  - E.g., out-of-sample fit, number of untestable assumptions, agreement with
-    the literature-level graph
-
-- @Question@: who builds the gold graph of causal claims, and for how many
-  papers?
-
-- @Question@: how to verify against tables that code generates and the source
-  includes as external files?
-
-- @Question@: how to extend the pipeline to macro nodes, time unrolling, and
-  point-in-time macro data?
-
-* Summary
-
-- @Key idea@: the Theory Store turns finance papers into typed Theory Specs,
-  code, and tests, and a human approves each gate
-- A provenance pointer on every claim makes each causal edge auditable, and no
-  stage depends silently on an `inferred` claim
-- Identification checks, testable implications, and the factor mirage
-  diagnostic falsify parts of a theory before any backtest
-- A ledger of every test and three data splits keep the backtest honest: it
-  only falsifies theories

@@ -8,14 +8,12 @@ import class_scripts.test.test_gen_slides as cstestgs
 
 import argparse
 import os
-from typing import List
 
-import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
+from helpers import hio
 
 import class_scripts.gen_slides as cscgesli
-
 
 # #############################################################################
 # Test_parse
@@ -188,7 +186,7 @@ class Test__process_lesson_spec(hunitest.TestCase):
     def helper(
         self,
         input_spec: str,
-        actions: List[str],
+        actions: list[str],
         expected_sys_calls: str,
     ) -> None:
         """
