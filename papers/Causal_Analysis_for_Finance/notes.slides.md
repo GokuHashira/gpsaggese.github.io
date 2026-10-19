@@ -4,10 +4,6 @@
 // Authors=GP, Rui, Emanuele (FA), ...
 // slides_engine=typst
 
-// TODO(ai_gp): Replace the color in parenthesis with the color
-// Two sources of a factor mirage: an omitted confounder Z (purple) and a controlled collider C (red) both create an association between X and Y.
-// Two sources of a factor mirage: an omitted confounder \purple{Z} and a controlled collider \red{C} both create an association between X and Y.
-
 * Summary
 
 - @What@ the Theory Store is (and what is not)
@@ -26,16 +22,7 @@
 
 - @Related work@
 
-// TODO(ai_gp): Create headers following the summary slide like
-// # What the Theory Store?
-// # Why the Theory Store
-// # How to build the Theory Store?
-// ## From papers to claims
-// ## ...
-// # When can the Theory Store be available?
-// # Related work
-
-# The Theory Store
+# Why the Theory Store
 
 * The Theory Store: Motivation
 // From: papers/Causal_Analysis_for_Finance/notes.md:1 '# Goal'
@@ -55,6 +42,8 @@
 
 - @Question@: can a machine read the literature and return theories that humans
   can test, understand, and falsify?
+
+# What the Theory Store?
 
 * The Theory Store: Goals
 // From: papers/Causal_Analysis_for_Finance/notes.md:1 '# Goal'
@@ -198,6 +187,8 @@ caption=The applications split into reading the literature (blue) and using the 
 - @Intuition@: a model that follows a causal story overfits less
   - It searches a smaller space of models, fixed before it sees the data
 
+# How to build the Theory Store?
+
 * Pipeline Overview
 // From: papers/Causal_Analysis_for_Finance/notes.md:57 '# Workflow'
 // From: papers/Causal_Analysis_for_Finance/notes.md:277 '## Human Review Gates and Metrics'
@@ -336,7 +327,7 @@ caption=The Theory Store pipeline: rose stages end in a human gate, blue stages 
   - A human gate follows the paper list, normalization, DAG, reduction, and
     comes before the proposal
 
-# From Papers to Claims
+## From papers to claims
 
 * The Theory Spec
 // From: papers/Causal_Analysis_for_Finance/notes.md:231 '## Theory Spec'
@@ -465,16 +456,15 @@ label=fig:paper-bank
   - Sections, equations, tables, bibliography, and source anchors
   - Later stages read only this representation, so they are format agnostic
 
-// TODO(ai_gp): Split "Front end" and "Tool"
 ```{=typst}
 #styled-table(
-  headers: ("Format", "Front end", "Fidelity"),
+  headers: ("Format", "Front end", "Tool", "Fidelity"),
   rows: (
-    ("LaTeX", "Parse the source", "Exact equations and tables"),
-    ("Markdown", "Parse the AST (e.g., with pandoc)", "Depends on the converter that made the Markdown"),
-    ("PDF", "Layout and OCR extraction (e.g., Nougat, Marker, GROBID)", "Equation and table errors possible"),
+    ("LaTeX", "Parse the source", "None", "Exact equations and tables"),
+    ("Markdown", "Parse the AST", "pandoc", "Depends on the converter that made the Markdown"),
+    ("PDF", "Layout and OCR extraction", "Nougat, Marker, GROBID", "Equation and table errors possible"),
   ),
-  col-widths: (0.6fr, 2fr, 1.2fr),
+  col-widths: (0.7fr, 1.6fr, 1.3fr, 1.8fr),
   width: 95%,
 )
 ```
@@ -598,7 +588,7 @@ caption=Stated claims (green) enter the Theory Spec directly, while inferred cla
 ::::
 :::
 
-# Building the Causal Graph
+## Building the causal graph
 
 * Normalize Variables
 // From: papers/Causal_Analysis_for_Finance/notes.md:108 '## Normalize Variables'
@@ -1020,7 +1010,7 @@ caption=Two paper DAGs merge into a literature graph whose edge labels count the
 ::::
 :::
 
-# Validating the Graph
+## Validating the graph
 
 * Reduce the DAG
 // From: papers/Causal_Analysis_for_Finance/notes.md:154 '## Reduce DAG'
@@ -1254,7 +1244,7 @@ digraph Mirage {
 }
 ```
 label=fig:mirage
-caption=Two sources of a factor mirage: an omitted confounder Z (purple) and a controlled collider C (red) both create an association between X and Y.
+caption=Two sources of a factor mirage: an omitted confounder `#text(fill: rgb("#9B7DB1"), weight: "bold")[Z]`{=typst} and a controlled collider `#text(fill: rgb("#D64545"), weight: "bold")[C]`{=typst} both create an association between X and Y.
 
 ::::
 :::
@@ -1283,7 +1273,7 @@ caption=Two sources of a factor mirage: an omitted confounder Z (purple) and a c
   - $s_e \in \{-1, +1\}$ = sign on which the papers agree
   - $\sigma_e$ shrinks as the number of papers and the design quality grow
 
-# From Graph to Verified Code
+## From graph to verified code
 
 * Generate Code: Three Artifacts
 // From: papers/Causal_Analysis_for_Finance/notes.md:194 '## Generate Code'
@@ -1424,6 +1414,8 @@ caption=Each mismatch with the tables of the paper (rose) is routed back, along 
 
 ::::
 :::
+
+## Model evaluation
 
 * The Hypothesis Ledger
 // From: papers/Causal_Analysis_for_Finance/notes.md:258 '## Hypothesis Ledger and Data Splits'
@@ -1570,7 +1562,7 @@ caption=A proposal passes a vote and a final gate (rose) around a backtest defla
 ::::
 :::
 
-# Evaluation and Related Work
+# When can the Theory Store be available?
 
 * Pilot and Evaluation
 // From: papers/Causal_Analysis_for_Finance/notes.md:289 '## Pilot and Evaluation'
@@ -1607,6 +1599,8 @@ caption=A proposal passes a vote and a final gate (rose) around a backtest defla
     systems
   - Create and falsify automatically theories
   - Speed up and increase quality of quant research
+
+# Related work
 
 * Related Work: Causality and Finance
 // From: papers/Causal_Analysis_for_Finance/notes.md:321 '## Causal Inference Foundations'
