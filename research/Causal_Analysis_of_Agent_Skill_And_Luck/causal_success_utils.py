@@ -1,25 +1,33 @@
 """
-Causal Success Analysis - Simulation and Inference Utilities.
+Simulate how talent and luck drive success, and estimate the effect of luck.
+
+The simulation follows "Simulation Design" in the experimental evaluation of
+the white paper: agents with talents receive lucky and unlucky events that
+change their capital multiplicatively.
+The Bayesian model regresses log-capital on luck and talents.
 
 Import as:
 
-import research.A_Causal_Analysis_of_Success_in_Modern_Society.causal_success_utils as racaosimscsu
+import research.Causal_Analysis_of_Agent_Skill_And_Luck.causal_success_utils as rcaoasalcsu
 """
 
-from typing import List, Optional, Dict, Any
+import logging
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
 
 import numpy as np
 import pandas as pd
+import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hprint as hprint
 
-# Optional Bayesian dependencies (simulation works without these).
-# try:
-import pymc as pm  # type: ignore
-import arviz as az  # type: ignore
-# except Exception:  # pragma: no cover - optional import.
-#     pm = None
-#     az = None
+# Import PyMC and ArviZ only for the type hints, since they are imported inside
+# the functions that use them.
+if TYPE_CHECKING:
+    import arviz as az
+    import pymc as pm
+
+_LOG = logging.getLogger(__name__)
 
 # __all__ = [
 #     "Agent",
@@ -49,7 +57,7 @@ class Agent:
 
     1. Intensity (0-1): Activity level and effort.
        - How active the agent is in seeking opportunities and experiences.
-       - Higher intensity → higher probability of encountering events (both good and bad).
+       - Higher intensity -> higher probability of encountering events (both good and bad).
        - Think of it as "surface area for luck": more active people encounter more events.
        - Influences event exposure probability via sigmoid function.
 
@@ -79,7 +87,7 @@ class Agent:
         networking: float,
         *,
         initial_capital: float = 1.0,
-    ):
+    ) -> None:
         """
         Initialize the Agent with talents and initial capital.
 
@@ -87,8 +95,17 @@ class Agent:
         :param intensity: Intensity talent, affects event exposure (0-1)
         :param iq: IQ talent, affects ability to capitalize on luck (0-1)
         :param networking: Networking talent, affects spillover effects (0-1)
-        :param initial_capital: Starting wealth level (default 1.0)
+        :param initial_capital: Starting wealth level
+            - Default: 1.0
         """
+        _LOG.debug(
+            "agent_id=%s intensity=%s iq=%s networking=%s initial_capital=%s",
+            agent_id,
+            intensity,
+            iq,
+            networking,
+            initial_capital,
+        )
         self.id = int(agent_id)
         # Enforce bounds and safe floor for capital.
         self.talent = {
@@ -118,7 +135,9 @@ class Agent:
             ],
             dtype=float,
         )
-        return float(np.linalg.norm(values))
+        talent_norm = float(np.linalg.norm(values))
+        _LOG.debug("return=%s", talent_norm)
+        return talent_norm
 
     def get_event_probability(self) -> float:
         """
@@ -129,17 +148,23 @@ class Agent:
         :return: Event probability in [0, 1]
         """
         alpha = 2.0
-        return float(
+        # No debug log here: this runs for every agent at every event, and a
+        # log call would slow the simulation down noticeably.
+        probability = float(
             1.0 / (1.0 + np.exp(-alpha * (self.talent["intensity"] - 0.5)))
         )
+        return probability
 
     def apply_event(self, event_type: str, impact: float) -> None:
         """
         Apply an event to capital using multiplicative dynamics.
 
-        :param event_type: "lucky" or "unlucky"
+        :param event_type: kind of event
+            - `"lucky"`: multiply capital by `1 + impact`
+            - `"unlucky"`: multiply capital by `1 - impact`, floored at 0.01
         :param impact: magnitude as a decimal (e.g., 0.25 = 25%)
         """
+        _LOG.debug("event_type=%s impact=%s", event_type, impact)
         impact = float(abs(impact))
         if event_type == "lucky":
             self.capital *= 1.0 + impact
@@ -154,21 +179,24 @@ class Agent:
 
 
 # #############################################################################
-# TODO(ai_gp): Add descriptive header for this section (coding.rules.md:## Organize Functions Into Logical Layers)
+# Population
 # #############################################################################
 
 
-# TODO(ai_gp): Move n_agents before * to force keyword-only: create_population(*, n_agents: int = 100, seed: int = 42) (coding.rules.md:## Use Default Values Rarely and Force Keyword-Only via *)
-def create_population(n_agents: int = 100, *, seed: int = 42) -> List[Agent]:
+def create_population(*, n_agents: int = 100, seed: int = 42) -> List[Agent]:
     """
     Create a population of agents with normally distributed talents.
 
-    :param n_agents: number of agents to create (default 100)
-    :param seed: RNG seed for reproducibility (default 42)
-    :return: List of Agent objects, each with random talents and capital=1.0
+    :param n_agents: number of agents to create
+        - Default: 100
+    :param seed: RNG seed for reproducibility
+        - Default: 42
+    :return: `Agent` objects, each with random talents and capital 1.0
     """
+    _LOG.debug(hprint.to_str("n_agents seed"))
     hdbg.dassert_lt(0, n_agents, "n_agents must be positive")
     rng = np.random.default_rng(seed)
+    # Draw the three talents of each agent, clipped to [0, 1].
     agents: List[Agent] = []
     for i in range(n_agents):
         intensity = float(np.clip(rng.normal(0.5, 0.15), 0.0, 1.0))
@@ -178,7 +206,14 @@ def create_population(n_agents: int = 100, *, seed: int = 42) -> List[Agent]:
     return agents
 
 
+# #############################################################################
+# Results and metrics
+# #############################################################################
+
+
 # TODO(ai_gp): Rename to _calculate_gini() and update callers, as this is only used internally (coding.rules.md:## Mark Private Functions)
+# Not done: `causal_success_API.py` and `causal_success_example.py` call
+# `calculate_gini()` directly, so it is not internal and stays public.
 def calculate_gini(values: np.ndarray) -> float:
     """
     Compute the Gini coefficient for non-negative values.
@@ -188,6 +223,7 @@ def calculate_gini(values: np.ndarray) -> float:
     :param values: 1D array of non-negative values (e.g., capital amounts)
     :return: Gini coefficient in [0, 1]
     """
+    _LOG.debug("values.shape=%s", np.shape(values))
     x = np.asarray(values, dtype=float)
     hdbg.dassert_lt(
         0, x.size, "Cannot calculate Gini coefficient for empty array"
@@ -197,17 +233,25 @@ def calculate_gini(values: np.ndarray) -> float:
         "Gini coefficient requires non-negative values",
     )
     if np.all(x == 0):
-        return 0.0
-    x_sorted = np.sort(x)
-    n = x_sorted.size
-    index = np.arange(1, n + 1, dtype=float)
-    gini = (2.0 * np.sum(index * x_sorted)) / (n * np.sum(x_sorted)) - (
-        n + 1.0
-    ) / n
-    return float(np.clip(gini, 0.0, 1.0))
+        # All the values are zero, so there is no inequality.
+        gini = 0.0
+    else:
+        # Use the closed form on sorted values:
+        # `G = 2 sum_i i x_(i) / (n sum_i x_i) - (n + 1) / n`.
+        x_sorted = np.sort(x)
+        n = x_sorted.size
+        index = np.arange(1, n + 1, dtype=float)
+        gini = (2.0 * np.sum(index * x_sorted)) / (n * np.sum(x_sorted)) - (
+            n + 1.0
+        ) / n
+        gini = float(np.clip(gini, 0.0, 1.0))
+    _LOG.debug("return=%s", gini)
+    return gini
 
 
 # TODO(ai_gp): Rename to _get_results_dataframe() and update callers, as this is only used internally (coding.rules.md:## Mark Private Functions)
+# Not done: `causal_success_API.py` and `causal_success_example.py` call
+# `get_results_dataframe()` directly, so it is not internal and stays public.
 def get_results_dataframe(agents: List[Agent]) -> pd.DataFrame:
     """
     Convert a list of agents to a DataFrame for analysis.
@@ -215,30 +259,35 @@ def get_results_dataframe(agents: List[Agent]) -> pd.DataFrame:
     :param agents: List of Agent objects
     :return: DataFrame with agent attributes
     """
+    _LOG.debug("len(agents)=%s", len(agents))
     if not agents:
-        return pd.DataFrame()
-    rows: List[Dict[str, Any]] = []
-    for a in agents:
-        rows.append(
-            {
-                "id": a.id,
-                "talent_intensity": a.talent["intensity"],
-                "talent_iq": a.talent["iq"],
-                "talent_networking": a.talent["networking"],
-                "initial_capital": a.talent["initial_capital"],
-                "talent_norm": a.talent_norm,
-                "capital": a.capital,
-                "lucky_events": a.lucky_events,
-                "unlucky_events": a.unlucky_events,
-                "net_events": a.lucky_events - a.unlucky_events,
-            }
-        )
-    return pd.DataFrame(rows)
+        df = pd.DataFrame()
+    else:
+        # Build one row per agent.
+        rows: List[Dict[str, Any]] = []
+        for a in agents:
+            rows.append(
+                {
+                    "id": a.id,
+                    "talent_intensity": a.talent["intensity"],
+                    "talent_iq": a.talent["iq"],
+                    "talent_networking": a.talent["networking"],
+                    "initial_capital": a.talent["initial_capital"],
+                    "talent_norm": a.talent_norm,
+                    "capital": a.capital,
+                    "lucky_events": a.lucky_events,
+                    "unlucky_events": a.unlucky_events,
+                    "net_events": a.lucky_events - a.unlucky_events,
+                }
+            )
+        df = pd.DataFrame(rows)
+    _LOG.debug("df.shape=%s", df.shape)
+    return df
 
 
 def generate_summary_statistics(agents: List[Agent]) -> Dict[str, float]:
     """
-    Generate comprehensive summary statistics for the simulation output.
+    Compute summary statistics of the simulation output.
 
     :param agents: List of Agent objects (after simulation)
     :return: Dictionary mapping metric names to float values. Example output:
@@ -259,53 +308,66 @@ def generate_summary_statistics(agents: List[Agent]) -> Dict[str, float]:
             'mean_talent_norm': 1.95,
         }
     """
+    _LOG.debug("len(agents)=%s", len(agents))
     df = get_results_dataframe(agents)
     if df.empty:
-        return {"n_agents": 0}
-    capital = df["capital"].to_numpy(dtype=float)
-    gini = calculate_gini(capital)
-    min_cap = float(np.min(capital))
-    max_cap = float(np.max(capital))
-    total_cap = float(np.sum(capital))
-    n = len(df)
-    # Guard against division by zero (should not happen due to floor).
-    cap_range = max_cap / max(min_cap, 1e-12)
-    top_10_n = max(1, n // 10)
-    top_20_n = max(1, n // 5)
-    bottom_50_n = max(1, n // 2)
-    return {
-        "n_agents": float(n),
-        "mean_capital": float(np.mean(capital)),
-        "median_capital": float(np.median(capital)),
-        "std_capital": float(np.std(capital)),
-        "min_capital": min_cap,
-        "max_capital": max_cap,
-        "capital_range": float(cap_range),
-        "gini_coefficient": float(gini),
-        "top_10_pct_share": float(
-            df.nlargest(top_10_n, "capital")["capital"].sum() / total_cap
-        ),
-        "top_20_pct_share": float(
-            df.nlargest(top_20_n, "capital")["capital"].sum() / total_cap
-        ),
-        "bottom_50_pct_share": float(
-            df.nsmallest(bottom_50_n, "capital")["capital"].sum() / total_cap
-        ),
-        "mean_lucky_events": float(df["lucky_events"].mean()),
-        "mean_unlucky_events": float(df["unlucky_events"].mean()),
-        "mean_talent_norm": float(df["talent_norm"].mean()),
-    }
+        stats: Dict[str, float] = {"n_agents": 0}
+    else:
+        # Compute the capital totals used by the shares.
+        capital = df["capital"].to_numpy(dtype=float)
+        gini = calculate_gini(capital)
+        min_cap = float(np.min(capital))
+        max_cap = float(np.max(capital))
+        total_cap = float(np.sum(capital))
+        n = len(df)
+        # Guard against division by zero (should not happen due to floor).
+        cap_range = max_cap / max(min_cap, 1e-12)
+        # Use at least one agent in each group, even for small populations.
+        top_10_n = max(1, n // 10)
+        top_20_n = max(1, n // 5)
+        bottom_50_n = max(1, n // 2)
+        stats = {
+            "n_agents": float(n),
+            "mean_capital": float(np.mean(capital)),
+            "median_capital": float(np.median(capital)),
+            "std_capital": float(np.std(capital)),
+            "min_capital": min_cap,
+            "max_capital": max_cap,
+            "capital_range": float(cap_range),
+            "gini_coefficient": float(gini),
+            "top_10_pct_share": float(
+                df.nlargest(top_10_n, "capital")["capital"].sum() / total_cap
+            ),
+            "top_20_pct_share": float(
+                df.nlargest(top_20_n, "capital")["capital"].sum() / total_cap
+            ),
+            "bottom_50_pct_share": float(
+                df.nsmallest(bottom_50_n, "capital")["capital"].sum() / total_cap
+            ),
+            "mean_lucky_events": float(
+                df["lucky_events"].to_numpy(dtype=float).mean()
+            ),
+            "mean_unlucky_events": float(
+                df["unlucky_events"].to_numpy(dtype=float).mean()
+            ),
+            "mean_talent_norm": float(
+                df["talent_norm"].to_numpy(dtype=float).mean()
+            ),
+        }
+    _LOG.debug("return=%s", stats)
+    return stats
 
 
 def validate_simulation_results(agents: List[Agent]) -> bool:
     """
     Validate simulation results for basic correctness.
 
-    Raises AssertionError if anything looks inconsistent.
+    Raise `AssertionError` if anything looks inconsistent.
 
     :param agents: List of Agent objects to validate
     :return: True if validation passes
     """
+    _LOG.debug("len(agents)=%s", len(agents))
     df = get_results_dataframe(agents)
     hdbg.dassert(not df.empty, "No agents provided to validate")
     hdbg.dassert(not (df["capital"] < 0).any(), "Negative capital detected")
@@ -314,17 +376,46 @@ def validate_simulation_results(agents: List[Agent]) -> bool:
         not ((df["lucky_events"] < 0).any() or (df["unlucky_events"] < 0).any()),
         "Negative event counts detected",
     )
+    # Each event appends one entry to the history of the initial capital.
     for a in agents:
         expected = 1 + a.lucky_events + a.unlucky_events
-        # TODO(ai_gp): Remove redundant (expected, got): from message and remove duplicate parameter values since dassert_eq() already prints them (coding.rules.md:## Add Message to dassert)
         hdbg.dassert_eq(
             len(a.capital_history),
             expected,
-            "Agent has inconsistent capital history length (expected, got):",
-            expected,
-            len(a.capital_history),
+            "Agent has inconsistent capital history length",
         )
-    return True
+    is_valid = True
+    _LOG.debug("return=%s", is_valid)
+    return is_valid
+
+
+# #############################################################################
+# Simulation
+# #############################################################################
+
+
+def _select_exposed_agent(agents: List[Agent], rng: np.random.Generator) -> int:
+    """
+    Pick the agent hit by one event, with probability proportional to exposure.
+
+    The exposure of an agent is `Agent.get_event_probability()`. If all
+    exposures are zero, every agent is equally likely.
+
+    :param agents: population of agents
+    :param rng: random generator of the simulation
+    :return: index of the selected agent
+    """
+    _LOG.debug("len(agents)=%s", len(agents))
+    n_agents = len(agents)
+    exposure = np.array([a.get_event_probability() for a in agents], dtype=float)
+    exposure = (
+        exposure / exposure.sum()
+        if exposure.sum() > 0
+        else np.ones(n_agents) / n_agents
+    )
+    selected_idx = int(rng.choice(n_agents, p=exposure))
+    _LOG.debug("return=%s", selected_idx)
+    return selected_idx
 
 
 def run_simulation(
@@ -337,58 +428,64 @@ def run_simulation(
     lucky_std: float = 0.08,
     unlucky_mean: float = 0.15,
     unlucky_std: float = 0.05,
-    # TODO(ai_gp): Change to seed: int = 42 (remove Optional since default is meaningful, not None) (coding.rules.md:## Minimize Default Values of None in Function Interfaces)
-    seed: Optional[int] = 42,
+    seed: int = 42,
     verbose: bool = False,
 ) -> List[Agent]:
     """
     Execute the agent-based simulation over multiple periods.
 
     :param agents: List of Agent objects to simulate (modified in-place)
-    :param n_periods: Number of time periods to simulate (default 80)
-    :param n_lucky_events_per_period: Lucky events per period (default 5)
-    :param n_unlucky_events_per_period: Unlucky events per period (default 5)
-    :param lucky_mean: Mean impact of lucky events (default 0.25 = 25%)
-    :param lucky_std: Std dev of lucky event impacts (default 0.08)
-    :param unlucky_mean: Mean impact of unlucky events (default 0.15 = 15%)
-    :param unlucky_std: Std dev of unlucky event impacts (default 0.05)
-    :param seed: RNG seed for reproducibility (default 42)
-    :param verbose: Show progress bar if True (requires tqdm, default False)
+    :param n_periods: Number of time periods to simulate
+        - Default: 80
+    :param n_lucky_events_per_period: Lucky events per period
+        - Default: 5
+    :param n_unlucky_events_per_period: Unlucky events per period
+        - Default: 5
+    :param lucky_mean: Mean impact of lucky events
+        - Default: 0.25, i.e., 25%
+    :param lucky_std: Std dev of lucky event impacts
+        - Default: 0.08
+    :param unlucky_mean: Mean impact of unlucky events
+        - Default: 0.15, i.e., 15%
+    :param unlucky_std: Std dev of unlucky event impacts
+        - Default: 0.05
+    :param seed: RNG seed for reproducibility
+        - Default: 42
+    :param verbose: Show a progress bar if True
+        - Default: False
     :return: Same agents list with updated capital and event histories
     """
+    _LOG.debug(
+        hprint.to_str(
+            "n_periods n_lucky_events_per_period n_unlucky_events_per_period"
+            " lucky_mean lucky_std unlucky_mean unlucky_std seed verbose"
+        )
+    )
     hdbg.dassert_lt(0, n_periods, "n_periods must be positive")
-    hdbg.dassert(agents, "agents list cannot be empty")
-    hdbg.dassert(
-        n_lucky_events_per_period >= 0 and n_unlucky_events_per_period >= 0,
+    hdbg.dassert_lt(0, len(agents), "agents list cannot be empty")
+    hdbg.dassert_lte(
+        0,
+        n_lucky_events_per_period,
         "event counts per period must be non-negative",
     )
-
+    hdbg.dassert_lte(
+        0,
+        n_unlucky_events_per_period,
+        "event counts per period must be non-negative",
+    )
+    # Set up the random generator and the optional progress bar.
     rng = np.random.default_rng(seed)
     n_agents = len(agents)
     if verbose:
-        # TODO(ai_gp): Avoid try-except for optional import; consider making tqdm required or use alternative approach (coding.rules.md:## Do Not Use try-except)
-        try:
-            from tqdm import tqdm  # type: ignore
-
-            periods_iter = tqdm(
-                range(n_periods), desc="Running simulation", unit="period"
-            )
-        except Exception:
-            periods_iter = range(n_periods)
+        periods_iter = tqdm.tqdm(
+            range(n_periods), desc="Running simulation", unit="period"
+        )
     else:
         periods_iter = range(n_periods)
     for _ in periods_iter:
         # Lucky events.
         for _ in range(n_lucky_events_per_period):
-            exposure = np.array(
-                [a.get_event_probability() for a in agents], dtype=float
-            )
-            exposure = (
-                exposure / exposure.sum()
-                if exposure.sum() > 0
-                else np.ones(n_agents) / n_agents
-            )
-            selected_idx = int(rng.choice(n_agents, p=exposure))
+            selected_idx = _select_exposed_agent(agents, rng)
             selected = agents[selected_idx]
             impact = float(
                 np.clip(rng.normal(lucky_mean, lucky_std), 0.05, 0.50)
@@ -411,20 +508,13 @@ def run_simulation(
                         agents[inherited_idx].apply_event("lucky", impact * 0.5)
         # Unlucky events.
         for _ in range(n_unlucky_events_per_period):
-            exposure = np.array(
-                [a.get_event_probability() for a in agents], dtype=float
-            )
-            exposure = (
-                exposure / exposure.sum()
-                if exposure.sum() > 0
-                else np.ones(n_agents) / n_agents
-            )
-            selected_idx = int(rng.choice(n_agents, p=exposure))
+            selected_idx = _select_exposed_agent(agents, rng)
             selected = agents[selected_idx]
             impact = float(
                 np.clip(rng.normal(unlucky_mean, unlucky_std), 0.05, 0.30)
             )
             selected.apply_event("unlucky", impact)
+    _LOG.debug("len(agents)=%s", len(agents))
     return agents
 
 
@@ -434,8 +524,10 @@ def run_policy_simulation(
     policy: str = "egalitarian",
     resource_amount: float = 100.0,
     # TODO(ai_gp): Avoid None default for cate_values; consider alternative design or use empty array default (coding.rules.md:## Minimize Default Values of None in Function Interfaces)
+    # Not done: only the "cate_optimal" policy uses `cate_values`, and an empty
+    # array default would hide a missing input instead of failing on it.
     cate_values: Optional[np.ndarray] = None,
-    **simulation_kwargs,
+    **simulation_kwargs: Any,
 ) -> List[Agent]:
     """
     Allocate initial resources under a policy, then run the standard simulation.
@@ -447,13 +539,13 @@ def run_policy_simulation(
        - Typical outcome: Moderate total welfare
 
     2. "meritocratic"
-       - Allocation ∝ talent_norm (total ability)
+       - Allocation proportional to `talent_norm` (total ability)
        - Rationale: Reward potentially capable people
        - Typical outcome: Moderate final Gini
        - Typical outcome: High total welfare (resources go to productive people)
 
     3. "performance"
-       - Allocation ∝ current capital (rich get richer)
+       - Allocation proportional to current capital (rich get richer)
        - Rationale: Compound success (controversial, tested for comparison)
        - Typical outcome: Highest final Gini (most unequal)
        - Typical outcome: Lowest total welfare (resources wasted on already-rich)
@@ -465,23 +557,27 @@ def run_policy_simulation(
        - Typical outcome: Highest possible total welfare (concentrated resources)
 
     5. "cate_optimal"
-       - Allocation ∝ CATE estimates (heterogeneous treatment effects)
+       - Allocation proportional to CATE estimates (heterogeneous treatment
+         effects)
        - Rationale: Give resources to agents who benefit most from them
-       - Requires: cate_values array with one value per agent
+       - Requires: `cate_values` array with one value per agent
        - Typical outcome: High total welfare, moderate Gini
        - Note: Only allocates to agents with non-negative CATE
 
     :param agents: List of Agent objects (capital modified in-place)
-    :param policy: Allocation rule: "egalitarian", "meritocratic", "performance",
-                   "random", or "cate_optimal" (default "egalitarian")
-    :param resource_amount: Total budget to distribute at t=0 (default 100.0)
-    :param cate_values: 1D array of CATE estimates, one per agent.
-                        Required if policy="cate_optimal", ignored otherwise.
-    :param simulation_kwargs: Additional arguments forwarded to run_simulation()
-                              (e.g., n_periods=80, seed=42, verbose=True)
+    :param policy: Allocation rule: `"egalitarian"`, `"meritocratic"`,
+        `"performance"`, `"random"`, or `"cate_optimal"`
+        - Default: `"egalitarian"`
+    :param resource_amount: Total budget to distribute at t=0
+        - Default: 100.0
+    :param cate_values: 1D array of CATE estimates, one per agent
+        - Required if `policy="cate_optimal"`, ignored otherwise
+    :param simulation_kwargs: Additional arguments forwarded to
+        `run_simulation()` (e.g., `n_periods=80, seed=42, verbose=True`)
     :return: Same agents list after resource allocation and full simulation
     """
-    hdbg.dassert(agents, "agents list cannot be empty")
+    _LOG.debug(hprint.to_str("policy resource_amount simulation_kwargs"))
+    hdbg.dassert_lt(0, len(agents), "agents list cannot be empty")
     hdbg.dassert_lt(
         -0.0001, resource_amount, "resource_amount must be non-negative"
     )
@@ -490,57 +586,58 @@ def run_policy_simulation(
     # Handle random policy separately (single winner).
     if policy == "random":
         winner_idx = int(rng.integers(n))
+        _LOG.debug("winner_idx=%s", winner_idx)
         agents[winner_idx].capital += resource_amount
         agents[winner_idx].capital_history[0] = agents[winner_idx].capital
-        return run_simulation(agents, **simulation_kwargs)
-    # For all other policies, we compute weights and allocate proportionally.
-    weights = np.zeros(n, dtype=float)
-    if policy == "egalitarian":
-        weights[:] = 1.0
-    elif policy == "meritocratic":
-        weights = np.array([a.talent_norm for a in agents], dtype=float)
-    elif policy == "performance":
-        weights = np.array([a.capital for a in agents], dtype=float)
-    elif policy == "cate_optimal":
-        hdbg.dassert_is_not(
-            cate_values,
-            None,
-            "cate_values must be provided when policy='cate_optimal'.",
-        )
-        cate_array = np.asarray(cate_values, dtype=float)
-        # TODO(ai_gp): Remove redundant (expected, got): from message and remove duplicate parameter values since dassert_eq() already prints them (coding.rules.md:## Add Message to dassert)
-        hdbg.dassert_eq(
-            cate_array.shape[0],
-            n,
-            "cate_values must have length (expected, got):",
-            n,
-            cate_array.shape[0],
-        )
-        # Use only non-negative CATEs; negative values are clamped to zero.
-        weights = np.maximum(cate_array, 0.0)
     else:
-        raise ValueError(
-            f"Unknown policy: {policy}. Must be one of: "
-            f"egalitarian, meritocratic, performance, random, cate_optimal"
-        )
-    total_weight = float(weights.sum())
-    if total_weight <= 0.0:
-        # Fallback: if everything is zero, allocate equally.
-        weights = np.ones(n, dtype=float)
-        total_weight = float(n)
-    shares = weights / total_weight
-    allocations = shares * float(resource_amount)
-    for a, alloc in zip(agents, allocations):
-        a.capital += float(alloc)
-        # Keep history consistent at t=0.
-        a.capital_history[0] = a.capital
-    return run_simulation(agents, **simulation_kwargs)
+        # For all other policies, we compute weights and allocate
+        # proportionally.
+        weights = np.zeros(n, dtype=float)
+        if policy == "egalitarian":
+            weights[:] = 1.0
+        elif policy == "meritocratic":
+            weights = np.array([a.talent_norm for a in agents], dtype=float)
+        elif policy == "performance":
+            weights = np.array([a.capital for a in agents], dtype=float)
+        elif policy == "cate_optimal":
+            hdbg.dassert_is_not(
+                cate_values,
+                None,
+                "cate_values must be provided when policy='cate_optimal'.",
+            )
+            cate_array = np.asarray(cate_values, dtype=float)
+            hdbg.dassert_eq(
+                cate_array.shape[0],
+                n,
+                "cate_values must have one value per agent",
+            )
+            # Use only non-negative CATEs; negative values are clamped to zero.
+            weights = np.maximum(cate_array, 0.0)
+        else:
+            raise ValueError(
+                f"Unknown policy: {policy}. Must be one of: "
+                f"egalitarian, meritocratic, performance, random, cate_optimal"
+            )
+        total_weight = float(weights.sum())
+        if total_weight <= 0.0:
+            # Fallback: if everything is zero, allocate equally.
+            weights = np.ones(n, dtype=float)
+            total_weight = float(n)
+        shares = weights / total_weight
+        allocations = shares * float(resource_amount)
+        _LOG.debug("allocations[:5]=%s", allocations[:5])
+        for a, alloc in zip(agents, allocations):
+            a.capital += float(alloc)
+            # Keep history consistent at t=0.
+            a.capital_history[0] = a.capital
+    # Run the standard simulation from the allocated capital.
+    agents = run_simulation(agents, **simulation_kwargs)
+    return agents
 
 
 # #############################################################################
 # Bayesian model
 # #############################################################################
-# -------------------------------------------------------------------
 
 
 def fit_bayesian_luck_model(
@@ -550,27 +647,33 @@ def fit_bayesian_luck_model(
     tune: int = 1000,
     target_accept: float = 0.9,
     random_seed: int = 42,
-):
+) -> Tuple["pm.Model", "az.InferenceData"]:
     """
     Fit a Bayesian regression model to estimate causal effect of luck on capital.
 
-    # TODO(ai_gp): Wrap function reference in backticks: `get_results_dataframe()` (coding.rules.md:## Use Verbatim to Refer to Python Objects)
-    :param df: DataFrame from get_results_dataframe(agents), must have:
-               'capital', 'lucky_events', 'talent_intensity', 'talent_iq', 'talent_networking'
-    :param draws: Number of posterior draws per chain (default 1000)
-               Higher = more accurate posterior, longer runtime
-    :param tune: Number of NUTS tuning/burn-in iterations (default 1000)
-             These are discarded and not used in inference
-    :param target_accept: NUTS sampler target acceptance rate (default 0.9)
-                 Valid range: (0.5, 1.0), higher = slower but more stable
-    :param random_seed: RNG seed for reproducibility (default 42)
-
-    :return: Tuple (model, idata):
-        # TODO(ai_gp): Wrap class references in backticks: `Model`, `InferenceData` (coding.rules.md:## Use Verbatim to Refer to Python Objects)
-        - model: PyMC Model object (for diagnostics, re-sampling, etc.)
-        - idata: ArviZ InferenceData object containing posterior samples
-                Use with summarize_bayesian_fit() or posterior_predictive_check()
+    :param df: DataFrame from `get_results_dataframe(agents)`, with the
+        columns `capital`, `lucky_events`, `talent_intensity`, `talent_iq`,
+        `talent_networking`
+    :param draws: Number of posterior draws per chain
+        - Higher means a more accurate posterior and a longer runtime
+        - Default: 1000
+    :param tune: Number of NUTS tuning (burn-in) iterations, which are
+        discarded and not used in inference
+        - Default: 1000
+    :param target_accept: NUTS sampler target acceptance rate
+        - Valid range: (0.5, 1.0), higher is slower but more stable
+        - Default: 0.9
+    :param random_seed: RNG seed for reproducibility
+        - Default: 42
+    :return: tuple `(model, idata)`
+        - `model`: PyMC `Model` (for diagnostics, re-sampling, etc.)
+        - `idata`: ArviZ `InferenceData` with the posterior samples, to use
+          with `summarize_bayesian_fit()` or `posterior_predictive_check()`
     """
+    _LOG.debug(hprint.to_str("df.shape draws tune target_accept random_seed"))
+    # Import PyMC only here, so that the simulation works without it.
+    import pymc as pm  # type: ignore
+
     required_cols = [
         "capital",
         "lucky_events",
@@ -578,10 +681,12 @@ def fit_bayesian_luck_model(
         "talent_iq",
         "talent_networking",
     ]
-    missing = [c for c in required_cols if c not in df.columns]
-    hdbg.dassert(not missing, "DataFrame is missing required columns:", missing)
+    hdbg.dassert_is_subset(
+        required_cols, df.columns, "DataFrame is missing required columns"
+    )
     capital = df["capital"].to_numpy(dtype=float)
-    y = np.log(capital)  # log-capital is more stable and closer to normal.
+    # Log-capital is more stable and closer to normal.
+    y = np.log(capital)
     lucky = df["lucky_events"].to_numpy(dtype=float)
     intensity = df["talent_intensity"].to_numpy(dtype=float)
     iq = df["talent_iq"].to_numpy(dtype=float)
@@ -590,24 +695,24 @@ def fit_bayesian_luck_model(
     # ============
     # Does luck causally affect outcomes, even after controlling for talent?
     # This model answers that by regressing log(capital) on both luck and talent.
-
+    #
     # THE MODEL
     # =========
     # Linear Bayesian regression:
-
+    #
     #     log(capital_i) = alpha
     #                      + beta_luck * lucky_events_i
     #                      + beta_intensity * talent_intensity_i
     #                      + beta_iq * talent_iq_i
     #                      + beta_networking * talent_networking_i
     #                      + epsilon_i
-
+    #
     # Where:
     #     - log(capital) is the outcome (log-scale for stability)
     #     - lucky_events is the treatment (how many beneficial events occurred)
     #     - talent_* are confounders (control for inherent ability)
     #     - epsilon ~ N(0, sigma) is residual error
-
+    #
     # PRIORS
     # ======
     # All coefficients use weakly informative N(0, 1) priors (centered at 0).
@@ -636,40 +741,52 @@ def fit_bayesian_luck_model(
             return_inferencedata=True,
             progressbar=True,
         )
+    _LOG.debug("Sampled draws=%s tune=%s", draws, tune)
     return model, idata
 
 
-# TODO(ai_gp): Avoid None default for var_names; consider default list or separate method to build default (coding.rules.md:## Minimize Default Values of None in Function Interfaces)
+# Parameters of the Bayesian model summarized by default: the main coefficients
+# and sigma.
+_DEFAULT_SUMMARY_VAR_NAMES = (
+    "alpha",
+    "beta_luck",
+    "beta_intensity",
+    "beta_iq",
+    "beta_networking",
+    "sigma",
+)
+
+
 def summarize_bayesian_fit(
-    idata, *, var_names: Optional[List[str]] = None
+    idata: "az.InferenceData",
+    *,
+    var_names: Tuple[str, ...] = _DEFAULT_SUMMARY_VAR_NAMES,
 ) -> pd.DataFrame:
     """
-    Return a tidy summary table (posterior mean, sd, and credible intervals).
+    Summarize the posterior of the Bayesian model parameters.
 
-    For the Bayesian model parameters.
+    The summary has the posterior mean, sd, and credible intervals of each
+    parameter.
 
-    # TODO(ai_gp): Wrap function reference in backticks: `fit_bayesian_luck_model()` (coding.rules.md:## Use Verbatim to Refer to Python Objects)
-    :param idata: ArviZ InferenceData returned by fit_bayesian_luck_model
-    :param var_names: optional subset of parameter names to summarize
+    :param idata: ArviZ `InferenceData` returned by `fit_bayesian_luck_model()`
+    :param var_names: parameter names to summarize
+        - Default: the coefficients and sigma
     :return: pandas DataFrame with summary statistics (mean, sd, hdi, etc.)
     """
-    if var_names is None:
-        # By default, summarize the main coefficients and sigma.
-        var_names = [
-            "alpha",
-            "beta_luck",
-            "beta_intensity",
-            "beta_iq",
-            "beta_networking",
-            "sigma",
-        ]
-    summary = az.summary(idata, var_names=var_names)
+    _LOG.debug(hprint.to_str("var_names"))
+    # Import ArviZ only here, so that the simulation works without it.
+    import arviz as az  # type: ignore
+
+    # `az.summary()` returns a DataFrame with its default `fmt="wide"`, while
+    # its type hint also allows an xarray Dataset.
+    summary = cast(pd.DataFrame, az.summary(idata, var_names=list(var_names)))
+    _LOG.debug("summary.shape=%s", summary.shape)
     return summary
 
 
 def posterior_predictive_check(
-    model,
-    idata,
+    model: "pm.Model",
+    idata: "az.InferenceData",
     df: pd.DataFrame,
     *,
     random_seed: int = 123,
@@ -680,16 +797,20 @@ def posterior_predictive_check(
     This function draws from the posterior predictive distribution and compares
     simulated log-capital to the observed log-capital.
 
-    # TODO(ai_gp): Wrap function and class references in backticks: `fit_bayesian_luck_model()`, `InferenceData` (coding.rules.md:## Use Verbatim to Refer to Python Objects)
-    :param model: PyMC model returned by fit_bayesian_luck_model
-    :param idata: ArviZ InferenceData with posterior draws
+    :param model: PyMC model returned by `fit_bayesian_luck_model()`
+    :param idata: ArviZ `InferenceData` with posterior draws
     :param df: same DataFrame used for fitting
     :param random_seed: RNG seed for reproducibility
+        - Default: 123
     :return: dict with:
-        - "y_obs": observed log-capital
-        - "y_pred_mean": posterior predictive mean log-capital per agent
-        - "y_pred_std": posterior predictive std-dev per agent
+        - `"y_obs"`: observed log-capital
+        - `"y_pred_mean"`: posterior predictive mean log-capital per agent
+        - `"y_pred_std"`: posterior predictive std-dev per agent
     """
+    _LOG.debug(hprint.to_str("df.shape random_seed"))
+    # Import PyMC only here, so that the simulation works without it.
+    import pymc as pm  # type: ignore
+
     capital = df["capital"].to_numpy(dtype=float)
     y_obs = np.log(capital)
     with model:
@@ -699,10 +820,10 @@ def posterior_predictive_check(
             random_seed=random_seed,
             progressbar=False,
         )
-    # `ppc` is an `arviz.InferenceData`; `y_obs` lives inside the
+    # `ppc` is an `arviz.InferenceData`, and `y_obs` lives inside the
     # `posterior_predictive` group and has shape (chains, draws, n) or
     # (draws, n) depending on PyMC version.
-    y_sim = np.asarray(ppc.posterior_predictive["y_obs"])
+    y_sim = np.asarray(ppc["posterior_predictive"]["y_obs"])
     if y_sim.ndim == 3:
         # (chains, draws, n) -> (chains * draws, n).
         y_sim = y_sim.reshape(-1, y_sim.shape[-1])
@@ -713,8 +834,10 @@ def posterior_predictive_check(
         raise ValueError(f"Unexpected PPC shape for y_obs: {y_sim.shape}")
     y_pred_mean = y_sim.mean(axis=0)
     y_pred_std = y_sim.std(axis=0)
-    return {
+    _LOG.debug("y_sim.shape=%s", y_sim.shape)
+    ppc_results = {
         "y_obs": y_obs,
         "y_pred_mean": y_pred_mean,
         "y_pred_std": y_pred_std,
     }
+    return ppc_results
