@@ -15,8 +15,8 @@
   request, test providers with known-answer questions, and lower the reputation of
   sellers that under-deliver
 - Background: the paper `papers/Noesis/Noesis.pdf` (by GP), GP's roadmap
-  `research/Noesis/docs/plans/plan.Noesis.md`, and the MVP spec `docs/specs/mvp_prd.md`
-- Status: `docs/plans/mvp_progress.md`
+  `research/Noesis/docs/plan.noesis.md`, and the MVP spec `docs/mvp_prd.md`
+- Status: `docs/progress.noesis.md`
 
 ## 2. Access You Need
 
@@ -139,7 +139,7 @@
 
 ## 7. Pick a First Task
 
-- Open tasks with owners are in `docs/plans/mvp_plan.md` §3; the next milestone is the
+- Open tasks with owners are in `docs/plan.noesis.md` (Task Breakdown); the next milestone is the
   checker (M2)
 - Good first tasks:
   - Add test questions to the canary bank (M2, T2.1): no prior code knowledge needed

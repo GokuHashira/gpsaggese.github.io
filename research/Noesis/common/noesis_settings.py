@@ -58,7 +58,7 @@ class Settings:
     # Task definition (PRD D1): completions are clamped to this many tokens.
     max_tokens_cap: int
     # Monthly spend cap on real provider cost (PRD G8); not enforced yet, see
-    # `docs/specs/mvp_decisions.md`.
+    # `docs/decisions.noesis.md`.
     spend_cap_usd: float
     # Per-request timeout = `timeout_multiplier` * contract `l_max` (PRD G6).
     timeout_multiplier: float

@@ -3,7 +3,7 @@
 - Every non-obvious choice in the MVP, why it was made, and what else was
   considered. Newest at the bottom of each section
 - Each PR adds its decisions here and links them in its description
-- Spec: `mvp_prd.md`; plan: `mvp_plan.md`
+- Spec: `mvp_prd.md`; plan: `plan.noesis.md`
 
 ## Measurement and Grading
 
@@ -59,7 +59,7 @@
   - Concentrate AI: fallback can't be disabled per request per its docs, and only one
     host serves our model, so no competing sellers to compare
   - Direct provider APIs: full control and verifiable attribution; planned as the
-    side track (`mvp_plan.md` §5b) behind the same `Provider` interface
+    side track (`plan.noesis.md`, Side Track: Provider Independence) behind the same `Provider` interface
 - **Known limit**: attribution is OpenRouter's report until direct adapters exist
 
 ### D-5. Blame a seller only for failures OpenRouter attributes to the provider
@@ -127,8 +127,7 @@
 ### D-12. Flat modules next to GP's, original code untouched
 
 - **Superseded**: one dir per component (`common/`, `gateway/`, `checker/`,
-  `market/`, `noesis_platform/`); see `spec.reorg.md`. The file names stay
-  unchanged
+  `market/`, `noesis_platform/`). The file names stay unchanged
 
 - **Decision**: `noesis_*.py` and `gateway_*.py` beside GP's modules; tests in
   `test/` named `test_<module>.py`

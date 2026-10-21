@@ -7,7 +7,7 @@
 - **Supersedes**: `docs/context/Noesis_MVP_PRD_v0.1.pdf` (2026-09-25)
 - **Reviewers**: the Noesis team, then GP (Prof. Saggese)
 - **Built on**: GP's prototype in this directory (`research/Noesis/`)
-- **Implementation status**: see `mvp_progress.md`. The gateway (§5.1) is built: `gateway/`, `common/`; design in `gateway_design.md`. The checker (§5.2) is in `checker/`. Paths like `noesis/metering` in §5 name components; the dir layout is in `specs/spec.reorg.md`
+- **Implementation status**: see `progress.noesis.md`. The gateway (§5.1) is built: `gateway/`, `common/`; design in `gateway_design.md`. The checker (§5.2) is in `checker/`. Paths like `noesis/metering` in §5 name components; the dir layout is in the component READMEs
 - **Status**: Draft. Decisions in §9 marked *Proposed* need a yes from Javin, Lucas, and Giles.
   §9 lists them.
 
@@ -281,7 +281,7 @@ numbers above, and a reproducible `make demo`.
 | D8 | GP's `helpers` lib | Ask GP; default his dev env | **Use GP's real `helpers` in this repo.** (A ~150-line stand-in exists only in the team's backup repo, to run without the monorepo) | Decided |
 | D9 | Who pays API | Us, hard cap | Us, $50/mo cap enforced in gateway (G8). Apply for OpenRouter/provider startup credits | Proposed |
 | D10 | Repo | open question | **This monorepo (`research/Noesis/`) is primary; every change lands as a reviewed PR.** The team keeps a private backup repo | Decided |
-| D11 | Owners | one server, one market | Gateway + metering math; checker data (canaries, calibration, prober) + simulator + tooling; market + reputation + dashboard. Names in `mvp_plan.md` | Proposed |
+| D11 | Owners | one server, one market | Gateway + metering math; checker data (canaries, calibration, prober) + simulator + tooling; market + reputation + dashboard. Names in `plan.noesis.md` | Proposed |
 | D12 | Stack | — | Python 3.11, FastAPI, Postgres, `httpx`, `openai` SDK (simulator), Streamlit dashboard (fastest path; replace later) | Proposed |
 
 ## 10. Risks
@@ -303,7 +303,7 @@ numbers above, and a reproducible `make demo`.
 
 1. OK with the corrected violation rule (upper bound) and splitting latency/quality?
    (Changes paper §5 eq. `reliability_lower_bound` and `PR_S6`.)
-2. Server-first order (`mvp_plan.md`) vs the market-first roadmap in `plan.Noesis.md`: fine?
+2. Server-first order (`plan.noesis.md`, MVP Execution Plan) vs the market-first roadmap (`plan.noesis.md`, Roadmap): fine?
 3. Should `PR_S9` (auto-asks from the OpenRouter catalog) and `PR_P4` (free-credit
    ledger) be in the MVP? Both are on the v0.2 / v0.4 lists and currently deferred.
 4. Is Noesis its own gateway, or a metering/market layer on top of existing gateways?

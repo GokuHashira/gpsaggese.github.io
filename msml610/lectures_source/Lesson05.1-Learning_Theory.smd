@@ -200,8 +200,11 @@ digraph LessonFlow {
 :::: {.column width=55%}
 
 - Consider a bin with \red{red} and \green{green} marbles
-  - We want to estimate $\Pr(\text{pick a red marble}) = \mu$ where the
-    value of $\mu$ is unknown
+  - We want to estimate
+    $$
+    \Pr(\text{pick a red marble}) = \mu
+    $$
+    where the value of $\mu$ is unknown
   - We pick $N$ marbles independently with replacement
   - The fraction of \red{red} marbles is $\nu$
 

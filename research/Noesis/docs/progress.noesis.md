@@ -1,15 +1,15 @@
 # Noesis MVP — Progress
 
 - What's done, what we learned, what's next. Canonical roadmap:
-  `plan.Noesis.md`; execution plan: `mvp_plan.md`; decisions:
-  `../specs/mvp_decisions.md`
+  `plan.noesis.md` (roadmap and MVP execution plan); decisions:
+  `decisions.noesis.md`
 
 ## Status
 
 | Milestone | Target | Status |
 |---|---|---|
 | M0 Setup | 10/9 | ✅ 9/30 |
-| M1 Gateway | 10/30 | ✅ PR #597 merged 10/10 (spend cap deferred, `../specs/mvp_decisions.md` D-9) |
+| M1 Gateway | 10/30 | ✅ PR #597 merged 10/10 (spend cap deferred, `decisions.noesis.md` D-9) |
 | M2 Checker | 11/20 | 🟨 foundation merged in PR #604 on 10/11; runtime and data remain |
 | M3 Market loop | 11/20 | Not started; builds on `batch_call_auction.py` |
 | M4 Demo | 12/11 | Not started |
@@ -21,12 +21,12 @@
 
 ## Built
 
-- Gateway and its database: see the file table in `../gateway_design.md`
+- Gateway and its database: see the file table in `gateway_design.md`
 - Checker foundation: deterministic grading and selection, evidence classification,
   separate latency/quality confidence bounds, verdicts, and PostgreSQL persistence
-  (`../checker_design.md`)
+  (`checker_design.md`)
 - `scripts/detection_math.py`: exact false-alarm / detection rates for the
-  violation rules (`../specs/mvp_decisions.md` D-1, D-2)
+  violation rules (`decisions.noesis.md` D-1, D-2)
 - `scripts/spike_openrouter.py` + `findings/openrouter_spike.md`: real provider
   measurements
 

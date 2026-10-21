@@ -1,7 +1,7 @@
 # `PR_P2`: Cloud Deployment - Implementation Spec
 
 - Specifies the Python code, Docker assets, and cloud deployment config for `PR_P2`
-  from `research/Noesis/docs/plans/plan.Noesis.md`
+  from `research/Noesis/docs/plan.noesis.md`
 - Scope: containerize `PR_P1`'s API into one Docker image; deploy to a single-node
   container service (AWS ECS, Fly.io, or Render); result is a
   `NoesisMarket`/`NoesisServer` instance reachable at a public URL; Kubernetes
@@ -184,6 +184,6 @@
   the documented cloud target (direct task-definition/service registration, not the
   org-template automation); Fly.io/Render were not attempted, per "Trade-off and
   Alternative Design" above
-- Not yet reachable at a public URL: `plan.Noesis.md`'s `PR_P2` Result line ("a
+- Not yet reachable at a public URL: `plan.noesis.md`'s `PR_P2` Result line ("a
   `NoesisMarket`/`NoesisServer` instance reachable at a public URL") is unmet until
   the ECS provisioning step above is actually carried out

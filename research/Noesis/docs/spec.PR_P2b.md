@@ -1,14 +1,14 @@
 # `PR_P2b`: Use Postgres Backend - Implementation Spec
 
 - This document specifies the Python code, schema, and Docker changes needed to
-  implement `PR_P2b` from `research/Noesis/docs/plans/plan.Noesis.md`
+  implement `PR_P2b` from `research/Noesis/docs/plan.noesis.md`
 - Scope, as stated in the plan:
   - Externalize the in-memory state of `NoesisMarket` and `NoesisServer` (order book,
     contract log, request log) to a real datastore (e.g. Postgres or Redis)
   - Result: a `NoesisMarket`/`NoesisServer` instance backed by persistent storage
     instead of the current in-process `List`/`Dict` state
 - Roadmap position: `PR_P2b` is not listed under any `v0.x` roadmap bullet in
-  `plan.Noesis.md`; it is sequenced directly after `PR_P2` (Cloud Deployment) in the
+  `plan.noesis.md`; it is sequenced directly after `PR_P2` (Cloud Deployment) in the
   `NoesisPlatform` PR list, and its own `TODO(gp)` note points at how to "inject a
   Postgres instance in the container", i.e. `PR_P2`'s Docker/devops scaffold. This
   spec therefore assumes `PR_P2` lands first and describes its own Docker/config

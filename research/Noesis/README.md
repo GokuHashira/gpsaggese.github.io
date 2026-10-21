@@ -13,7 +13,7 @@
   - `docs/README.md` for the index of all docs
   - `docs/architecture.md` for the C4-model architecture
   - `docs/onboarding.md` to set up, run, and test the MVP gateway
-  - `docs/plans/plan.Noesis.md` for the protocol implementation roadmap
+  - `docs/plan.noesis.md` for the protocol implementation roadmap
 
 ## Structure of the Dir
 
