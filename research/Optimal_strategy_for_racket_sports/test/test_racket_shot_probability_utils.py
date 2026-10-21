@@ -665,6 +665,403 @@ class Test_compute_flight_time(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_compute_is_reached
+# #############################################################################
+
+
+class Test_compute_is_reached(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils.compute_is_reached()`.
+    """
+
+    def helper(
+        self,
+        player_xy: Tuple[float, float],
+        x: np.ndarray,
+        y: np.ndarray,
+        flight_time_s: np.ndarray,
+        reaction_time_s: float,
+        move_speed_mps: float,
+        expected: str,
+    ) -> None:
+        """
+        Test helper for `compute_is_reached()`.
+
+        :param player_xy: where player 1 stands
+        :param x: landing `x` of each sample
+        :param y: landing `y` of each sample
+        :param flight_time_s: flight time of each sample in seconds
+        :param reaction_time_s: reaction time `t_r` in seconds
+        :param move_speed_mps: running speed `v_p` in m/s
+        :param expected: expected reached flags, as the string of a (nested)
+            list
+        """
+        # Run test.
+        actual = racket_shot_probability_utils.compute_is_reached(
+            player_xy, x, y, flight_time_s, reaction_time_s, move_speed_mps
+        )
+        # Check outputs.
+        self.assert_equal(str(actual.tolist()), expected)
+
+    def test1(self) -> None:
+        """
+        Test the hand-computed reach of 0.9 m for `T = 0.8 s`, `t_r = 0.2 s`,
+        `v_p = 1.5 m/s`.
+        """
+        # Prepare inputs.
+        # Reach: 1.5 * (0.8 - 0.2) = 0.9 m, so the landing points 0.5 m and
+        # 0.89 m beside player 1 are reached, and 0.91 m and 2 m are not.
+        player_xy = (0.0, -11.885)
+        x = np.array([0.5, 0.89, 0.91, 2.0])
+        y = np.full(4, -11.885)
+        flight_time_s = np.full(4, 0.8)
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        # Prepare outputs.
+        expected = "[True, True, False, False]"
+        # Run test and check outputs.
+        self.helper(
+            player_xy,
+            x,
+            y,
+            flight_time_s,
+            reaction_time_s,
+            move_speed_mps,
+            expected,
+        )
+
+    def test2(self) -> None:
+        """
+        Test that a landing point exactly on the edge of the reach is reached.
+        """
+        # Prepare inputs.
+        # Values exact in binary floating point: reach 2.0 * (1.5 - 0.5) = 2 m,
+        # and the first landing point is exactly 2 m away.
+        player_xy = (0.0, -11.885)
+        x = np.array([2.0, 2.000001])
+        y = np.full(2, -11.885)
+        flight_time_s = np.full(2, 1.5)
+        reaction_time_s = 0.5
+        move_speed_mps = 2.0
+        # Prepare outputs.
+        expected = "[True, False]"
+        # Run test and check outputs.
+        self.helper(
+            player_xy,
+            x,
+            y,
+            flight_time_s,
+            reaction_time_s,
+            move_speed_mps,
+            expected,
+        )
+
+    def test3(self) -> None:
+        """
+        Test that a ball landing before player 1 reacts (`T < t_r`) is never
+        reached, even 1 cm away.
+        """
+        # Prepare inputs.
+        player_xy = (0.0, -11.885)
+        x = np.array([0.01, 0.5, 5.0])
+        y = np.full(3, -11.885)
+        flight_time_s = np.full(3, 0.1)
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        # Prepare outputs.
+        expected = "[False, False, False]"
+        # Run test and check outputs.
+        self.helper(
+            player_xy,
+            x,
+            y,
+            flight_time_s,
+            reaction_time_s,
+            move_speed_mps,
+            expected,
+        )
+
+    def test4(self) -> None:
+        """
+        Test that a player 1 who does not move (`v_p = 0`) reaches nothing,
+        even 1 cm away.
+        """
+        # Prepare inputs.
+        player_xy = (0.0, -11.885)
+        x = np.array([0.01, 0.5])
+        y = np.full(2, -11.885)
+        flight_time_s = np.full(2, 0.8)
+        reaction_time_s = 0.2
+        move_speed_mps = 0.0
+        # Prepare outputs.
+        expected = "[False, False]"
+        # Run test and check outputs.
+        self.helper(
+            player_xy,
+            x,
+            y,
+            flight_time_s,
+            reaction_time_s,
+            move_speed_mps,
+            expected,
+        )
+
+    def test5(self) -> None:
+        """
+        Test that a ball landing exactly on player 1 is reached.
+        """
+        # Prepare inputs.
+        player_xy = (0.0, -11.885)
+        x = np.array([0.0])
+        y = np.array([-11.885])
+        flight_time_s = np.array([0.8])
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        # Prepare outputs.
+        expected = "[True]"
+        # Run test and check outputs.
+        self.helper(
+            player_xy,
+            x,
+            y,
+            flight_time_s,
+            reaction_time_s,
+            move_speed_mps,
+            expected,
+        )
+
+    def test6(self) -> None:
+        """
+        Test that a ball landing exactly on player 1 counts as reached even
+        before they react (`T < t_r`).
+
+        The agreed formula gives a reach of 0 and a distance of 0, and
+        `0 <= 0`; a Gaussian landing does this with probability 0, so it
+        never changes a probability.
+        """
+        # Prepare inputs.
+        player_xy = (0.0, -11.885)
+        x = np.array([0.0])
+        y = np.array([-11.885])
+        flight_time_s = np.array([0.1])
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        # Prepare outputs.
+        expected = "[True]"
+        # Run test and check outputs.
+        self.helper(
+            player_xy,
+            x,
+            y,
+            flight_time_s,
+            reaction_time_s,
+            move_speed_mps,
+            expected,
+        )
+
+    def test7(self) -> None:
+        """
+        Test that a very fast ball (1000 m/s) is never reached, even 5 cm from
+        player 1.
+        """
+        # Prepare inputs.
+        # From a serve landing point, every flight time on player 1's half is
+        # under 0.02 s, well below `t_r`.
+        hitter_xy = (-2.0, 4.8)
+        player_xy = (0.0, -11.885)
+        x = np.array([0.05, 4.0, -4.0, 0.0])
+        y = np.array([-11.885, -11.0, -1.0, -6.0])
+        ball_speed_mps = 1000.0
+        flight_time_s = racket_shot_probability_utils.compute_flight_time(
+            hitter_xy, x, y, ball_speed_mps
+        )
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        # Prepare outputs.
+        expected = "[False, False, False, False]"
+        # Run test and check outputs.
+        self.helper(
+            player_xy,
+            x,
+            y,
+            flight_time_s,
+            reaction_time_s,
+            move_speed_mps,
+            expected,
+        )
+
+    def test8(self) -> None:
+        """
+        Test that a very slow ball (0.1 m/s) is reached everywhere on player
+        1's half, corners included.
+        """
+        # Prepare inputs.
+        # The landing point nearest to player 2, the net corner (-4.115, 0),
+        # is 5.2 m away, so every flight time is over 52 s and player 1 covers
+        # over 77 m, more than the 12.6 m to the farthest corner of their half.
+        hitter_xy = (-2.0, 4.8)
+        player_xy = (0.0, -11.885)
+        x = np.array([-4.115, 4.115, -4.115, 4.115, 0.0])
+        y = np.array([0.0, 0.0, -11.885, -11.885, -6.0])
+        ball_speed_mps = 0.1
+        flight_time_s = racket_shot_probability_utils.compute_flight_time(
+            hitter_xy, x, y, ball_speed_mps
+        )
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        # Prepare outputs.
+        expected = "[True, True, True, True, True]"
+        # Run test and check outputs.
+        self.helper(
+            player_xy,
+            x,
+            y,
+            flight_time_s,
+            reaction_time_s,
+            move_speed_mps,
+            expected,
+        )
+
+    def test9(self) -> None:
+        """
+        Test that a 2D array of landing points gives flags of the same shape,
+        with a different flight time per landing point.
+        """
+        # Prepare inputs.
+        # Row 1 uses the reach of `test1()` (0.9 m); row 2 has a longer flight
+        # (1.2 s, reach 1.5 m) and a ball that lands before player 1 reacts.
+        player_xy = (0.0, -11.885)
+        x = np.array([[0.5, 2.0], [1.4, 0.01]])
+        y = np.full((2, 2), -11.885)
+        flight_time_s = np.array([[0.8, 0.8], [1.2, 0.1]])
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        # Prepare outputs.
+        expected = "[[True, False], [True, False]]"
+        # Run test and check outputs.
+        self.helper(
+            player_xy,
+            x,
+            y,
+            flight_time_s,
+            reaction_time_s,
+            move_speed_mps,
+            expected,
+        )
+
+    def test10(self) -> None:
+        """
+        Test that a bad point, flight time, reaction time, or speed raises a
+        clear error.
+        """
+        # Prepare inputs.
+        nan, inf = float("nan"), float("inf")
+        player_xy = (0.0, -11.885)
+        x = np.array([0.5, 2.0])
+        y = np.full(2, -11.885)
+        flight_time_s = np.full(2, 0.8)
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        bad_inputs = [
+            (
+                (0.0, nan),
+                x,
+                flight_time_s,
+                reaction_time_s,
+                move_speed_mps,
+                "player_xy=(0.0, nan) must be finite",
+            ),
+            (
+                player_xy,
+                np.array([nan, 2.0]),
+                flight_time_s,
+                reaction_time_s,
+                move_speed_mps,
+                "Every landing x must be finite",
+            ),
+            (
+                player_xy,
+                x,
+                [0.8, 0.8],
+                reaction_time_s,
+                move_speed_mps,
+                "flight_time_s must be a numpy array",
+            ),
+            (
+                player_xy,
+                x,
+                flight_time_s[:1],
+                reaction_time_s,
+                move_speed_mps,
+                "one time per landing point",
+            ),
+            (
+                player_xy,
+                x,
+                np.array([0.8, nan]),
+                reaction_time_s,
+                move_speed_mps,
+                "Every flight time must be finite",
+            ),
+            (
+                player_xy,
+                x,
+                np.array([0.8, -0.1]),
+                reaction_time_s,
+                move_speed_mps,
+                "Every flight time must be non-negative",
+            ),
+            (
+                player_xy,
+                x,
+                flight_time_s,
+                -0.2,
+                move_speed_mps,
+                "reaction_time_s must be non-negative",
+            ),
+            (
+                player_xy,
+                x,
+                flight_time_s,
+                nan,
+                move_speed_mps,
+                "reaction_time_s=nan must be finite",
+            ),
+            (
+                player_xy,
+                x,
+                flight_time_s,
+                reaction_time_s,
+                -1.5,
+                "move_speed_mps must be non-negative",
+            ),
+            (
+                player_xy,
+                x,
+                flight_time_s,
+                reaction_time_s,
+                inf,
+                "move_speed_mps=inf must be finite",
+            ),
+        ]
+        # Run test and check outputs.
+        for (
+            bad_player_xy,
+            bad_x,
+            bad_t,
+            bad_t_r,
+            bad_v_p,
+            expected,
+        ) in bad_inputs:
+            with self.subTest(expected=expected):
+                with self.assertRaises(AssertionError) as cm:
+                    racket_shot_probability_utils.compute_is_reached(
+                        bad_player_xy, bad_x, y, bad_t, bad_t_r, bad_v_p
+                    )
+                self.assertIn(expected, str(cm.exception))
+
+
+# #############################################################################
 # Test__round_slider_value
 # #############################################################################
 

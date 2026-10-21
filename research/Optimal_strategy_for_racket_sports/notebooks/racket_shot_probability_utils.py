@@ -311,6 +311,92 @@ def compute_flight_time(
     return flight_time_s
 
 
+def compute_is_reached(
+    player_xy: Tuple[float, float],
+    x: np.ndarray,
+    y: np.ndarray,
+    flight_time_s: np.ndarray,
+    reaction_time_s: float,
+    move_speed_mps: float,
+) -> np.ndarray:
+    """
+    Find the landing points that player 1 reaches before the ball lands.
+
+    Player 1 at `player_xy` first reacts for `t_r` seconds, the time to decide
+    where the ball will land, and then runs in a straight line at a constant
+    speed `v_p` (GP on #624). They reach a landing point `(X, Y)` with flight
+    time `T` if:
+    ```
+    distance(player_xy, (X, Y)) <= v_p * max(0, T - t_r)
+    ```
+    - `max(0, ...)`: a ball that lands before player 1 reacts (`T < t_r`) gives
+      a reach radius of 0, not a negative one
+    - `<=`: a point exactly on the edge of the reach counts as reached, as in
+      `racket_scoring.compute_reachability()`
+    - With a reach radius of 0 (`T <= t_r` or `v_p = 0`), only a ball landing
+      exactly on player 1 counts as reached, which a Gaussian landing does
+      with probability 0
+
+    :param player_xy: where player 1 stands in meters, e.g., from
+        `get_player1_xy()`
+    :param x: landing `x` of each sample in meters; any shape
+    :param y: landing `y` of each sample in meters, same shape as `x`
+    :param flight_time_s: flight time of each sample in seconds, same shape
+        as `x`, e.g., from `compute_flight_time()`
+    :param reaction_time_s: reaction time `t_r` in seconds, e.g., 0.2
+    :param move_speed_mps: running speed `v_p` in m/s, e.g., 1.5; 0 means that
+        player 1 does not move
+    :return: boolean array, same shape as `x`, True where player 1 reaches the
+        landing point; e.g., `T = 0.8`, `t_r = 0.2`, `v_p = 1.5` give a reach of
+        0.9 m, so a landing point 0.5 m away is True and one 1 m away is False
+    """
+    # `x` and `y` are logged by `_dassert_landing_points()`, once checked.
+    _LOG.debug(hprint.to_str("player_xy reaction_time_s move_speed_mps"))
+    _dassert_point(player_xy, "player_xy")
+    _dassert_landing_points(x, y)
+    # One finite, non-negative flight time per landing point.
+    hdbg.dassert_isinstance(
+        flight_time_s, np.ndarray, "flight_time_s must be a numpy array"
+    )
+    hdbg.dassert_eq(
+        flight_time_s.shape,
+        x.shape,
+        "flight_time_s must have one time per landing point",
+    )
+    hdbg.dassert(
+        np.all(np.isfinite(flight_time_s)), "Every flight time must be finite"
+    )
+    hdbg.dassert_lte(
+        0, flight_time_s.min(), "Every flight time must be non-negative"
+    )
+    # A negative reaction time or speed would make player 1 faster than
+    # possible, and a `nan` would count every point as not reached.
+    hdbg.dassert(
+        np.isfinite(reaction_time_s),
+        "reaction_time_s=%s must be finite",
+        reaction_time_s,
+    )
+    hdbg.dassert_lte(0, reaction_time_s, "reaction_time_s must be non-negative")
+    hdbg.dassert(
+        np.isfinite(move_speed_mps),
+        "move_speed_mps=%s must be finite",
+        move_speed_mps,
+    )
+    hdbg.dassert_lte(0, move_speed_mps, "move_speed_mps must be non-negative")
+    # How far player 1 can run in the time left once they have reacted.
+    run_time_s = np.maximum(0.0, flight_time_s - reaction_time_s)
+    reach_m = move_speed_mps * run_time_s
+    # Compare with the straight-line distance to each landing point.
+    dist_m = np.hypot(x - player_xy[0], y - player_xy[1])
+    is_reached = dist_m <= reach_m
+    _LOG.debug(
+        "return: %d of %d landing points reached",
+        is_reached.sum(),
+        is_reached.size,
+    )
+    return is_reached
+
+
 # #############################################################################
 # Court drawing
 # #############################################################################
