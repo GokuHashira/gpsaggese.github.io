@@ -1174,6 +1174,55 @@ class Test_compute_winner_probability(hunitest.TestCase):
         # tell the joint event from "in" alone or from a product.
         self.assertLess(actual["p_winner"], actual["p_in"])
 
+    def helper3(self, target_xy: Tuple[float, float], expected: float) -> None:
+        """
+        Check that a tiny spread gives the outcome of the aim point itself, 0
+        or 1, as a direct check of that single point says.
+
+        The serve, the ball, and player 1 are the tennis defaults: serve to
+        `(-2.1, 3.2)`, 25 m/s, `t_r = 0.2 s`, `v_p = 1.5 m/s`.
+
+        :param target_xy: aim point `(x2, y2)`, where every sample lands
+        :param expected: expected `P(winner)`, 0.0 or 1.0
+        """
+        # Prepare inputs.
+        serve_xy = (-2.1, 3.2)
+        std_xy = (1e-6, 1e-6)
+        ball_speed_mps = 25.0
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        court = racket_params.TENNIS.court
+        n_samples = 100
+        seed = 1
+        # Prepare outputs.
+        # Direct check of the aim point alone, with the building blocks.
+        x = np.array([target_xy[0]])
+        y = np.array([target_xy[1]])
+        region = racket_shot_probability_utils.get_striker_half_region(court)
+        flight_time_s = racket_shot_probability_utils.compute_flight_time(
+            serve_xy, x, y, ball_speed_mps
+        )
+        player1_xy = racket_shot_probability_utils.get_player1_xy(court)
+        is_reached = racket_shot_probability_utils.compute_is_reached(
+            player1_xy, x, y, flight_time_s, reaction_time_s, move_speed_mps
+        )
+        direct = float((region.contains(x, y) & ~is_reached)[0])
+        # Run test.
+        result = self.helper(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+        # Check outputs.
+        actual = [result["p_winner"], direct]
+        self.assert_equal(str(actual), str([expected, expected]))
+
     def test1(self) -> None:
         """
         Test that a tennis return with a large reach is the joint event of the
@@ -1405,6 +1454,165 @@ class Test_compute_winner_probability(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(str(result1), str(result2))
         self.assertNotEqual(str(result1), str(result3))
+
+    def test8(self) -> None:
+        """
+        Test that a tiny spread aimed in and far from player 1 gives 1.
+        """
+        # Prepare inputs.
+        target_xy = (3.0, -6.0)
+        # Prepare outputs.
+        expected = 1.0
+        # Run test and check outputs.
+        self.helper3(target_xy, expected)
+
+    def test9(self) -> None:
+        """
+        Test that a tiny spread aimed 0.385 m in front of player 1 gives 0.
+        """
+        # Prepare inputs.
+        # By hand: the ball flies hypot(2.1, 14.7) / 25 = 0.594 s, so player 1
+        # covers 1.5 * (0.594 - 0.2) = 0.591 m, more than the 0.385 m to
+        # `(0, -11.5)`: reached. From the Milestone 1 serve stance
+        # `(0.5, -12.185)` it would be 0.848 m away, so not reached.
+        target_xy = (0.0, -11.5)
+        # Prepare outputs.
+        expected = 0.0
+        # Run test and check outputs.
+        self.helper3(target_xy, expected)
+
+    def test10(self) -> None:
+        """
+        Test that a tiny spread aimed behind the baseline (out) gives 0.
+        """
+        # Prepare inputs.
+        target_xy = (0.0, -13.0)
+        # Prepare outputs.
+        expected = 0.0
+        # Run test and check outputs.
+        self.helper3(target_xy, expected)
+
+    def test11(self) -> None:
+        """
+        Test the result for the tennis defaults of the Cell 1.1 widget.
+        """
+        # Prepare inputs.
+        serve_xy = (-2.1, 3.2)
+        target_xy = (2.1, -10.4)
+        std_xy = (0.5, 1.0)
+        ball_speed_mps = 25.0
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        court = racket_params.TENNIS.court
+        n_samples = 10000
+        seed = 1
+        # Prepare outputs.
+        # Player 1 covers about 0.6 m and the target is 2.6 m away, so almost
+        # every in return is a winner; the 2 reached samples are out.
+        expected = (
+            "{'p_winner': 0.9307, 'p_winner_se': 0.00254, 'p_in': 0.9307, "
+            "'p_reached': 0.0002}"
+        )
+        # Run test.
+        result = self.helper(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+        # Check outputs.
+        actual = str({k: round(v, 6) for k, v in result.items()})
+        self.assert_equal(actual, expected)
+
+    def test12(self) -> None:
+        """
+        Test the result for the pickleball defaults of the Cell 1.1 widget,
+        with a 12 m/s ball.
+        """
+        # Prepare inputs.
+        serve_xy = (-1.5, 4.4)
+        target_xy = (1.5, -5.2)
+        std_xy = (0.5, 1.0)
+        ball_speed_mps = 12.0
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        court = racket_params.PICKLEBALL.court
+        n_samples = 10000
+        seed = 1
+        # Prepare outputs.
+        # The smaller court puts the target closer to player 1, so about 3%
+        # of the in returns are reached.
+        expected = (
+            "{'p_winner': 0.9044, 'p_winner_se': 0.00294, 'p_in': 0.9323, "
+            "'p_reached': 0.0411}"
+        )
+        # Run test.
+        result = self.helper(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+        # Check outputs.
+        actual = str({k: round(v, 6) for k, v in result.items()})
+        self.assert_equal(actual, expected)
+
+    def test13(self) -> None:
+        """
+        Test that a bad serve point, generator, or any other bad input raises a
+        clear error.
+        """
+        # Prepare inputs.
+        nan, inf = float("nan"), float("inf")
+        court = racket_params.TENNIS.court
+        # The arguments in the order of the signature, passed positionally.
+        good = {
+            "serve_xy": (-2.1, 3.2),
+            "target_xy": (2.1, -10.4),
+            "std_xy": (0.5, 1.0),
+            "ball_speed_mps": 25.0,
+            "reaction_time_s": 0.2,
+            "move_speed_mps": 1.5,
+            "court": court,
+            "n_samples": 100,
+            "rng": np.random.default_rng(1),
+        }
+        bad_inputs = [
+            ("serve_xy", (nan, 3.2), "serve_xy=(nan, 3.2) must be finite"),
+            ("serve_xy", (-2.1, -1.0), "must land on player 2's half"),
+            ("serve_xy", (-2.1, 0.0), "must land on player 2's half"),
+            ("rng", 1, "rng must be a numpy random Generator"),
+            ("target_xy", (nan, -10.4), "target_xy=(nan, -10.4) must be"),
+            ("std_xy", (0.0, 1.0), "std_x2 must be positive"),
+            ("n_samples", 0, "n_samples must be positive"),
+            ("ball_speed_mps", 0.0, "ball_speed_mps must be positive"),
+            ("reaction_time_s", -0.2, "reaction_time_s must be non-negative"),
+            ("move_speed_mps", -1.5, "move_speed_mps must be non-negative"),
+            (
+                "court",
+                dataclasses.replace(court, length_m=inf),
+                "length_m=inf must be finite",
+            ),
+        ]
+        # Run test and check outputs.
+        for name, bad_value, expected in bad_inputs:
+            with self.subTest(name=name, value=bad_value):
+                kwargs = {**good, name: bad_value}
+                with self.assertRaises(AssertionError) as cm:
+                    racket_shot_probability_utils.compute_winner_probability(
+                        *kwargs.values()
+                    )
+                self.assertIn(expected, str(cm.exception))
 
 
 # #############################################################################
