@@ -302,7 +302,7 @@ def compute_flight_time(
     # Straight-line distance from player 2 to each landing point.
     x1, y1 = hitter_xy
     dist_m = np.hypot(x - x1, y - y1)
-    flight_time_s = dist_m / ball_speed_mps
+    flight_time_s: np.ndarray = dist_m / ball_speed_mps
     _LOG.debug(
         "return: %d flight times, first=%s",
         flight_time_s.size,
@@ -388,7 +388,7 @@ def compute_is_reached(
     reach_m = move_speed_mps * run_time_s
     # Compare with the straight-line distance to each landing point.
     dist_m = np.hypot(x - player_xy[0], y - player_xy[1])
-    is_reached = dist_m <= reach_m
+    is_reached: np.ndarray = dist_m <= reach_m
     _LOG.debug(
         "return: %d of %d landing points reached",
         is_reached.sum(),
