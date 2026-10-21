@@ -6,6 +6,10 @@ Player 1 serves to `(x1, y1)`, player 2 moves there and aims a return at
 point around `(x2, y2)` with independent `x` and `y` errors, so the
 probability that the return is in has a closed form.
 
+For Milestone 2 (#624), player 1 then stands at the center of their baseline
+and tries to reach each landing point before the ball lands, after a reaction
+time.
+
 Import as:
 
 import research.Optimal_strategy_for_racket_sports.notebooks.racket_shot_probability_utils as rosfrsnrspu
@@ -189,6 +193,122 @@ def sample_landings(
     y = rng.normal(y2, std_y2, n_samples)
     _LOG.debug("return: %d landing points", len(x))
     return x, y
+
+
+# #############################################################################
+# Player 1's reach
+# #############################################################################
+
+
+def get_player1_xy(court: racket_params.CourtGeometry) -> Tuple[float, float]:
+    """
+    Get where player 1 stands when the return comes back.
+
+    Player 1 serves and then stays at the center of their baseline,
+    `(0, -L/2)`, as agreed with GP in #624; where a player should stand is
+    left to a later model. This is not the serve stance of `_get_server_xy()`,
+    which is only where the serve starts.
+
+    :param court: court geometry, e.g., `racket_params.TENNIS.court`
+    :return: position `(0.0, -L/2)` in meters, where `L` is the court length,
+        e.g., `(0.0, -11.885)` for tennis
+    """
+    _LOG.debug(hprint.to_str("court"))
+    # `CourtGeometry` rejects a length that is not positive, but accepts `inf`,
+    # which would put player 1 infinitely far away.
+    hdbg.dassert(
+        np.isfinite(court.length_m),
+        "Court length_m=%s must be finite",
+        court.length_m,
+    )
+    hdbg.dassert_lt(0, court.length_m, "Court length must be positive")
+    player1_xy = (0.0, -court.length_m / 2)
+    _LOG.debug("return=%s", player1_xy)
+    return player1_xy
+
+
+def _dassert_point(xy: Tuple[float, float], name: str) -> None:
+    """
+    Check that `xy` is a point `(x, y)` with finite coordinates.
+
+    :param xy: point to check, e.g., `(-2.0, 4.8)`
+    :param name: name of the point in the error message, e.g., "hitter_xy"
+    """
+    _LOG.debug(hprint.to_str("xy name"))
+    hdbg.dassert_eq(len(xy), 2, "%s=%s must be a point (x, y)", name, xy)
+    hdbg.dassert(np.all(np.isfinite(xy)), "%s=%s must be finite", name, xy)
+
+
+def _dassert_landing_points(x: np.ndarray, y: np.ndarray) -> None:
+    """
+    Check that the landing coordinates are finite arrays of the same shape.
+
+    `numpy` does not raise on these inputs, it returns a wrong answer instead:
+    - Arrays of different shapes can broadcast, pairing each `x` with the
+      wrong `y`
+    - A `nan` coordinate gives a `nan` distance, which counts as not reached
+
+    :param x: landing `x` of each sample, any shape
+    :param y: landing `y` of each sample, same shape as `x`
+    """
+    hdbg.dassert_isinstance(x, np.ndarray, "x must be a numpy array")
+    hdbg.dassert_isinstance(y, np.ndarray, "y must be a numpy array")
+    # Log the shapes only once they are known to exist.
+    _LOG.debug(hprint.to_str("x.shape y.shape"))
+    hdbg.dassert_eq(x.shape, y.shape, "x and y must have the same shape")
+    hdbg.dassert_lt(0, x.size, "There must be at least one landing point")
+    hdbg.dassert(np.all(np.isfinite(x)), "Every landing x must be finite")
+    hdbg.dassert(np.all(np.isfinite(y)), "Every landing y must be finite")
+
+
+def compute_flight_time(
+    hitter_xy: Tuple[float, float],
+    x: np.ndarray,
+    y: np.ndarray,
+    ball_speed_mps: float,
+) -> np.ndarray:
+    """
+    Compute the flight time of the return to each landing point.
+
+    The ball goes in a straight line, at a constant speed, from player 2 at
+    `hitter_xy = (x1, y1)` to each landing point `(X, Y)`:
+    ```
+    T = distance((x1, y1), (X, Y)) / ball_speed
+    ```
+    The time uses the actual landing point, not the aim point `(x2, y2)`:
+    the aim point is a latent variable, while the landing point is where the
+    ball goes (GP on #690). The model is 2D: no arc, no bounce, no slowdown.
+
+    :param hitter_xy: where player 2 hits the return, the serve landing point
+        `(x1, y1)` in meters, e.g., `(-2.0, 4.8)`
+    :param x: landing `x` of each sample in meters, e.g., from
+        `sample_landings()`; any shape
+    :param y: landing `y` of each sample in meters, same shape as `x`
+    :param ball_speed_mps: speed of the return in m/s, positive, e.g., 25.0
+    :return: flight time of each sample in seconds, same shape as `x`, e.g.,
+        `[0.2, 0.8]` for landing points 5 m and 20 m away at 25 m/s
+    """
+    # `x` and `y` are logged by `_dassert_landing_points()`, once checked.
+    _LOG.debug(hprint.to_str("hitter_xy ball_speed_mps"))
+    _dassert_point(hitter_xy, "hitter_xy")
+    _dassert_landing_points(x, y)
+    hdbg.dassert(
+        np.isfinite(ball_speed_mps),
+        "ball_speed_mps=%s must be finite",
+        ball_speed_mps,
+    )
+    # A speed of 0 would give infinite times, with only a `numpy` warning.
+    hdbg.dassert_lt(0, ball_speed_mps, "ball_speed_mps must be positive")
+    # Straight-line distance from player 2 to each landing point.
+    x1, y1 = hitter_xy
+    dist_m = np.hypot(x - x1, y - y1)
+    flight_time_s = dist_m / ball_speed_mps
+    _LOG.debug(
+        "return: %d flight times, first=%s",
+        flight_time_s.size,
+        flight_time_s.flat[0],
+    )
+    return flight_time_s
 
 
 # #############################################################################

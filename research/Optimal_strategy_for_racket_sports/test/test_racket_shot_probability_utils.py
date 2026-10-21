@@ -434,6 +434,237 @@ class Test_sample_landings(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_get_player1_xy
+# #############################################################################
+
+
+class Test_get_player1_xy(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils.get_player1_xy()`.
+    """
+
+    def helper(self, court: racket_params.CourtGeometry, expected: str) -> None:
+        """
+        Test helper for `get_player1_xy()`.
+
+        :param court: court geometry to place player 1 on
+        :param expected: expected string representation of the position
+        """
+        # Run test.
+        actual = racket_shot_probability_utils.get_player1_xy(court)
+        # Check outputs.
+        self.assert_equal(str(actual), expected)
+
+    def test1(self) -> None:
+        """
+        Test that player 1 stands at the center of the tennis baseline.
+        """
+        # Prepare inputs.
+        court = racket_params.TENNIS.court
+        # Prepare outputs.
+        expected = "(0.0, -11.885)"
+        # Run test and check outputs.
+        self.helper(court, expected)
+
+    def test2(self) -> None:
+        """
+        Test that player 1 stands at the center of the pickleball baseline.
+        """
+        # Prepare inputs.
+        court = racket_params.PICKLEBALL.court
+        # Prepare outputs.
+        expected = "(0.0, -6.705)"
+        # Run test and check outputs.
+        self.helper(court, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a court with an `inf`, `nan`, or negative length raises a
+        clear error.
+        """
+        # Prepare inputs.
+        # `CourtGeometry` itself rejects `nan` and negative lengths, so
+        # stand-in objects with the same field reach the check in
+        # `get_player1_xy()`; it accepts `inf`.
+        court = racket_params.TENNIS.court
+        bad_inputs = [
+            (
+                dataclasses.replace(court, length_m=float("inf")),
+                "Court length_m=inf must be finite",
+            ),
+            (
+                types.SimpleNamespace(length_m=float("nan")),
+                "Court length_m=nan must be finite",
+            ),
+            (
+                types.SimpleNamespace(length_m=-1.0),
+                "Court length must be positive",
+            ),
+        ]
+        # Run test and check outputs.
+        for bad_court, expected in bad_inputs:
+            with self.subTest(court=bad_court):
+                with self.assertRaises(AssertionError) as cm:
+                    racket_shot_probability_utils.get_player1_xy(bad_court)
+                self.assertIn(expected, str(cm.exception))
+
+
+# #############################################################################
+# Test_compute_flight_time
+# #############################################################################
+
+
+class Test_compute_flight_time(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils.compute_flight_time()`.
+    """
+
+    def helper(
+        self,
+        hitter_xy: Tuple[float, float],
+        x: np.ndarray,
+        y: np.ndarray,
+        ball_speed_mps: float,
+        expected: str,
+    ) -> None:
+        """
+        Test helper for `compute_flight_time()`.
+
+        :param hitter_xy: where player 2 hits the return
+        :param x: landing `x` of each sample
+        :param y: landing `y` of each sample
+        :param ball_speed_mps: speed of the return in m/s
+        :param expected: expected flight times in seconds, rounded to 6
+            decimals, as the string of a (nested) list
+        """
+        # Run test.
+        actual = racket_shot_probability_utils.compute_flight_time(
+            hitter_xy, x, y, ball_speed_mps
+        )
+        # Check outputs.
+        actual = str(np.round(actual, 6).tolist())
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test hand-computed flight times of 5 m and 20 m shots at 25 m/s.
+        """
+        # Prepare inputs.
+        # From (0, 6): (3, 2) is 5 m away (a 3-4-5 triangle), (0, -14) is 20 m
+        # away, so the times are 5 / 25 = 0.2 s and 20 / 25 = 0.8 s.
+        hitter_xy = (0.0, 6.0)
+        x = np.array([3.0, 0.0])
+        y = np.array([2.0, -14.0])
+        ball_speed_mps = 25.0
+        # Prepare outputs.
+        expected = "[0.2, 0.8]"
+        # Run test and check outputs.
+        self.helper(hitter_xy, x, y, ball_speed_mps, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a landing point at player 2 has a flight time of 0.
+        """
+        # Prepare inputs.
+        hitter_xy = (-2.0, 4.8)
+        x = np.array([-2.0])
+        y = np.array([4.8])
+        ball_speed_mps = 25.0
+        # Prepare outputs.
+        expected = "[0.0]"
+        # Run test and check outputs.
+        self.helper(hitter_xy, x, y, ball_speed_mps, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a very fast ball, 1000 m/s over 20 m, flies 0.02 s.
+        """
+        # Prepare inputs.
+        hitter_xy = (0.0, 6.0)
+        x = np.array([0.0])
+        y = np.array([-14.0])
+        ball_speed_mps = 1000.0
+        # Prepare outputs.
+        expected = "[0.02]"
+        # Run test and check outputs.
+        self.helper(hitter_xy, x, y, ball_speed_mps, expected)
+
+    def test4(self) -> None:
+        """
+        Test that a very slow ball, 1 m/s over 20 m, flies 20 s.
+        """
+        # Prepare inputs.
+        hitter_xy = (0.0, 6.0)
+        x = np.array([0.0])
+        y = np.array([-14.0])
+        ball_speed_mps = 1.0
+        # Prepare outputs.
+        expected = "[20.0]"
+        # Run test and check outputs.
+        self.helper(hitter_xy, x, y, ball_speed_mps, expected)
+
+    def test5(self) -> None:
+        """
+        Test that a 2D array of landing points gives times of the same shape.
+        """
+        # Prepare inputs.
+        # One row per target, one column per sample, as a heatmap will pass.
+        hitter_xy = (0.0, 6.0)
+        x = np.array([[3.0, 0.0], [0.0, 3.0]])
+        y = np.array([[2.0, -14.0], [6.0, 6.0]])
+        ball_speed_mps = 25.0
+        # Prepare outputs.
+        expected = "[[0.2, 0.8], [0.0, 0.12]]"
+        # Run test and check outputs.
+        self.helper(hitter_xy, x, y, ball_speed_mps, expected)
+
+    def test6(self) -> None:
+        """
+        Test that a bad point, landing arrays, or ball speed raises a clear
+        error.
+        """
+        # Prepare inputs.
+        nan, inf = float("nan"), float("inf")
+        hitter_xy = (0.0, 6.0)
+        x = np.array([3.0, 0.0])
+        y = np.array([2.0, -14.0])
+        ball_speed_mps = 25.0
+        bad_inputs = [
+            ((nan, 6.0), x, y, ball_speed_mps, "hitter_xy=(nan, 6.0) must be"),
+            ((0.0, 6.0, 1.0), x, y, ball_speed_mps, "must be a point (x, y)"),
+            (hitter_xy, [3.0, 0.0], y, ball_speed_mps, "x must be a numpy"),
+            (hitter_xy, x, y[:1], ball_speed_mps, "must have the same shape"),
+            (hitter_xy, x[:0], y[:0], ball_speed_mps, "at least one landing"),
+            (
+                hitter_xy,
+                np.array([nan, 0.0]),
+                y,
+                ball_speed_mps,
+                "Every landing x must be finite",
+            ),
+            (
+                hitter_xy,
+                x,
+                np.array([2.0, inf]),
+                ball_speed_mps,
+                "Every landing y must be finite",
+            ),
+            (hitter_xy, x, y, 0.0, "ball_speed_mps must be positive"),
+            (hitter_xy, x, y, -25.0, "ball_speed_mps must be positive"),
+            (hitter_xy, x, y, nan, "ball_speed_mps=nan must be finite"),
+            (hitter_xy, x, y, inf, "ball_speed_mps=inf must be finite"),
+        ]
+        # Run test and check outputs.
+        for bad_hitter_xy, bad_x, bad_y, bad_speed, expected in bad_inputs:
+            with self.subTest(expected=expected):
+                with self.assertRaises(AssertionError) as cm:
+                    racket_shot_probability_utils.compute_flight_time(
+                        bad_hitter_xy, bad_x, bad_y, bad_speed
+                    )
+                self.assertIn(expected, str(cm.exception))
+
+
+# #############################################################################
 # Test__round_slider_value
 # #############################################################################
 
