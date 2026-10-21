@@ -10,7 +10,7 @@ import dataclasses
 import logging
 import types
 import unittest.mock as umock
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import ipywidgets
 import matplotlib
@@ -1059,6 +1059,352 @@ class Test_compute_is_reached(hunitest.TestCase):
                         bad_player_xy, bad_x, y, bad_t, bad_t_r, bad_v_p
                     )
                 self.assertIn(expected, str(cm.exception))
+
+
+# #############################################################################
+# Test_compute_winner_probability
+# #############################################################################
+
+
+class Test_compute_winner_probability(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils.compute_winner_probability()`.
+    """
+
+    def helper(
+        self,
+        serve_xy: Tuple[float, float],
+        target_xy: Tuple[float, float],
+        std_xy: Tuple[float, float],
+        ball_speed_mps: float,
+        reaction_time_s: float,
+        move_speed_mps: float,
+        court: racket_params.CourtGeometry,
+        n_samples: int,
+        seed: int,
+    ) -> Dict[str, float]:
+        """
+        Run `compute_winner_probability()` with a generator seeded by `seed`.
+
+        :param serve_xy: where player 2 hits from, `(x1, y1)`
+        :param target_xy: aim point `(x2, y2)`
+        :param std_xy: standard deviations `(std_x2, std_y2)`
+        :param ball_speed_mps: speed of the return in m/s
+        :param reaction_time_s: reaction time `t_r` in seconds
+        :param move_speed_mps: running speed `v_p` in m/s
+        :param court: court geometry
+        :param n_samples: number of Monte Carlo samples
+        :param seed: seed of `np.random.default_rng()`
+        :return: the result of `compute_winner_probability()`
+        """
+        rng = np.random.default_rng(seed)
+        actual: Dict[str, float] = (
+            racket_shot_probability_utils.compute_winner_probability(
+                serve_xy,
+                target_xy,
+                std_xy,
+                ball_speed_mps,
+                reaction_time_s,
+                move_speed_mps,
+                court,
+                n_samples,
+                rng,
+            )
+        )
+        return actual
+
+    def helper2(
+        self,
+        serve_xy: Tuple[float, float],
+        target_xy: Tuple[float, float],
+        std_xy: Tuple[float, float],
+        ball_speed_mps: float,
+        reaction_time_s: float,
+        move_speed_mps: float,
+        court: racket_params.CourtGeometry,
+        n_samples: int,
+        seed: int,
+    ) -> None:
+        """
+        Check that the result is the joint event "in AND not reached" on the
+        same samples, rebuilt here step by step from the building blocks.
+
+        Each sample gets its own flight time, the in region is player 1's half,
+        and player 1 stands at the center of the baseline.
+
+        The parameters are the same as in `helper()`.
+        """
+        # Prepare outputs.
+        # Same seed, so the same landing points as inside the function.
+        rng = np.random.default_rng(seed)
+        x, y = racket_shot_probability_utils.sample_landings(
+            target_xy, std_xy, n_samples, rng
+        )
+        region = racket_shot_probability_utils.get_striker_half_region(court)
+        is_in = region.contains(x, y)
+        flight_time_s = racket_shot_probability_utils.compute_flight_time(
+            serve_xy, x, y, ball_speed_mps
+        )
+        player1_xy = racket_shot_probability_utils.get_player1_xy(court)
+        is_reached = racket_shot_probability_utils.compute_is_reached(
+            player1_xy, x, y, flight_time_s, reaction_time_s, move_speed_mps
+        )
+        p_winner = float((is_in & ~is_reached).mean())
+        expected = {
+            "p_winner": p_winner,
+            "p_winner_se": float(np.sqrt(p_winner * (1 - p_winner) / n_samples)),
+            "p_in": float(is_in.mean()),
+            "p_reached": float(is_reached.mean()),
+        }
+        # Run test.
+        actual = self.helper(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected))
+        # The reach must matter in these cases, or the check above could not
+        # tell the joint event from "in" alone or from a product.
+        self.assertLess(actual["p_winner"], actual["p_in"])
+
+    def test1(self) -> None:
+        """
+        Test that a tennis return with a large reach is the joint event of the
+        same samples.
+        """
+        # Prepare inputs.
+        # A slow ball (8 m/s) and a fast player 1 (3 m/s) give a reach of a
+        # few meters, so many samples are reached, in and out.
+        serve_xy = (-2.1, 3.2)
+        target_xy = (0.0, -10.0)
+        std_xy = (2.0, 2.0)
+        ball_speed_mps = 8.0
+        reaction_time_s = 0.2
+        move_speed_mps = 3.0
+        court = racket_params.TENNIS.court
+        n_samples = 2000
+        seed = 1
+        # Run test and check outputs.
+        self.helper2(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+
+    def test2(self) -> None:
+        """
+        Test that a pickleball return with a large reach is the joint event of
+        the same samples.
+        """
+        # Prepare inputs.
+        serve_xy = (-1.5, 4.4)
+        target_xy = (0.0, -5.5)
+        std_xy = (1.0, 1.0)
+        ball_speed_mps = 6.0
+        reaction_time_s = 0.2
+        move_speed_mps = 3.0
+        court = racket_params.PICKLEBALL.court
+        n_samples = 2000
+        seed = 1
+        # Run test and check outputs.
+        self.helper2(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+
+    def test3(self) -> None:
+        """
+        Test that a player 1 who does not move (`v_p = 0`) gives a `P(winner)`
+        equal to the in fraction of the same samples, exactly.
+        """
+        # Prepare inputs.
+        serve_xy = (-2.1, 3.2)
+        target_xy = (0.0, -11.0)
+        std_xy = (1.0, 1.0)
+        ball_speed_mps = 25.0
+        reaction_time_s = 0.2
+        move_speed_mps = 0.0
+        court = racket_params.TENNIS.court
+        n_samples = 2000
+        seed = 1
+        # Prepare outputs.
+        rng = np.random.default_rng(seed)
+        x, y = racket_shot_probability_utils.sample_landings(
+            target_xy, std_xy, n_samples, rng
+        )
+        region = racket_shot_probability_utils.get_striker_half_region(court)
+        p_in = float(region.contains(x, y).mean())
+        expected = {"p_winner": p_in, "p_in": p_in, "p_reached": 0.0}
+        # Run test.
+        result = self.helper(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+        # Check outputs.
+        actual = {k: result[k] for k in ("p_winner", "p_in", "p_reached")}
+        self.assert_equal(str(actual), str(expected))
+
+    def test4(self) -> None:
+        """
+        Test that a very slow ball (0.1 m/s), which player 1 reaches anywhere
+        on their half, gives `P(winner) = 0` with a standard error of 0.
+        """
+        # Prepare inputs.
+        # Every in sample is at least 3.2 m from player 2, so it flies over
+        # 32 s and player 1 covers over 47 m, more than their whole half.
+        serve_xy = (-2.1, 3.2)
+        target_xy = (0.0, -6.0)
+        std_xy = (2.0, 3.0)
+        ball_speed_mps = 0.1
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        court = racket_params.TENNIS.court
+        n_samples = 2000
+        seed = 1
+        # Prepare outputs.
+        expected = {"p_winner": 0.0, "p_winner_se": 0.0}
+        # Run test.
+        result = self.helper(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+        # Check outputs.
+        actual = {k: result[k] for k in ("p_winner", "p_winner_se")}
+        self.assert_equal(str(actual), str(expected))
+
+    def test5(self) -> None:
+        """
+        Test that a target far from player 1 gives a `P(winner)` close to
+        `P(in)`.
+        """
+        # Prepare inputs.
+        # Near the net, about 10 m from player 1, who covers under 1 m with
+        # the tennis defaults: no sample is reached.
+        serve_xy = (-2.1, 3.2)
+        target_xy = (3.0, -2.0)
+        std_xy = (0.5, 1.0)
+        ball_speed_mps = 25.0
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        court = racket_params.TENNIS.court
+        n_samples = 2000
+        seed = 1
+        # Run test.
+        result = self.helper(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+        # Check outputs.
+        self.assertAlmostEqual(result["p_winner"], result["p_in"], delta=0.001)
+
+    def test6(self) -> None:
+        """
+        Test that the standard error is `sqrt(p (1 - p) / n)` of the returned
+        `P(winner)`.
+        """
+        # Prepare inputs.
+        serve_xy = (-2.1, 3.2)
+        target_xy = (0.0, -10.0)
+        std_xy = (2.0, 2.0)
+        ball_speed_mps = 8.0
+        reaction_time_s = 0.2
+        move_speed_mps = 3.0
+        court = racket_params.TENNIS.court
+        n_samples = 2000
+        seed = 1
+        # Run test.
+        result = self.helper(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            seed,
+        )
+        # Check outputs.
+        # Here `P(winner)` is 0.2155, far from 0 and 1, so a wrong formula
+        # shows up.
+        p = result["p_winner"]
+        expected = float(np.sqrt(p * (1 - p) / n_samples))
+        self.assertEqual(result["p_winner_se"], expected)
+
+    def test7(self) -> None:
+        """
+        Test that the same seed gives identical results, and another seed
+        different ones.
+        """
+        # Prepare inputs.
+        serve_xy = (-2.1, 3.2)
+        target_xy = (0.0, -10.0)
+        std_xy = (2.0, 2.0)
+        ball_speed_mps = 8.0
+        reaction_time_s = 0.2
+        move_speed_mps = 3.0
+        court = racket_params.TENNIS.court
+        n_samples = 2000
+        args = (
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+        )
+        seed = 7
+        other_seed = 8
+        # Run test.
+        result1 = self.helper(*args, seed)
+        result2 = self.helper(*args, seed)
+        result3 = self.helper(*args, other_seed)
+        # Check outputs.
+        self.assert_equal(str(result1), str(result2))
+        self.assertNotEqual(str(result1), str(result3))
 
 
 # #############################################################################

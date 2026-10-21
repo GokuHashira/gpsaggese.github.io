@@ -8,7 +8,8 @@ probability that the return is in has a closed form.
 
 For Milestone 2 (#624), player 1 then stands at the center of their baseline
 and tries to reach each landing point before the ball lands, after a reaction
-time.
+time. The return is a winner if it lands in and player 1 does not reach it,
+estimated by Monte Carlo as one event.
 
 Import as:
 
@@ -17,7 +18,7 @@ import research.Optimal_strategy_for_racket_sports.notebooks.racket_shot_probabi
 
 import dataclasses
 import logging
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import ipywidgets
 import matplotlib.patches as mpatches
@@ -395,6 +396,111 @@ def compute_is_reached(
         is_reached.size,
     )
     return is_reached
+
+
+# #############################################################################
+# Winner probability
+# #############################################################################
+
+
+def compute_winner_probability(
+    serve_xy: Tuple[float, float],
+    target_xy: Tuple[float, float],
+    std_xy: Tuple[float, float],
+    ball_speed_mps: float,
+    reaction_time_s: float,
+    move_speed_mps: float,
+    court: racket_params.CourtGeometry,
+    n_samples: int,
+    rng: np.random.Generator,
+) -> Dict[str, float]:
+    """
+    Estimate the probability that player 2's return is a winner.
+
+    Player 2 hits from the serve landing point `serve_xy = (x1, y1)` and aims
+    at `target_xy = (x2, y2)`; player 1 waits at `get_player1_xy()`. Each of
+    the `n_samples` Gaussian landing points of `sample_landings()` is checked
+    for 2 things, on the same sample:
+    - In: it lands on player 1's half, `get_striker_half_region()`
+    - Reached: player 1 gets there in time, `compute_is_reached()`, with the
+      sample's own flight time from `compute_flight_time()`
+    A sample is a winner if it is in and not reached, as one event (GP on
+    #690): `P(winner)` is the fraction of winners, never a product of the
+    probabilities of 2 events like `P(in) * P(not reached)`. `P(in)` and
+    `P(reached)` come from the same samples, for display only.
+
+    The serve is assumed legal: the caller (the widget) checks the serve rules
+    with `_check_serve()` and computes no return for a fault. Only the side of
+    the court of `serve_xy` is checked here.
+
+    :param serve_xy: where the serve lands and player 2 hits from, `(x1, y1)`
+        in meters, on player 2's half (`y1 > 0`), e.g., `(-2.1, 3.2)`
+    :param target_xy: aim point of the return `(x2, y2)` in meters, e.g.,
+        `(2.1, -10.4)`
+    :param std_xy: standard deviations `(std_x2, std_y2)` of the return in
+        meters, e.g., `(0.5, 1.0)`
+    :param ball_speed_mps: speed of the return in m/s, e.g., 25.0 for tennis
+    :param reaction_time_s: reaction time `t_r` of player 1 in seconds, e.g.,
+        0.2
+    :param move_speed_mps: running speed `v_p` of player 1 in m/s, e.g., 1.5
+    :param court: court geometry, e.g., `racket_params.TENNIS.court`
+    :param n_samples: number of Monte Carlo landing points, e.g., 10000
+    :param rng: random generator, e.g., `np.random.default_rng(1)`; the same
+        seed gives the same samples, so the same result
+    :return: probabilities estimated from the same samples:
+        - "p_winner": fraction of samples that land in and are not reached
+        - "p_winner_se": standard error of "p_winner",
+          `sqrt(p_winner * (1 - p_winner) / n_samples)`; it is 0 when every
+          sample agrees, e.g., when player 1 reaches every sample
+        - "p_in": fraction of samples that land in
+        - "p_reached": fraction of samples that player 1 reaches, in or out
+        e.g., `{"p_winner": 0.93, "p_winner_se": 0.0026, "p_in": 0.93,
+        "p_reached": 0.0}`
+    """
+    _LOG.debug(
+        hprint.to_str(
+            "serve_xy target_xy std_xy ball_speed_mps reaction_time_s "
+            "move_speed_mps n_samples"
+        )
+    )
+    # Player 2 hits from their own half; the other serve rules are checked by
+    # the caller.
+    _dassert_point(serve_xy, "serve_xy")
+    hdbg.dassert_lt(
+        0, serve_xy[1], "The serve must land on player 2's half (y1 > 0)"
+    )
+    hdbg.dassert_isinstance(
+        rng, np.random.Generator, "rng must be a numpy random Generator"
+    )
+    # Draw the landing points first, so the same seed gives the same points
+    # as `sample_landings()` alone; it also checks the target, the stds, and
+    # `n_samples`.
+    x, y = sample_landings(target_xy, std_xy, n_samples, rng)
+    # Event 1, per sample: the return lands in.
+    region = get_striker_half_region(court)
+    is_in = region.contains(x, y)
+    # Event 2, per sample: player 1 reaches the landing point before the ball
+    # lands. The reach rule lives only in `compute_is_reached()`.
+    player1_xy = get_player1_xy(court)
+    flight_time_s = compute_flight_time(serve_xy, x, y, ball_speed_mps)
+    is_reached = compute_is_reached(
+        player1_xy, x, y, flight_time_s, reaction_time_s, move_speed_mps
+    )
+    # A winner is one event on each sample: in AND not reached.
+    is_winner = is_in & ~is_reached
+    p_winner = float(is_winner.mean())
+    # Standard error of a fraction of `n_samples` independent samples. Unlike
+    # `P_in` in Cell 1.1 there is no closed form to plug in, so it uses the
+    # estimate itself.
+    p_winner_se = float(np.sqrt(p_winner * (1 - p_winner) / n_samples))
+    result = {
+        "p_winner": p_winner,
+        "p_winner_se": p_winner_se,
+        "p_in": float(is_in.mean()),
+        "p_reached": float(is_reached.mean()),
+    }
+    _LOG.debug("return=%s", result)
+    return result
 
 
 # #############################################################################
