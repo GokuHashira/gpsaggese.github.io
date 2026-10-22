@@ -24,6 +24,7 @@ import ipywidgets
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scipy.stats
 from IPython.display import clear_output, display
 from matplotlib.axes import Axes
@@ -33,6 +34,7 @@ import helpers.hnotebook as hnotebo
 import helpers.hprint as hprint
 import helpers.htutorial as htutori
 from research.Optimal_strategy_for_racket_sports import racket_params
+from research.Optimal_strategy_for_racket_sports import racket_scoring
 from research.Optimal_strategy_for_racket_sports import racket_strategy_utils
 
 _LOG = logging.getLogger(__name__)
@@ -498,6 +500,207 @@ def compute_winner_probability(
         "p_winner_se": p_winner_se,
         "p_in": float(is_in.mean()),
         "p_reached": float(is_reached.mean()),
+    }
+    _LOG.debug("return=%s", result)
+    return result
+
+
+# #############################################################################
+# Winner probability heatmap
+# #############################################################################
+
+
+# Default grid `(n_x, n_y)` per sport and samples per target, chosen so one
+# full map takes under 2 s (decision D24):
+# - Each target costs about 8 to 10 ms almost whatever `n_samples`, mostly the
+#   debug strings of the building blocks, so a map can hold about 150 targets:
+#   cells of about 0.8 m (tennis, 150 targets) and 0.68 m (pickleball, 90)
+# - More than 1,000 samples, since `racket_params.CourtRegion.contains()`
+#   formats arrays of up to 1,000 values in a debug log even when logging is
+#   off; 5,000 costs about the same as 2,000 and halves the noise of 1,000
+HEATMAP_GRID_SIZE = {"Tennis": (10, 15), "Pickleball": (9, 10)}
+HEATMAP_N_SAMPLES = 5000
+
+
+def compute_winner_heatmap(
+    serve_xy: Tuple[float, float],
+    std_xy: Tuple[float, float],
+    ball_speed_mps: float,
+    reaction_time_s: float,
+    move_speed_mps: float,
+    court: racket_params.CourtGeometry,
+    n_x: int,
+    n_y: int,
+    n_samples: int,
+    seed: int,
+) -> pd.DataFrame:
+    """
+    Compute the probability of a winner for every target of a grid over player
+    1's half.
+
+    The targets are the cell centers of `racket_scoring.make_target_grid()`
+    over `get_striker_half_region()`. Each target calls
+    `compute_winner_probability()` with a new `np.random.default_rng(seed)`,
+    the same `seed` for all: common random numbers, so every target uses the
+    same standard normal draws, shifted to its own aim point. Two targets then
+    differ only because of where they aim, not because of sampling noise, so
+    the map is smooth and the best target is a fair comparison.
+
+    :param serve_xy: where the serve lands and player 2 hits from, `(x1, y1)`
+        in meters, on player 2's half, e.g., `(-2.1, 3.2)`
+    :param std_xy: standard deviations `(std_x2, std_y2)` of the return in
+        meters, e.g., `(0.5, 1.0)`
+    :param ball_speed_mps: speed of the return in m/s, e.g., 25.0 for tennis
+    :param reaction_time_s: reaction time `t_r` of player 1 in seconds, e.g.,
+        0.2
+    :param move_speed_mps: running speed `v_p` of player 1 in m/s, e.g., 1.5
+    :param court: court geometry, e.g., `racket_params.TENNIS.court`
+    :param n_x: number of grid columns, across the court, e.g., 10
+    :param n_y: number of grid rows, along the court, e.g., 15
+    :param n_samples: Monte Carlo samples per target, e.g., 5000; more than
+        1,000 keeps each target fast (see `HEATMAP_N_SAMPLES`)
+    :param seed: seed of the generator, the same for every target, e.g., 1
+    :return: one row per target, in the grid order of `make_target_grid()`
+        (`y` outer from the baseline, `x` inner), with the columns `cell_id`,
+        `x_m`, `y_m` (the target), `x_min`, `x_max`, `y_min`, `y_max` (the
+        cell), and `p_winner`, `p_winner_se`, `p_in`, `p_reached`
+    """
+    _LOG.debug(hprint.to_str("serve_xy std_xy n_x n_y n_samples seed"))
+    # `make_target_grid()` checks only that the sizes are positive, and
+    # `default_rng()` also accepts arrays and `None` as a seed.
+    hdbg.dassert_isinstance(n_x, (int, np.integer), "n_x must be an integer")
+    hdbg.dassert_isinstance(n_y, (int, np.integer), "n_y must be an integer")
+    hdbg.dassert_isinstance(seed, (int, np.integer), "seed must be an integer")
+    hdbg.dassert_lte(0, seed, "seed must be non-negative")
+    # One target per cell center of a uniform grid over player 1's half.
+    region = get_striker_half_region(court)
+    grid = racket_scoring.make_target_grid(region, n_x, n_y)
+    # Common random numbers: a new generator with the same seed per target.
+    rows = []
+    for target_xy in zip(grid["x_m"], grid["y_m"]):
+        rng = np.random.default_rng(seed)
+        result = compute_winner_probability(
+            serve_xy,
+            target_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            court,
+            n_samples,
+            rng,
+        )
+        rows.append(result)
+    # Same row order as `grid`, so the columns line up target by target.
+    heatmap = pd.concat([grid, pd.DataFrame(rows)], axis=1)
+    _LOG.debug("return: %d targets", len(heatmap))
+    return heatmap
+
+
+# A target is in the best region if it is within this many standard errors
+# of the highest `P(winner)` (decision D28).
+_BEST_REGION_N_SE = 2.0
+
+
+def find_best_region(heatmap: pd.DataFrame) -> np.ndarray:
+    """
+    Find the targets whose probability of a winner is within 2 standard errors
+    of the highest one: the best region.
+
+    Many targets can tie at the top (e.g., every sample a winner, so
+    `P(winner) = 1.0`), so the best is a region rather than one cell. A target
+    is in it if `p_max - p <= 2 * sqrt(se_max^2 + se^2)`, the standard error
+    of the difference of 2 independent estimates, as in `find_best_target()`.
+    With both standard errors 0 only an equal value is in.
+
+    :param heatmap: targets with `x_m`, `y_m`, `p_winner`, `p_winner_se`,
+        e.g., from `compute_winner_heatmap()`, at least 1 row
+    :return: boolean array, one value per row of `heatmap` in its order, True
+        for the targets of the best region, e.g., `[False, True, True]` for
+        `P(winner)` of `[0.9, 0.95, 0.948]` with standard errors of about 0.002
+    """
+    hdbg.dassert_isinstance(
+        heatmap, pd.DataFrame, "heatmap must be a pandas DataFrame"
+    )
+    # Log the shape only once it is known to exist.
+    _LOG.debug(hprint.to_str("heatmap.shape"))
+    for column in ("x_m", "y_m", "p_winner", "p_winner_se"):
+        hdbg.dassert_in(column, heatmap.columns, "Missing heatmap column")
+    hdbg.dassert_lte(1, len(heatmap), "There must be at least 1 target")
+    p_winner = heatmap["p_winner"].to_numpy(dtype=float)
+    p_winner_se = heatmap["p_winner_se"].to_numpy(dtype=float)
+    # The highest `P(winner)`; `argmax()` keeps the first of a tie.
+    i_max = int(np.argmax(p_winner))
+    # Gap to the highest, against the standard error of that difference.
+    gap = p_winner[i_max] - p_winner
+    gap_se = np.hypot(p_winner_se[i_max], p_winner_se)
+    in_region: np.ndarray = gap <= _BEST_REGION_N_SE * gap_se
+    _LOG.debug("return: %d of %d targets", in_region.sum(), in_region.size)
+    return in_region
+
+
+def find_best_target(heatmap: pd.DataFrame) -> Dict[str, float]:
+    """
+    Find the target to mark as the best: the middle of the best region, and
+    how far the second highest probability is from the highest one.
+
+    - The best region is `find_best_region()`; the marked target is its cell
+      closest to the region's centroid, a real target with its own
+      `P(winner)`, since the centroid itself can fall outside a region that is
+      not convex; a tie goes to the first in grid order
+    - The gap is `(p_max - p_second) / sqrt(se_max^2 + se_second^2)` between
+      the highest and the second highest `P(winner)`, the usual formula for 2
+      independent estimates; with common random numbers the 2 estimates move
+      together, so the real standard error of the gap is smaller, and this
+      number understates how clearly the highest wins
+    - If both standard errors are 0 (both probabilities 0 or 1), the gap is 0
+      for equal probabilities, and `inf` otherwise
+
+    :param heatmap: targets with `x_m`, `y_m`, `p_winner`, `p_winner_se`,
+        e.g., from `compute_winner_heatmap()`, at least 2 rows
+    :return:
+        - `x_m`, `y_m`, `p_winner`, `p_winner_se`: the marked target
+        - `n_region_cells`: the number of targets in the best region
+        - `max_p_winner`, `max_p_winner_se`: the highest `P(winner)`
+        - `second_p_winner`, `second_p_winner_se`: the second highest
+        - `gap_in_se`: the gap between the 2 highest, in standard errors
+        e.g., `{"x_m": 0.0, "y_m": -5.5, "p_winner": 1.0, "p_winner_se": 0.0,
+        "n_region_cells": 35, ..., "gap_in_se": 0.0}`
+    """
+    # It also checks the type and the columns of `heatmap`.
+    in_region = find_best_region(heatmap)
+    hdbg.dassert_lte(
+        2, len(heatmap), "There must be at least 2 targets to compare"
+    )
+    # The cell of the best region closest to the region's centroid.
+    x = heatmap["x_m"].to_numpy(dtype=float)
+    y = heatmap["y_m"].to_numpy(dtype=float)
+    x_center = x[in_region].mean()
+    y_center = y[in_region].mean()
+    dist_m = np.where(in_region, np.hypot(x - x_center, y - y_center), np.inf)
+    marked = heatmap.iloc[int(np.argmin(dist_m))]
+    # Highest `P(winner)` first; a stable sort keeps the grid order of ties.
+    ranked = heatmap.sort_values("p_winner", ascending=False, kind="stable")
+    best = ranked.iloc[0]
+    second = ranked.iloc[1]
+    # Gap in standard errors of the difference of 2 independent estimates.
+    gap = float(best["p_winner"] - second["p_winner"])
+    gap_se = float(np.hypot(best["p_winner_se"], second["p_winner_se"]))
+    if gap_se > 0:
+        gap_in_se = gap / gap_se
+    else:
+        gap_in_se = 0.0 if gap == 0 else float("inf")
+    result = {
+        "x_m": float(marked["x_m"]),
+        "y_m": float(marked["y_m"]),
+        "p_winner": float(marked["p_winner"]),
+        "p_winner_se": float(marked["p_winner_se"]),
+        "n_region_cells": int(in_region.sum()),
+        "max_p_winner": float(best["p_winner"]),
+        "max_p_winner_se": float(best["p_winner_se"]),
+        "second_p_winner": float(second["p_winner"]),
+        "second_p_winner_se": float(second["p_winner_se"]),
+        "gap_in_se": gap_in_se,
     }
     _LOG.debug("return=%s", result)
     return result

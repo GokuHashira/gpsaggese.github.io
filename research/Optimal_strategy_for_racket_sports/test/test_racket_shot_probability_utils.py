@@ -10,7 +10,7 @@ import dataclasses
 import logging
 import types
 import unittest.mock as umock
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import ipywidgets
 import matplotlib
@@ -18,10 +18,12 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import matplotlib.text as mtext
 import numpy as np
+import pandas as pd
 import pytest
 
 import helpers.hunit_test as hunitest
 from research.Optimal_strategy_for_racket_sports import racket_params
+from research.Optimal_strategy_for_racket_sports import racket_scoring
 from research.Optimal_strategy_for_racket_sports.notebooks import (
     racket_shot_probability_utils,
 )
@@ -1612,6 +1614,499 @@ class Test_compute_winner_probability(hunitest.TestCase):
                     racket_shot_probability_utils.compute_winner_probability(
                         *kwargs.values()
                     )
+                self.assertIn(expected, str(cm.exception))
+
+
+# #############################################################################
+# Test_compute_winner_heatmap
+# #############################################################################
+
+
+class Test_compute_winner_heatmap(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils.compute_winner_heatmap()`.
+    """
+
+    def helper(
+        self,
+        ball_speed_mps: float,
+        move_speed_mps: float,
+        n_x: int,
+        n_y: int,
+        n_samples: int,
+        seed: int,
+    ) -> pd.DataFrame:
+        """
+        Run `compute_winner_heatmap()` on the tennis court, with the Cell 1.1
+        serve `(-2.1, 3.2)`, stds `(1.0, 1.0)`, and `t_r = 0.2 s`.
+
+        :param ball_speed_mps: speed of the return in m/s
+        :param move_speed_mps: running speed `v_p` in m/s
+        :param n_x: number of grid columns
+        :param n_y: number of grid rows
+        :param n_samples: Monte Carlo samples per target
+        :param seed: seed shared by every target
+        :return: the heatmap
+        """
+        serve_xy = (-2.1, 3.2)
+        std_xy = (1.0, 1.0)
+        reaction_time_s = 0.2
+        court = racket_params.TENNIS.court
+        heatmap: pd.DataFrame = (
+            racket_shot_probability_utils.compute_winner_heatmap(
+                serve_xy,
+                std_xy,
+                ball_speed_mps,
+                reaction_time_s,
+                move_speed_mps,
+                court,
+                n_x,
+                n_y,
+                n_samples,
+                seed,
+            )
+        )
+        return heatmap
+
+    def test1(self) -> None:
+        """
+        Test that each cell equals `compute_winner_probability()` called
+        directly for its target with the same seed, exactly.
+        """
+        # Prepare inputs.
+        # A slow ball and a fast player 1, so the cells differ.
+        ball_speed_mps = 8.0
+        move_speed_mps = 3.0
+        n_x = 3
+        n_y = 4
+        n_samples = 1500
+        seed = 5
+        # Prepare outputs.
+        # The same serve, stds, `t_r`, and court as in `helper()`.
+        serve_xy = (-2.1, 3.2)
+        std_xy = (1.0, 1.0)
+        reaction_time_s = 0.2
+        court = racket_params.TENNIS.court
+        region = racket_shot_probability_utils.get_striker_half_region(court)
+        grid = racket_scoring.make_target_grid(region, n_x, n_y)
+        expected = []
+        for target_xy in zip(grid["x_m"], grid["y_m"]):
+            rng = np.random.default_rng(seed)
+            expected.append(
+                racket_shot_probability_utils.compute_winner_probability(
+                    serve_xy,
+                    target_xy,
+                    std_xy,
+                    ball_speed_mps,
+                    reaction_time_s,
+                    move_speed_mps,
+                    court,
+                    n_samples,
+                    rng,
+                )
+            )
+        # Run test.
+        heatmap = self.helper(
+            ball_speed_mps, move_speed_mps, n_x, n_y, n_samples, seed
+        )
+        # Check outputs.
+        columns = ["p_winner", "p_winner_se", "p_in", "p_reached"]
+        actual = heatmap[columns].to_dict("records")
+        self.assert_equal(str(actual), str(expected))
+
+    def test2(self) -> None:
+        """
+        Test that the targets are the cell centers of a grid over player 1's
+        half, `y` outer from the baseline, `x` inner.
+        """
+        # Prepare inputs.
+        # 2 columns and 3 rows, so swapping them changes the result.
+        ball_speed_mps = 25.0
+        move_speed_mps = 1.5
+        n_x = 2
+        n_y = 3
+        n_samples = 1500
+        seed = 1
+        # Prepare outputs.
+        # x: -4.115 to 4.115 in 2 cells; y: -11.885 to 0 in 3 cells.
+        expected = (
+            "[(-2.0575, -9.904167), (2.0575, -9.904167), (-2.0575, -5.9425), "
+            "(2.0575, -5.9425), (-2.0575, -1.980833), (2.0575, -1.980833)]"
+        )
+        # Run test.
+        heatmap = self.helper(
+            ball_speed_mps, move_speed_mps, n_x, n_y, n_samples, seed
+        )
+        # Check outputs.
+        actual = str(
+            [
+                (round(x, 6), round(y, 6))
+                for x, y in zip(heatmap["x_m"], heatmap["y_m"])
+            ]
+        )
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test the columns of the heatmap.
+        """
+        # Prepare inputs.
+        ball_speed_mps = 25.0
+        move_speed_mps = 1.5
+        n_x = 2
+        n_y = 2
+        n_samples = 1500
+        seed = 1
+        # Prepare outputs.
+        expected = (
+            "['cell_id', 'x_m', 'y_m', 'x_min', 'x_max', 'y_min', 'y_max', "
+            "'p_winner', 'p_winner_se', 'p_in', 'p_reached']"
+        )
+        # Run test.
+        heatmap = self.helper(
+            ball_speed_mps, move_speed_mps, n_x, n_y, n_samples, seed
+        )
+        # Check outputs.
+        self.assert_equal(str(list(heatmap.columns)), expected)
+
+    def test4(self) -> None:
+        """
+        Test that `v_p = 0` gives a map equal to the in fraction map.
+        """
+        # Prepare inputs.
+        ball_speed_mps = 25.0
+        move_speed_mps = 0.0
+        n_x = 4
+        n_y = 5
+        n_samples = 1500
+        seed = 1
+        # Run test.
+        heatmap = self.helper(
+            ball_speed_mps, move_speed_mps, n_x, n_y, n_samples, seed
+        )
+        # Check outputs.
+        actual = str(heatmap["p_winner"].tolist())
+        expected = str(heatmap["p_in"].tolist())
+        self.assert_equal(actual, expected)
+
+    def test5(self) -> None:
+        """
+        Test that a very slow ball (0.01 m/s) gives an all zero map.
+        """
+        # Prepare inputs.
+        ball_speed_mps = 0.01
+        move_speed_mps = 1.5
+        n_x = 4
+        n_y = 5
+        n_samples = 1500
+        seed = 1
+        # Prepare outputs.
+        expected = str([0.0] * (n_x * n_y))
+        # Run test.
+        heatmap = self.helper(
+            ball_speed_mps, move_speed_mps, n_x, n_y, n_samples, seed
+        )
+        # Check outputs.
+        self.assert_equal(str(heatmap["p_winner"].tolist()), expected)
+
+    def test6(self) -> None:
+        """
+        Test that a faster player 1 never increases any cell, and lowers some.
+        """
+        # Prepare inputs.
+        ball_speed_mps = 12.0
+        slow_move_speed_mps = 1.5
+        fast_move_speed_mps = 6.0
+        n_x = 4
+        n_y = 5
+        n_samples = 1500
+        seed = 1
+        # Run test.
+        slow = self.helper(
+            ball_speed_mps, slow_move_speed_mps, n_x, n_y, n_samples, seed
+        )
+        fast = self.helper(
+            ball_speed_mps, fast_move_speed_mps, n_x, n_y, n_samples, seed
+        )
+        # Check outputs.
+        diff = fast["p_winner"] - slow["p_winner"]
+        actual = {
+            "max_increase": float(diff.max()),
+            "lowered": bool(diff.min() < 0),
+        }
+        expected = {"max_increase": 0.0, "lowered": True}
+        self.assert_equal(str(actual), str(expected))
+
+    def test7(self) -> None:
+        """
+        Test that bad grid sizes or seeds raise a clear error.
+        """
+        # Prepare inputs.
+        bad_inputs: List[Tuple[Dict[str, Any], str]] = [
+            ({"n_x": 2.5}, "n_x must be an integer"),
+            ({"n_y": 0}, "n_y must be positive"),
+            ({"seed": -1}, "seed must be non-negative"),
+            ({"seed": 1.5}, "seed must be an integer"),
+            ({"n_samples": 0}, "n_samples must be positive"),
+        ]
+        # The arguments in the order of `helper()`, passed positionally.
+        good: Dict[str, Any] = {
+            "ball_speed_mps": 25.0,
+            "move_speed_mps": 1.5,
+            "n_x": 2,
+            "n_y": 2,
+            "n_samples": 1500,
+            "seed": 1,
+        }
+        # Run test and check outputs.
+        for bad, expected in bad_inputs:
+            with self.subTest(bad=bad):
+                kwargs = {**good, **bad}
+                with self.assertRaises(AssertionError) as cm:
+                    self.helper(*kwargs.values())
+                self.assertIn(expected, str(cm.exception))
+
+
+# #############################################################################
+# Test_find_best_region
+# #############################################################################
+
+
+class Test_find_best_region(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils.find_best_region()`.
+    """
+
+    def helper(
+        self, p_winner: List[float], p_winner_se: List[float], expected: str
+    ) -> None:
+        """
+        Test helper for `find_best_region()` on targets at `(i, -i)`.
+
+        :param p_winner: `P(winner)` of each target, in grid order
+        :param p_winner_se: its standard error
+        :param expected: expected flags, as the string of a list
+        """
+        # Prepare inputs.
+        n = len(p_winner)
+        heatmap = pd.DataFrame(
+            {
+                "x_m": [float(i) for i in range(n)],
+                "y_m": [float(-i) for i in range(n)],
+                "p_winner": p_winner,
+                "p_winner_se": p_winner_se,
+            }
+        )
+        # Run test.
+        actual = racket_shot_probability_utils.find_best_region(heatmap)
+        # Check outputs.
+        self.assert_equal(str(actual.tolist()), expected)
+
+    def test1(self) -> None:
+        """
+        Test that a value within 2 standard errors of the highest is in, and
+        values far below are out.
+        """
+        # Prepare inputs.
+        # 0.948 is 0.002 below 0.95, under 2 * sqrt(0.002^2 + 0.002^2) =
+        # 0.0057; 0.9 is 0.05 below, over 2 * sqrt(0.002^2 + 0.003^2) = 0.0072.
+        p_winner = [0.9, 0.95, 0.948, 0.9]
+        p_winner_se = [0.003, 0.002, 0.002, 0.003]
+        # Prepare outputs.
+        expected = "[False, True, True, False]"
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test2(self) -> None:
+        """
+        Test that the threshold is 2 standard errors, not 1.
+        """
+        # Prepare inputs.
+        # 0.942 is 0.008 below 0.95: over 1 * sqrt(0.004^2 + 0.003^2) =
+        # 0.005, under 2 * 0.005 = 0.01.
+        p_winner = [0.95, 0.942]
+        p_winner_se = [0.004, 0.003]
+        # Prepare outputs.
+        expected = "[True, True]"
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test3(self) -> None:
+        """
+        Test that with standard errors of 0 only the values equal to the
+        highest are in.
+        """
+        # Prepare inputs.
+        # 0.99 is 0.01 below 1.0, over 2 * sqrt(0^2 + 0.0014^2) = 0.0028.
+        p_winner = [1.0, 1.0, 0.99, 1.0]
+        p_winner_se = [0.0, 0.0, 0.0014, 0.0]
+        # Prepare outputs.
+        expected = "[True, True, False, True]"
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test4(self) -> None:
+        """
+        Test that a single target is its own best region.
+        """
+        # Prepare inputs.
+        p_winner = [0.3]
+        p_winner_se = [0.01]
+        # Prepare outputs.
+        expected = "[True]"
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test5(self) -> None:
+        """
+        Test that a bad heatmap raises a clear error.
+        """
+        # Prepare inputs.
+        one_row = pd.DataFrame(
+            {"x_m": [0.0], "y_m": [0.0], "p_winner": [1.0], "p_winner_se": [0.0]}
+        )
+        bad_inputs = [
+            (one_row.iloc[:0], "There must be at least 1 target"),
+            (one_row.drop(columns="p_winner"), "Missing heatmap column"),
+            ([1.0, 2.0], "heatmap must be a pandas DataFrame"),
+        ]
+        # Run test and check outputs.
+        for bad_heatmap, expected in bad_inputs:
+            with self.subTest(expected=expected):
+                with self.assertRaises(AssertionError) as cm:
+                    racket_shot_probability_utils.find_best_region(bad_heatmap)
+                self.assertIn(expected, str(cm.exception))
+
+
+# #############################################################################
+# Test_find_best_target
+# #############################################################################
+
+
+class Test_find_best_target(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils.find_best_target()`.
+    """
+
+    def helper(
+        self, p_winner: List[float], p_winner_se: List[float], expected: str
+    ) -> None:
+        """
+        Test helper for `find_best_target()` on targets at `(i, -i)`.
+
+        :param p_winner: `P(winner)` of each target, in grid order
+        :param p_winner_se: its standard error
+        :param expected: expected result, with values rounded to 6 decimals
+        """
+        # Prepare inputs.
+        n = len(p_winner)
+        heatmap = pd.DataFrame(
+            {
+                "x_m": [float(i) for i in range(n)],
+                "y_m": [float(-i) for i in range(n)],
+                "p_winner": p_winner,
+                "p_winner_se": p_winner_se,
+            }
+        )
+        # Run test.
+        result = racket_shot_probability_utils.find_best_target(heatmap)
+        # Check outputs.
+        actual = str({k: round(v, 6) for k, v in result.items()})
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test a clear winner: a region of 1 target, with the gap to the second
+        highest in standard errors.
+        """
+        # Prepare inputs.
+        p_winner = [0.5, 0.9, 0.8]
+        p_winner_se = [0.01, 0.003, 0.004]
+        # Prepare outputs.
+        # Gap: (0.9 - 0.8) / sqrt(0.003^2 + 0.004^2) = 0.1 / 0.005 = 20, so 0.8
+        # is out of the region (over 2 standard errors).
+        expected = (
+            "{'x_m': 1.0, 'y_m': -1.0, 'p_winner': 0.9, 'p_winner_se': 0.003, "
+            "'n_region_cells': 1, 'max_p_winner': 0.9, 'max_p_winner_se': 0.003, "
+            "'second_p_winner': 0.8, 'second_p_winner_se': 0.004, "
+            "'gap_in_se': 20.0}"
+        )
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test2(self) -> None:
+        """
+        Test that the marked target is the middle of a tied region, not its
+        first cell.
+        """
+        # Prepare inputs.
+        # 3 tied targets at (0, 0), (1, -1), (2, -2): the middle is (1, -1).
+        p_winner = [0.95, 0.95, 0.95, 0.5]
+        p_winner_se = [0.002, 0.002, 0.002, 0.01]
+        # Prepare outputs.
+        expected = (
+            "{'x_m': 1.0, 'y_m': -1.0, 'p_winner': 0.95, 'p_winner_se': 0.002, "
+            "'n_region_cells': 3, 'max_p_winner': 0.95, "
+            "'max_p_winner_se': 0.002, 'second_p_winner': 0.95, "
+            "'second_p_winner_se': 0.002, 'gap_in_se': 0.0}"
+        )
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test3(self) -> None:
+        """
+        Test that 2 targets equally close to the middle of the region go to
+        the first in grid order.
+        """
+        # Prepare inputs.
+        p_winner = [0.9, 0.95, 0.95]
+        p_winner_se = [0.003, 0.002, 0.002]
+        # Prepare outputs.
+        expected = (
+            "{'x_m': 1.0, 'y_m': -1.0, 'p_winner': 0.95, 'p_winner_se': 0.002, "
+            "'n_region_cells': 2, 'max_p_winner': 0.95, "
+            "'max_p_winner_se': 0.002, 'second_p_winner': 0.95, "
+            "'second_p_winner_se': 0.002, 'gap_in_se': 0.0}"
+        )
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test4(self) -> None:
+        """
+        Test that 2 standard errors of 0 give a gap of `inf` for different
+        probabilities.
+        """
+        # Prepare inputs.
+        p_winner = [0.0, 1.0]
+        p_winner_se = [0.0, 0.0]
+        # Prepare outputs.
+        expected = (
+            "{'x_m': 1.0, 'y_m': -1.0, 'p_winner': 1.0, 'p_winner_se': 0.0, "
+            "'n_region_cells': 1, 'max_p_winner': 1.0, 'max_p_winner_se': 0.0, "
+            "'second_p_winner': 0.0, 'second_p_winner_se': 0.0, "
+            "'gap_in_se': inf}"
+        )
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test5(self) -> None:
+        """
+        Test that a bad heatmap raises a clear error.
+        """
+        # Prepare inputs.
+        one_row = pd.DataFrame(
+            {"x_m": [0.0], "y_m": [0.0], "p_winner": [1.0], "p_winner_se": [0.0]}
+        )
+        bad_inputs = [
+            (one_row, "There must be at least 2 targets to compare"),
+            (one_row.drop(columns="p_winner_se"), "Missing heatmap column"),
+            ([1.0, 2.0], "heatmap must be a pandas DataFrame"),
+        ]
+        # Run test and check outputs.
+        for bad_heatmap, expected in bad_inputs:
+            with self.subTest(expected=expected):
+                with self.assertRaises(AssertionError) as cm:
+                    racket_shot_probability_utils.find_best_target(bad_heatmap)
                 self.assertIn(expected, str(cm.exception))
 
 
