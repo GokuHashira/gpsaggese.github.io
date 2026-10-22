@@ -18,9 +18,10 @@ import research.Optimal_strategy_for_racket_sports.notebooks.racket_shot_probabi
 
 import dataclasses
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import ipywidgets
+import matplotlib.collections as mcollections
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -735,6 +736,149 @@ def _draw_center_service_line(
             linestyle="--",
             linewidth=1.0,
         )
+
+
+# #############################################################################
+# Winner heatmap drawing
+# #############################################################################
+
+
+def _get_region_outline(
+    in_region: np.ndarray, x_edges: np.ndarray, y_edges: np.ndarray
+) -> List[List[Tuple[float, float]]]:
+    """
+    Find the segments of the outline of a region of grid cells.
+
+    A side of a cell of the region is on the outline if the cell on the other
+    side is not in the region, or if there is no cell there (the grid edge).
+
+    :param in_region: True for the cells of the region, shape `(n_y, n_x)`,
+        one row per `y` from the lowest
+    :param x_edges: the `n_x + 1` cell edges along `x`
+    :param y_edges: the `n_y + 1` cell edges along `y`
+    :return: one segment `[(x_start, y_start), (x_end, y_end)]` per side on
+        the outline, e.g., the 4 sides of a region of 1 cell
+    """
+    _LOG.debug(hprint.to_str("in_region.shape"))
+    n_y, n_x = in_region.shape
+    hdbg.dassert_eq(len(x_edges), n_x + 1, "One more x edge than cells")
+    hdbg.dassert_eq(len(y_edges), n_y + 1, "One more y edge than cells")
+    segments = []
+    for iy in range(n_y):
+        for ix in range(n_x):
+            if not in_region[iy, ix]:
+                continue
+            x0, x1 = float(x_edges[ix]), float(x_edges[ix + 1])
+            y0, y1 = float(y_edges[iy]), float(y_edges[iy + 1])
+            # Left, right, bottom, and top sides, each kept if the neighbor on
+            # that side is outside the region or outside the grid.
+            if ix == 0 or not in_region[iy, ix - 1]:
+                segments.append([(x0, y0), (x0, y1)])
+            if ix == n_x - 1 or not in_region[iy, ix + 1]:
+                segments.append([(x1, y0), (x1, y1)])
+            if iy == 0 or not in_region[iy - 1, ix]:
+                segments.append([(x0, y0), (x1, y0)])
+            if iy == n_y - 1 or not in_region[iy + 1, ix]:
+                segments.append([(x0, y1), (x1, y1)])
+    _LOG.debug("return: %d segments", len(segments))
+    return segments
+
+
+def plot_winner_heatmap(
+    ax: Axes,
+    heatmap: pd.DataFrame,
+    court: racket_params.CourtGeometry,
+    serve_xy: Tuple[float, float],
+) -> None:
+    """
+    Draw the probability of a winner of every target on the court.
+
+    - Each grid cell is colored by its `P(winner)` on a fixed scale from 0 to
+      1, so maps for different settings or sports compare by color; GP's
+      `racket_strategy_utils.plot_court_heatmap()` scales to each map's own
+      range instead
+    - The court lines, with the center service line
+    - The best region (`find_best_region()`) outlined in red, and the best
+      target (`find_best_target()`), its middle, as a red star
+    - Player 1 at `get_player1_xy()` and player 2 at `serve_xy`
+
+    :param ax: axes to draw on
+    :param heatmap: a full grid from `compute_winner_heatmap()`
+    :param court: court geometry, the same as for `heatmap`
+    :param serve_xy: where player 2 hits from, `(x1, y1)`, the same as for
+        `heatmap`
+    """
+    hdbg.dassert_isinstance(
+        heatmap, pd.DataFrame, "heatmap must be a pandas DataFrame"
+    )
+    # Log the shape only once it is known to exist.
+    _LOG.debug(hprint.to_str("heatmap.shape serve_xy"))
+    _dassert_point(serve_xy, "serve_xy")
+    for column in ("cell_id", "x_min", "x_max", "y_min", "y_max"):
+        hdbg.dassert_in(column, heatmap.columns, "Missing heatmap column")
+    # Cell edges of the regular grid of `make_target_grid()`.
+    x_edges: np.ndarray = np.append(
+        np.unique(heatmap["x_min"]), heatmap["x_max"].max()
+    )
+    y_edges: np.ndarray = np.append(
+        np.unique(heatmap["y_min"]), heatmap["y_max"].max()
+    )
+    n_x = len(x_edges) - 1
+    n_y = len(y_edges) - 1
+    hdbg.dassert_eq(
+        n_x * n_y, len(heatmap), "heatmap must hold every cell of its grid"
+    )
+    # `cell_id` runs `y` outer, `x` inner: one row of the image per `y`.
+    order = heatmap["cell_id"].to_numpy().argsort(kind="stable")
+    values = heatmap["p_winner"].to_numpy()[order]
+    values = values.reshape(n_y, n_x)
+    # Fixed color scale from 0 to 1, below the court lines.
+    mesh = ax.pcolormesh(
+        x_edges,
+        y_edges,
+        values,
+        cmap="viridis",
+        vmin=0.0,
+        vmax=1.0,
+        shading="flat",
+        zorder=0,
+    )
+    plt.colorbar(mesh, ax=ax, label="P(winner)")
+    racket_strategy_utils.draw_court(ax, court)
+    _draw_center_service_line(ax, court)
+    # The outline of the best region, in the same cell order as `values`;
+    # `find_best_region()` also checks the other columns.
+    in_region = find_best_region(heatmap)[order].reshape(n_y, n_x)
+    segments = _get_region_outline(in_region, x_edges, y_edges)
+    outline = mcollections.LineCollection(
+        segments,
+        colors="tab:red",
+        linewidths=2.0,
+        label=(
+            f"best region: within {_BEST_REGION_N_SE:g} SE of the highest"
+            f" ({int(in_region.sum())} cells)"
+        ),
+        zorder=3,
+    )
+    ax.add_collection(outline)
+    # The best target and the two players, above the cells and the lines.
+    best = find_best_target(heatmap)
+    ax.plot(
+        best["x_m"],
+        best["y_m"],
+        "*",
+        markersize=18,
+        color="tab:red",
+        markeredgecolor="black",
+        label=(
+            f"best target (middle of the region), P(winner) ="
+            f" {best['p_winner']:.3f} +- {best['p_winner_se']:.3f}"
+        ),
+        zorder=4,
+    )
+    ax.plot(*get_player1_xy(court), "o", color="tab:blue", label="player 1")
+    ax.plot(*serve_xy, "o", color="tab:orange", label="player 2")
+    ax.legend(loc="upper right", fontsize=9)
 
 
 # #############################################################################

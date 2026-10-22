@@ -14,12 +14,14 @@ from typing import Any, Dict, List, Tuple
 
 import ipywidgets
 import matplotlib
+import matplotlib.collections as mcollections
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import matplotlib.text as mtext
 import numpy as np
 import pandas as pd
 import pytest
+from matplotlib.axes import Axes
 
 import helpers.hunit_test as hunitest
 from research.Optimal_strategy_for_racket_sports import racket_params
@@ -2108,6 +2110,258 @@ class Test_find_best_target(hunitest.TestCase):
                 with self.assertRaises(AssertionError) as cm:
                     racket_shot_probability_utils.find_best_target(bad_heatmap)
                 self.assertIn(expected, str(cm.exception))
+
+
+# #############################################################################
+# Test__get_region_outline
+# #############################################################################
+
+
+class Test__get_region_outline(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils._get_region_outline()`.
+    """
+
+    def helper(self, in_region: List[List[bool]], expected: str) -> None:
+        """
+        Test helper for `_get_region_outline()` on a 2 x 2 grid of 1 m cells.
+
+        :param in_region: flags of the 2 rows (lowest `y` first) of 2 cells
+        :param expected: expected segments, as a string
+        """
+        # Prepare inputs.
+        x_edges = np.array([0.0, 1.0, 2.0])
+        y_edges = np.array([0.0, 1.0, 2.0])
+        # Run test.
+        actual = racket_shot_probability_utils._get_region_outline(
+            np.array(in_region), x_edges, y_edges
+        )
+        # Check outputs.
+        self.assert_equal(str(actual), expected)
+
+    def test1(self) -> None:
+        """
+        Test that a region of 1 cell has its 4 sides: left, right, bottom, top.
+        """
+        # Prepare inputs.
+        in_region = [[True, False], [False, False]]
+        # Prepare outputs.
+        expected = (
+            "[[(0.0, 0.0), (0.0, 1.0)], [(1.0, 0.0), (1.0, 1.0)], "
+            "[(0.0, 0.0), (1.0, 0.0)], [(0.0, 1.0), (1.0, 1.0)]]"
+        )
+        # Run test and check outputs.
+        self.helper(in_region, expected)
+
+    def test2(self) -> None:
+        """
+        Test that the side shared by 2 cells of the region is not drawn.
+        """
+        # Prepare inputs.
+        in_region = [[True, True], [False, False]]
+        # Prepare outputs.
+        # Left cell: left, bottom, top; right cell: right, bottom, top.
+        expected = (
+            "[[(0.0, 0.0), (0.0, 1.0)], [(0.0, 0.0), (1.0, 0.0)], "
+            "[(0.0, 1.0), (1.0, 1.0)], [(2.0, 0.0), (2.0, 1.0)], "
+            "[(1.0, 0.0), (2.0, 0.0)], [(1.0, 1.0), (2.0, 1.0)]]"
+        )
+        # Run test and check outputs.
+        self.helper(in_region, expected)
+
+    def test3(self) -> None:
+        """
+        Test that the whole grid is outlined by its border only, and an empty
+        region has no outline.
+        """
+        # Prepare inputs.
+        in_region_full = [[True, True], [True, True]]
+        in_region_empty = [[False, False], [False, False]]
+        # Prepare outputs.
+        expected_full = (
+            "[[(0.0, 0.0), (0.0, 1.0)], [(0.0, 0.0), (1.0, 0.0)], "
+            "[(2.0, 0.0), (2.0, 1.0)], [(1.0, 0.0), (2.0, 0.0)], "
+            "[(0.0, 1.0), (0.0, 2.0)], [(0.0, 2.0), (1.0, 2.0)], "
+            "[(2.0, 1.0), (2.0, 2.0)], [(1.0, 2.0), (2.0, 2.0)]]"
+        )
+        expected_empty = "[]"
+        # Run test and check outputs.
+        self.helper(in_region_full, expected_full)
+        self.helper(in_region_empty, expected_empty)
+
+
+# #############################################################################
+# Test_plot_winner_heatmap
+# #############################################################################
+
+
+class Test_plot_winner_heatmap(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils.plot_winner_heatmap()`.
+    """
+
+    def helper(self) -> pd.DataFrame:
+        """
+        Build a 3 x 4 tennis heatmap with `P(winner)` from 0.2 to 0.8 in grid
+        order, so the last cell is the best.
+
+        :return: the heatmap
+        """
+        court = racket_params.TENNIS.court
+        region = racket_shot_probability_utils.get_striker_half_region(court)
+        heatmap = racket_scoring.make_target_grid(region, 3, 4)
+        heatmap["p_winner"] = np.linspace(0.2, 0.8, len(heatmap))
+        heatmap["p_winner_se"] = 0.01
+        return heatmap
+
+    def helper2(self, heatmap: pd.DataFrame) -> Axes:
+        """
+        Draw `heatmap` on new axes, with the serve at `(-2.1, 3.2)`.
+
+        :param heatmap: heatmap to draw
+        :return: the axes
+        """
+        court = racket_params.TENNIS.court
+        serve_xy = (-2.1, 3.2)
+        ax: Axes = plt.subplots()[1]
+        racket_shot_probability_utils.plot_winner_heatmap(
+            ax, heatmap, court, serve_xy
+        )
+        return ax
+
+    def test1(self) -> None:
+        """
+        Test that the color scale is fixed from 0 to 1, whatever the values.
+        """
+        # Prepare inputs.
+        heatmap = self.helper()
+        # Prepare outputs.
+        expected = "(0.0, 1.0)"
+        # Run test.
+        ax = self.helper2(heatmap)
+        # Check outputs.
+        mesh = [
+            c for c in ax.collections if isinstance(c, mcollections.QuadMesh)
+        ]
+        actual = str(tuple(float(v) for v in mesh[0].get_clim()))
+        plt.close("all")
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test that each cell is drawn at its place: one image row per `y`, from
+        the baseline, and the cell edges of the grid.
+        """
+        # Prepare inputs.
+        heatmap = self.helper()
+        # Prepare outputs.
+        expected = (
+            "values=[[0.2, 0.254545, 0.309091], [0.363636, 0.418182, 0.472727], "
+            "[0.527273, 0.581818, 0.636364], [0.690909, 0.745455, 0.8]]\n"
+            "x_edges=[-4.115, -1.371667, 1.371667, 4.115]\n"
+            "y_edges=[-11.885, -8.91375, -5.9425, -2.97125, 0.0]"
+        )
+        # Run test.
+        ax = self.helper2(heatmap)
+        # Check outputs.
+        mesh = [
+            c for c in ax.collections if isinstance(c, mcollections.QuadMesh)
+        ]
+        values = np.round(np.asarray(mesh[0].get_array()), 6).reshape(4, 3)
+        coords = mesh[0].get_coordinates()
+        x_edges = np.round(coords[0, :, 0], 6).tolist()
+        y_edges = np.round(coords[:, 0, 1], 6).tolist()
+        actual = (
+            f"values={values.tolist()}\nx_edges={x_edges}\ny_edges={y_edges}"
+        )
+        plt.close("all")
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test the markers: the best target, player 1, and player 2.
+        """
+        # Prepare inputs.
+        heatmap = self.helper()
+        # Prepare outputs.
+        # The best cell is the last one: x 1.371667 to 4.115, y -2.97125 to 0.
+        expected = (
+            "[('best target (middle of the region), P(winner) = 0.800 +- 0.010', "
+            "[2.743333, -1.485625]), "
+            "('player 1', [0.0, -11.885]), ('player 2', [-2.1, 3.2])]"
+        )
+        # Run test.
+        ax = self.helper2(heatmap)
+        # Check outputs.
+        markers = [
+            (line.get_label(), np.round(line.get_xydata()[0], 6).tolist())
+            for line in ax.get_lines()
+            if not str(line.get_label()).startswith("_")
+        ]
+        plt.close("all")
+        self.assert_equal(str(markers), expected)
+
+    def test4(self) -> None:
+        """
+        Test that a heatmap with a missing cell raises a clear error.
+        """
+        # Prepare inputs.
+        heatmap = self.helper().iloc[:-1]
+        # Prepare outputs.
+        expected = "heatmap must hold every cell of its grid"
+        # Run test.
+        with self.assertRaises(AssertionError) as cm:
+            self.helper2(heatmap)
+        plt.close("all")
+        # Check outputs.
+        self.assertIn(expected, str(cm.exception))
+
+    def test5(self) -> None:
+        """
+        Test the outline of the best region and the star in its middle.
+        """
+        # Prepare inputs.
+        # The middle column of the 3 lowest rows (cells 1, 4, 7) ties at 1.0;
+        # the other cells are far below.
+        heatmap = self.helper()
+        in_region = heatmap["cell_id"].isin([1, 4, 7])
+        heatmap["p_winner"] = np.where(in_region, 1.0, 0.5)
+        heatmap["p_winner_se"] = np.where(in_region, 0.0, 0.01)
+        # Prepare outputs.
+        # The 2 long sides of the column (3 segments each), its bottom, and
+        # its top; the star at cell 4, the middle of the column.
+        expected = (
+            "label=best region: within 2 SE of the highest (3 cells)\n"
+            "segments=[[(-1.371667, -11.885), (-1.371667, -8.91375)], "
+            "[(1.371667, -11.885), (1.371667, -8.91375)], "
+            "[(-1.371667, -11.885), (1.371667, -11.885)], "
+            "[(-1.371667, -8.91375), (-1.371667, -5.9425)], "
+            "[(1.371667, -8.91375), (1.371667, -5.9425)], "
+            "[(-1.371667, -5.9425), (-1.371667, -2.97125)], "
+            "[(1.371667, -5.9425), (1.371667, -2.97125)], "
+            "[(-1.371667, -2.97125), (1.371667, -2.97125)]]\n"
+            "star=[0.0, -7.428125]"
+        )
+        # Run test.
+        ax = self.helper2(heatmap)
+        # Check outputs.
+        outline = [
+            c
+            for c in ax.collections
+            if isinstance(c, mcollections.LineCollection)
+        ]
+        segments = [
+            [tuple(np.round(point, 6).tolist()) for point in segment]
+            for segment in outline[0].get_segments()
+        ]
+        star = [line for line in ax.get_lines() if line.get_marker() == "*"]
+        star_xy = np.round(star[0].get_xydata()[0], 6).tolist()
+        actual = (
+            f"label={outline[0].get_label()}\nsegments={segments}\n"
+            f"star={star_xy}"
+        )
+        plt.close("all")
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
