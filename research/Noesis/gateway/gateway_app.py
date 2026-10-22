@@ -6,7 +6,7 @@ Run the real server (OpenRouter-backed) from the repo root with:
 > uvicorn research.Noesis.gateway.gateway_app:build_default_app --factory --port 8000
 
 For setup and the overall design see `research/Noesis/docs/onboarding.md` and
-`research/Noesis/docs/gateway_design.md`.
+`research/Noesis/docs/design.gateway.md`.
 
 Import as:
 

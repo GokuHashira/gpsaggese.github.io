@@ -1,9 +1,9 @@
-# Noesis MVP — Decisions
+# Noesis — Decisions
 
 - Every non-obvious choice in the MVP, why it was made, and what else was
   considered. Newest at the bottom of each section
 - Each PR adds its decisions here and links them in its description
-- Spec: `mvp_prd.md`; plan: `plan.noesis.md`
+- Requirements and plan: `plan.md`
 
 ## Measurement and Grading
 
@@ -23,9 +23,11 @@
   | Slowed seller, latency 0.20, n=50 | caught | caught 100% |
   | Weaker model, canary accuracy 0.5, n=10 | caught | caught 83% per contract |
 
+- **Across contracts**: the same weaker model is caught in at least 97% of cases
+  within two contracts
 - **Alternatives**: the paper's lower-bound rule (punishes healthy sellers for
   noise); a raw threshold `r_hat < R_min` (`PR_S4`; same problem on small windows)
-- **Status**: proposed to GP (changes paper §5 eq. `reliability_lower_bound`)
+- **Status**: proposed to GP (changes paper Sec. 5 eq. `reliability_lower_bound`)
 
 ### D-2. Score latency and quality separately
 
@@ -59,7 +61,7 @@
   - Concentrate AI: fallback can't be disabled per request per its docs, and only one
     host serves our model, so no competing sellers to compare
   - Direct provider APIs: full control and verifiable attribution; planned as the
-    side track (`plan.noesis.md`, Side Track: Provider Independence) behind the same `Provider` interface
+    side track (`plan.md`, Side Track: Provider Independence) behind the same `Provider` interface
 - **Known limit**: attribution is OpenRouter's report until direct adapters exist
 
 ### D-5. Blame a seller only for failures OpenRouter attributes to the provider
@@ -114,6 +116,25 @@
 - **Why**: a swap to a different provider would be flagged as an attribution
   mismatch and excluded, hiding the failure the demo must show
 
+### D-19. Task unit: one capped chat completion (formerly PRD D1)
+
+- **Decision**: a task is one chat completion with at most 256 output tokens and a
+  prompt of at most 1,000 input tokens; the gateway clamps larger requests
+- **Alternatives**: tokens, wall-clock compute, or a benchmark-normalized
+  task-equivalent (`plan.md`, NoesisMarket Open Questions 1)
+- **Status**: proposed
+
+### D-20. One open model: Llama 3.3 70B, weak model Llama 3.1 8B (formerly PRD D3)
+
+- **Decision**: every seller serves Llama 3.3 70B Instruct; Llama 3.1 8B Instruct is
+  the weaker model for calibration and for the model-swap fault
+- **Why**: many hosts serve one open-weight model, so sellers compete. The check
+  required at least 4 providers: 8 of 11 endpoints were usable
+  (`findings/openrouter_spike.md`)
+- **Alternatives**: frontier models, whose vendors (OpenAI, Anthropic, Google) won't
+  bid, so the tier would be empty or collusion-prone (`plan.md`, Risks)
+- **Status**: proposed
+
 ## Implementation
 
 ### D-11. Async `psycopg` 3 for the gateway, not `helpers.hsql`
@@ -152,6 +173,13 @@
   handler (`RoutingError`), like `platform_api.create_app()` does for
   `AssertionError`
 - **Why**: the gateway must never crash or skip logging because a provider failed
+
+### D-21. Stack: Python 3.11, FastAPI, Postgres, Streamlit (formerly PRD D12)
+
+- **Decision**: Python 3.11, FastAPI, Postgres, `httpx`, the `openai` SDK (in the
+  simulator), and a Streamlit dashboard
+- **Why**: Streamlit is the fastest path to a dashboard; replace it later
+- **Status**: proposed
 
 ## Market Scenario Families (PR_M11)
 
@@ -215,3 +243,34 @@
   auction without duplicating M10 orchestration.
 - **Status**: integration through M10's `run_round()` remains pending. This does
   not waive that original acceptance criterion or establish live-provider delivery.
+
+## Market Mechanism (MVP)
+
+### D-22. Clearing price is a price no matched party refused
+
+- **Decision**: a bid/ask pair is accepted only if the interval of prices that all
+  accepted parties allow stays non-empty; the clearing price is the midpoint of the
+  final interval (rule: `plan.md`, Market and Reputation Rules)
+- **Why**: the latency and reliability filter breaks GP's rule "midpoint of the last
+  matched pair", so a matched party could trade at a price it refused
+- **Alternatives**: midpoint of the last matched pair
+
+### D-23. Reputation adds cooldown and probation
+
+- **Decision**: a blocked seller sits out a fixed number of rounds, then returns on
+  probation with its score reset to the block threshold (numbers: `plan.md`, Market
+  and Reputation Rules)
+- **Why**: blocked sellers get no contracts, so under the paper's update formula
+  their score can never recover; without this, one block lasts forever
+- **Alternatives**: the paper's update formula alone
+
+### D-24. Contract result comes from a lifecycle, not a synchronous `fulfill()` call
+
+- **Decision**: a contract moves `PENDING` -> `ACTIVE` -> `CLOSED` -> `PASSED`,
+  `FAILED`, or `INSUFFICIENT`; the result is the checker's verdict after the window
+  closes. `mock_fulfill()` stays for unit tests only
+- **Why**: the buyer sends requests over time, so a contract's result exists only
+  after its window closes. GP's `dispatch_contract()` returns a bool right away,
+  which doesn't fit
+- **Alternatives**: the `random() < 0.9` coin flip of `mock_fulfill()`
+- **Status**: planned as `plan.md` T3.3 (`PR_M8`, redesigned); not built yet

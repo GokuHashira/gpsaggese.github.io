@@ -4,15 +4,15 @@
 
 - Build a working prototype of the \Noesis{} protocol
 - The \Noesis{} protocol overview is in `papers/Noesis/*.tex`
-- The architecture document `research/Noesis/docs/architecture.md`
+- The architecture document `research/Noesis/docs/design.architecture.md`
 
 ## Plan hierarchy
 
 - This file is the canonical Noesis roadmap and defines the component-level PRs.
 - The `# MVP Execution Plan` section at the end of this file decomposes those PRs
   into smaller implementation tasks with owners, dates, and acceptance criteria.
-- `progress.noesis.md` records the current implementation status.
-- `decisions.noesis.md` records the decisions and the alternatives considered.
+- `progress.md` records the current implementation status.
+- `decisions.md` records the decisions and the alternatives considered.
 - A checked PR is complete. An unchecked PR may be either not started or partially
   implemented; partial status is stated in that PR's section below.
 
@@ -725,7 +725,7 @@
   c_\beta$), so "a full implementation
   would ... let a tier-$c$ bucket draw on asks from tier $c$ and above"
 - Extend `PR_M1`'s per-tier compatibility-graph construction, today an exact-string
-  `C_level` match per `architecture.md`'s Weakness 2, to build each tier's bucket
+  `C_level` match per `design.architecture.md`'s Weakness 2, to build each tier's bucket
   from bids at tier $c$ against asks at tier $c$ and every tier above it, while
   keeping the existing single uniform-price-per-bucket clearing rule
 - Unit tests: a bid at tier `cheap` is filled by an ask at tier `frontier` when no
@@ -733,7 +733,7 @@
   `cheap` bucket; a rational `frontier`-tier seller with a marginal cost above the
   `cheap` clearing price is not drawn into serving `cheap` demand
 - Result: matched volume increases relative to `PR_M1`'s exact-tier-only baseline
-  without introducing a new price axis, closing `architecture.md`'s Weakness 2
+  without introducing a new price axis, closing `design.architecture.md`'s Weakness 2
 
 ### `PR_M6`: [ ] Commit-reveal Blind-bid Auction Simulation (exploratory)
 
@@ -821,7 +821,7 @@
 - Tests: the notebook executes top to bottom, headless, with
   `helpers_root/dev_scripts_helpers/notebooks/run_nbconvert.py`
 - Result: a reproducible, quantified surplus gain with its assumptions, and a short
-  text that `plan.marketing.md` can reuse
+  text that `marketing_plan.md` can reuse
 
 ## Unscheduled: NoesisServer
 
@@ -1027,10 +1027,11 @@
 - **Canonical roadmap**: the Roadmap and PRs sections above
 - **Purpose**: detailed implementation tracker and acceptance criteria for the
   canonical component PRs
-- **Spec**: `mvp_prd.md` (v0.2)
-- **Target**: recorded demo that meets all PRD §8 success criteria by **Fri 2026-12-11**
+- **Requirements**: the MVP Claim, Users and Scope, Market and Reputation Rules,
+  Success Criteria, and Risks sections below
+- **Target**: recorded demo that meets all Success Criteria below by **Fri 2026-12-11**
   (~11 weeks, three people part-time)
-- **Owners (proposed, PRD D11)**:
+- **Owners (proposed)**:
   - **J** = Javin Ahuja: gateway + metering math (critical path)
   - **G** = Giles Greene: market, reputation
   - **L** = Lucas: canaries, calibration, prober, simulator, fault injector, tooling,
@@ -1040,6 +1041,88 @@
 - **Cadence**: GP's rule is to make progress every day. One commit or one written
   finding per person per day. Short async standup (done / next / blocked). Friday
   demo of whatever runs.
+
+## MVP Claim
+
+- **Problem**: buyers purchase LLM inference by the token at a price the provider
+  sets. Nothing checks that the provider delivered the promised speed and quality
+  - Models can be quietly quantized or swapped, and endpoints can be slow or flaky,
+    with nobody held accountable
+  - Routers (OpenRouter and similar) choose providers by price and uptime. They
+    don't check delivered quality against a contract
+- **The one thing to prove**: we can detect when an AI provider fails to deliver the
+  speed or quality it promised, with a known false-alarm rate, and feed that back so
+  under-delivering providers lose future deals
+  - Matching buyers to sellers is a solved problem
+  - **Verified delivery** is the new part and the part reviewers will probe. If the
+    checker fails, nothing else matters
+- **Result to state after the MVP**: "We ran N contracts across K real providers
+  over H hours. We planted a model swap and a slowdown and caught both within X
+  minutes. The false-alarm rate on healthy providers was Y%. The market
+  automatically routed volume away from the bad provider"
+
+## Users and Scope
+
+| Role | Who, in the MVP | What they do |
+|---|---|---|
+| Buyer | `simulator` (our script) | Posts bids on a schedule; sends ordinary prompts under its active contracts |
+| Seller | 3 to 5 real inference providers serving the **same open model**, reached via OpenRouter with the provider pinned | We post one standing ask per provider on its behalf |
+| Prober | Part of Noesis (new) | Sends calibrated canary questions to each seller under each active contract |
+| Operator | Javin, Lucas, Giles; GP reviews | Runs the stack, watches the dashboard, triggers planted failures, demos |
+
+- Buyers are simulated: we control traffic, can repeat experiments, and hold no
+  customer data. This avoids PII and ToS exposure before there are privacy rules
+  (NoesisServer Open Questions, item 4)
+- **Out of scope** (see also After the MVP below):
+  - Payments and credits (`PR_P3`, `PR_P4`)
+  - Smart routing, fusion, caching, and distillation (`PR_S2`, `PR_S3`, `PR_S5`,
+    `PR_S10`, `PR_S12`)
+  - Multiple tiers and cross-tier matching (`PR_M5`)
+  - Public price feed (`PR_M4`), blind bids (`PR_M6`), scored compatibility (`PR_M9`)
+  - Cloud deploy (`PR_P2`)
+  - LLM-judge grading, streaming responses, and real customers
+
+## Market and Reputation Rules
+
+- **Matching and pricing** (task `T3.2`; decision `decisions.md` D-22)
+  - Compatibility filter: bid `beta` and ask `alpha` can match only if
+    - `alpha.c_level == beta.c_level_min`
+    - `alpha.l_typical <= beta.l_max`
+    - `alpha.r_typical >= beta.r_min`
+    - the seller is not excluded by reputation (see Reputation below)
+  - Order: bids by `p_max` descending, asks by `p_min` ascending (stable). For each
+    bid, fill from the compatible asks in that order
+  - Accept a pair only if the price interval `[max p_min of accepted asks, min p_max
+    of accepted bids]` stays non-empty
+  - Clearing price `p*` is the midpoint of the final interval, the same for all
+    fills in the tier. No party trades at a price it refused
+- **Reputation** (task `T3.4`; decision `decisions.md` D-23)
+  - One score `rho` in [0, 1] per seller. New sellers start at `rho_0 = 0.8`
+  - On each `PASSED` or `FAILED` verdict: `rho <- (1 - lambda) * rho + lambda *
+    1[PASSED]` with `lambda = 0.3` (paper equation `reputation_update`)
+  - `INSUFFICIENT` verdicts don't update `rho`
+  - If `rho < rho_min = 0.5`, the seller is `blocked` for `cooldown_rounds = 6`
+    rounds (1 minute at T = 10 s) and excluded from matching
+  - After the cooldown the seller is on `probation`: `rho` resets to `rho_min`, and
+    the seller gets at most 1 contract per round until 3 consecutive `PASSED`, then
+    it is `eligible` again
+  - Every change is stored in `reputation_events` for the dashboard
+  - With these values a healthy seller survives one false flag (0.8 -> 0.56). Two
+    failed contracts in a row block it (0.8 -> 0.56 -> 0.39). The planted-failure
+    seller is blocked within about 2 to 4 contracts (under 1 minute at demo cadence)
+- **Seller asks**: one standing ask per provider
+  - `l_typical` and `r_typical` come from calibration
+  - `p_min` = the provider's real per-token price x task size x (1 + margin)
+- **Simulator** (task `T4.1`): config-driven (YAML) buyers
+  - Each round posts bids with randomized `n_tasks` (20 to 60) and `p_max`, and with
+    fixed `l_max` and `r_min` for the tier
+  - For each `ACTIVE` contract it owns, it sends prompts from a prompt pool at a
+    configurable rate through the OpenAI SDK pointed at the gateway
+- **Fault injector CLI** (planned): `noesis fault --seller X --latency +3000ms`,
+  `--model-swap <smaller-model>`, and `--clear`
+  - Scheduled faults come from the simulator config
+  - Faults can already be set through the gateway admin endpoints
+    (`design.gateway.md`, Demo Faults)
 
 ## Where GP's Code Stands (Upstream `3f1a5db`)
 
@@ -1059,7 +1142,7 @@ It is server-first; his roadmap was market-first.
 
 ## Milestones and Dates
 
-Live status and history: `progress.noesis.md`.
+Live status and history: `progress.md`.
 
 | # | Milestone | Dates | Owner | Exit test | Status |
 |---|---|---|---|---|---|
@@ -1067,11 +1150,35 @@ Live status and history: `progress.noesis.md`.
 | M1 | Real server | Mon 10/12 – Fri 10/30 | J (+L: T1.5, T2.1 starts) | Unmodified `openai` Python SDK → our gateway → 3 pinned providers. Every log row has `contract_id` + verified `actual_provider` | ✅ 10/4 (spend cap deferred) |
 | M2 | Checker | Mon 11/2 – Fri 11/20 | J + L | Calibrated canary set ≥ 150. Offline replay: injected slowdown and model swap flagged, healthy traffic not flagged, rates within ±5 pts of `detection_math.py` | 🟨 foundation merged 10/11; runtime and data remain |
 | M3 | Loop closed (parallel with M1–M2) | Mon 10/12 – Fri 11/20 | G | With fake gateway: auction on timer, filter works, contracts go ACTIVE→verdict, a failing seller is blocked, cooled down, put on probation, reinstated | ⬜ |
-| M4 | Integrated demo | Mon 11/23 – Fri 12/11 | J+G+L | PRD §8 criteria 1–8 in one recorded 60-min run | ⬜ |
+| M4 | Integrated demo | Mon 11/23 – Fri 12/11 | J+G+L | Success Criteria 1–8 in one recorded 60-min run | ⬜ |
 
 Buffer: Thanksgiving week (11/23) is counted as half capacity. If M2 slips more than
 1 week, cut the dashboard to a read-only DB view plus a CLI report. Don't cut the
 planted-failure test.
+
+## Success Criteria
+
+- All of these must hold in one recorded live run:
+  1. **Autonomy**: the loop runs at least 60 min with at least 3 real providers, with
+     zero manual steps after `make demo`
+  2. **Attribution**: 100% of requests have `contract_id` and `actual_provider`.
+     Attribution mismatches are under 1% and all are excluded from scoring
+  3. **Planted slowdown caught**: at minute 15, add `+3000 ms` to seller A
+     - The first `FAILED` verdict comes within 2 contract windows
+     - A is blocked within 5 min
+     - The share of matched volume that A wins drops to 0 while A is blocked
+  4. **Planted model swap caught**: at minute 35, seller B serves the 8B model
+     - The first `FAILED` (quality) verdict comes within 3 contracts
+     - B is blocked within 5 min
+  5. **No false alarms**: healthy sellers have at most 1 `FAILED` verdict each over
+     the hour and are never blocked
+  6. **Recovery**: after the fault clears, the seller goes through cooldown, then
+     probation, then `eligible`
+  7. **Legibility**: someone who has never seen the code can read all of the above
+     off the dashboard in under 5 min. Test with GP or another reviewer
+  8. **Cost**: total real spend for the run is at most $10
+- Deliverables: the recorded run (video and exported DB), a one-page results memo
+  with the numbers above, and a reproducible `make demo`
 
 ## Task Breakdown
 
@@ -1082,13 +1189,13 @@ Every task: branch → PR → tests green in CI → one reviewer (another teamma
 
 | ID | Task | Owner | Acceptance | GP-PR |
 |---|---|---|---|---|
-| T0.1 | ✅ 9/29 Team backup repo created (private); this monorepo is primary since 10/6 (PRD D10) | J | — | — |
+| T0.1 | ✅ 9/29 Team backup repo created (private); this monorepo is primary since 10/6 | J | — | — |
 | T0.2 | ✅ 9/29 Run GP's code without the monorepo: done in the team's backup repo with a small `helpers` stand-in. **In this repo the real `helpers` is used** | J | 63/63 upstream tests pass | resolves D8 |
 | T0.3 | ✅ Tooling: deps added to `devops/docker_build/pyproject.toml` (+ `poetry.lock`); local test Postgres on :5433 (`onboarding.md`). GP's CI only runs course dirs, so Noesis tests run locally / in the dev container | L | Tests green locally | — |
 | T0.4 | ✅ Superseded: new code lives as flat modules next to GP's (`noesis_*.py`, `gateway_*.py`, tests in `test/`), matching this directory's layout; later regrouped into component dirs | J | — | — |
 | T0.5 | ✅ 9/30 run: 8/11 endpoints usable, 100% attribution (`findings/openrouter_spike.md`) — **OpenRouter spike** `scripts/spike_openrouter.py`: list providers for Llama 3.3 70B. For each: 20 calls with `provider.only=[slug], allow_fallbacks=false`. Record served provider (from response), latency p50/p95, error rate, `usage` cost | J | `docs/findings/openrouter_spike.md` with table. Decide D3/D4 from data | de-risks PR_S7 |
-| T0.6 | ✅ `common/migrations/001_init.sql` (applied automatically by `noesis_db.apply_migrations()`) — Freeze DB schema (PRD §7). All three sign | J+G+L | Merged; all agree | — |
-| T0.7 | Sign off PRD decisions D1–D12. Send PRD + this plan to GP with the §11 questions | J | Written replies logged in `decisions.noesis.md` | — |
+| T0.6 | ✅ `common/migrations/001_init.sql` (applied automatically by `noesis_db.apply_migrations()`) — Freeze DB schema. All three sign | J+G+L | Merged; all agree | — |
+| T0.7 | Sign off the decisions marked proposed in `decisions.md`. Send this plan to GP with the Open Questions for GP | J | Written replies logged in `decisions.md` | — |
 
 ### M1 — Real server (J; L owns T1.5)
 
@@ -1116,7 +1223,7 @@ Every task: branch → PR → tests green in CI → one reviewer (another teamma
 | ID | Task | Acceptance | GP-PR |
 |---|---|---|---|
 | T3.1 | Orders get `order_id`, `account_id`, `submitted_at`. `Fill` carries bid/ask order ids (fixes the multi-bid bug). Standing asks persist, bids expire | GP's auction tests still pass. New tests for carry-over + multi-bid buyer | PR_M1 fix |
-| T3.2 | Compatibility filter (tier, latency, reliability, seller eligible) + IR-safe uniform pricing (PRD K3) | Tests: incompatible cheap ask skipped. No fill priced outside any matched party's limit (property test over random books) | new |
+| T3.2 | Compatibility filter (tier, latency, reliability, seller eligible) + IR-safe uniform pricing (Market and Reputation Rules) | Tests: incompatible cheap ask skipped. No fill priced outside any matched party's limit (property test over random books) | new |
 | T3.3 | Contract lifecycle state machine PENDING→ACTIVE→CLOSED→PASSED/FAILED/INSUFFICIENT. Remove coin-flip from the runtime path | Tests. `mock_fulfill` used only in tests | PR_M8 (redesigned) |
 | T3.4 | Reputation: decay update, block, cooldown, probation, events table | Tests: 2 consecutive fails → blocked. One fail among passes → not blocked. Cooldown → probation → eligible after 3 passes | PR_M3 |
 | T3.5 | Scheduler: asyncio loop clears every `T` s, survives empty rounds and exceptions, injectable clock | Fake-clock tests (GP's PR_M7 test list) | PR_M7 |
@@ -1129,9 +1236,9 @@ Every task: branch → PR → tests green in CI → one reviewer (another teamma
 | T4.1 | Simulator: YAML buyers, bids per round, prompt pool, sends via `openai` SDK under its contracts, scheduled faults | L | 10-min run with no errors |
 | T4.2 | Dashboard (Streamlit): rounds and prices, contracts + verdicts + reasons, reputation timelines with block/probation markers, request log + attribution, spend vs cap, calibration stats | L (G defines what the dashboard must tell a non-technical viewer) | Legibility test with a non-coder |
 | T4.3 | One-command demo start: Compose (api, postgres, simulator, dashboard), `.env.example`, seeded sellers from calibration | L | Fresh clone → running demo in < 10 min |
-| T4.4 | Three rehearsal 60-min runs. Tune `l_max`, window, canaries/contract if false alarms or misses | J+G+L | Run 3 meets §8 |
-| T4.5 | **Recorded run** + exported DB + 1-page results memo (numbers for the results line in PRD §2) | J+G+L | Memo in `docs/results/` |
-| T4.6 | Walk GP through it. Collect his feedback on the paper's violation rule change | J | Notes in `docs/decisions.noesis.md` |
+| T4.4 | Three rehearsal 60-min runs. Tune `l_max`, window, canaries/contract if false alarms or misses | J+G+L | Run 3 meets Sec. 8 |
+| T4.5 | **Recorded run** + exported DB + 1-page results memo (numbers for the result line in MVP Claim) | J+G+L | Memo in `docs/results/` |
+| T4.6 | Walk GP through it. Collect his feedback on the paper's violation rule change | J | Notes in `docs/decisions.md` |
 
 ## Critical Path
 
@@ -1142,6 +1249,30 @@ T3.1 ─► T3.2 ─► T3.3 ─► T3.4 ───────────┘
 
 The OpenRouter spike (T0.5) and calibration (T2.2) are the two points where the data
 might force a change of plan: model, provider count, canary design. Do them early.
+
+## Risks
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| Canary check too noisy | Can't tell good from slightly worse | Calibrated set (T2.2), clear-cut questions, publish the checker's own error rate. MVP targets gross failures (model swap, slowdown). Subtle quantization detection is a post-MVP research result |
+| Canaries distinguishable from real traffic | Provider games the prober | MVP: use buyer-style formatting. Later: generate canaries from the real prompt distribution, rotate the bank |
+| OpenRouter attribution breaks | Wrong seller blamed | `only` + `allow_fallbacks:false`, verify the reported provider, exclude mismatches |
+| Too few providers for the model | Fewer than 3 sellers | Week-1 check (done: `decisions.md` D-20). Otherwise pick the open model with the most providers |
+| Top-tier supply is thin | OpenAI, Anthropic, and Google won't bid, so the frontier tier is empty or collusion-prone | MVP uses one open-weight model with many hosts. The frontier tier waits for real supply |
+| Gateway intermediary hides who served a request | Reputation assigned to the wrong seller | OpenRouter pinning now. Own the gateway (LiteLLM or direct APIs) before any real customers |
+| Competitors add metering | Wedge commoditized | Moat is the longitudinal, request-level verified-quality dataset. Study OpenRouter, Martian, Not Diamond, Artificial Analysis, Concentrate AI |
+| High reliability hard to verify | 99.9% needs about thousands of requests | Demo at 0.90. The minimum-detectable-shortfall table (GP draft `research/ideas/draft.Noesis_Reputation_Detection_Bound.md`) is a paper result |
+| Provider ToS on resale and logging | Legal exposure | Read each provider's and OpenRouter's terms before any public claim. MVP has no resale (we're the only buyer) |
+| Part-time bandwidth | Slips | The daily-progress rule and Friday demo in the Cadence bullet above |
+
+## Open Questions for GP
+
+1. Is the server-first order (this section) fine, or should it follow the
+   market-first Roadmap?
+2. Should `PR_S9` (auto-asks from the OpenRouter catalog, `v0.5`) and `PR_P4`
+   (free-credit ledger, `v0.6`) be in the MVP? Both are currently deferred
+3. Is Noesis its own gateway, or a metering and market layer on top of existing
+   gateways?
 
 ## Side Track: Provider Independence (Not Blocking the MVP)
 
@@ -1155,7 +1286,7 @@ Noesis reaches providers without depending on OpenRouter (Tier 2):
 
 ## After the MVP (Not Scheduled)
 
-First productize the checker as the **wedge**: a verified-delivery monitoring gateway for teams spending $5k–$50k/mo (PRD §9b). Then, roughly in value order: real design-partner buyers (PII
+First productize the checker as the **wedge**: a verified-delivery monitoring gateway for teams spending $5k–$50k/mo. Then, roughly in value order: real design-partner buyers (PII
 scrubbing first, GP S-4), direct provider APIs alongside OpenRouter, subtle-degradation
 detection (quantization) with a larger canary bank or reference-model agreement,
 public price/reputation feed (`PR_M4`), credits ledger (`PR_P4`), cloud deploy
