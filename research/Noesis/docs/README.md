@@ -3,7 +3,7 @@
 - All docs of `research/Noesis`, grouped by kind
 - Start with `onboarding.md`, then `design.architecture.md`
 - Component READMEs live next to the code: `../checker/`, `../common/`, `../gateway/`,
-  `../market/`, `../noesis_platform/`
+  `../market/`, `../noesis_platform/`, `../prober/`
 
 ## Structure of the Dir
 
@@ -13,6 +13,9 @@
 
 - All other docs sit at the top level of `docs/`, grouped by the cluster in the
   table below
+
+The canary calibration command generates `findings/calibration.md`; a pending
+placeholder is committed until the reviewed paid run is executed.
 
 ## Description of Files
 

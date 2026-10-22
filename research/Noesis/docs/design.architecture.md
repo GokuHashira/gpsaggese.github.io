@@ -12,7 +12,7 @@
 
 - `research/Noesis` contains:
   - `NoesisMarket` (`market/`)
-  - `NoesisServer` (`gateway/` and `checker/`)
+  - `NoesisServer` (`gateway/`, `checker/`, and `prober/`)
   - Shared infrastructure for the MVP components (`common/`)
   - A thin HTTP surface over the market and the proxy (`noesis_platform/`,
     `NoesisPlatform` section)
@@ -120,7 +120,8 @@ C4Context
   the dependencies between them
 - Allowed imports between components, checked by `test/test_component_imports.py`:
   `gateway/` imports `common/`; `checker/` imports `common/` and
-  `gateway/gateway_providers.py`; `noesis_platform/` imports `market/` and
+  `gateway/gateway_providers.py`; `prober/` coordinates `checker/`, `common/`, and
+  `gateway/`; `noesis_platform/` imports `market/` and
   `gateway/passthrough_proxy.py`; `common/` and `market/` import no other component
 
 ```mermaid
@@ -147,7 +148,11 @@ C4Container
   }
 
   Container_Boundary(checker, "checker/") {
-    Container(checker_mod, "checker_*.py", "Python modules", "Grades sellers against contracts: pure verdict logic, Postgres store (see checker/README.md)")
+    Container(checker_mod, "checker_*.py", "Python modules", "Calibrates and grades deterministic canaries; computes contract verdicts with pure logic and a Postgres store")
+  }
+
+  Container_Boundary(prober, "prober/") {
+    Container(prober_mod, "prober_{runtime,worker,cli}.py", "Python modules", "Claims scheduled canary slots, calls the contracted provider, grades responses, and persists hidden evidence")
   }
 
   Container_Boundary(common, "common/") {
@@ -163,6 +168,9 @@ C4Container
   Rel(mvp_gateway, infra, "imports settings, DB pool, seed")
   Rel(checker_mod, infra, "uses schema and DB pool")
   Rel(checker_mod, mvp_gateway, "imports provider status constants")
+  Rel(prober_mod, checker_mod, "uses schedules, measurement, and persistence")
+  Rel(prober_mod, mvp_gateway, "uses routing, provider calls, faults, and logging")
+  Rel(prober_mod, infra, "uses settings, migrations, and DB pool")
   Rel(dispatch, auction, "imports Bid, Ask, TierClearResult")
   Rel(dispatch, noesis_server, "dispatch_contract() (mocked)")
   Rel(api, auction, "imports OrderBook, Bid, Ask")
@@ -248,4 +256,56 @@ flowchart LR
     contract --> dispatch["dispatch_contract() /<br/>dispatch_contracts()"]
     dispatch --> fulfill["fulfillment_func<br/>(default: mock_fulfill())"]
     fulfill --> save["ContractStore.save_contract()<br/>(_MarketState.clear_round())"]
+```
+
+### Supply refresh flow (PR_S9)
+
+- Before a round, `supply_feed.refresh_market_supply()` turns the OpenRouter
+  endpoint catalog into one `Ask` per seller of `common/seed.yaml`:
+  `parse_endpoint_quotes()` reads the per-token prices, `build_asks()` matches
+  sellers to endpoints by tag and prices each ask at the worst-case D1 task cost,
+  and `submit_supply()` queues them on the `OrderBook`, skipping sellers that
+  already have a pending ask in the round
+- `market/supply_adapter.py` is pure; the HTTP fetch and the seed file live in
+  `noesis_platform/supply_feed.py`, so `market/` keeps importing nothing else
+- `clear_round()` drops every order, so the refresh is re-run each round; the
+  scheduler (`PR_M7`) owns catch-and-retry when OpenRouter is unavailable
+
+```mermaid
+flowchart LR
+    openrouter["OpenRouter<br/>GET /models/{id}/endpoints"] --> fetch["fetch_endpoint_catalog()"]
+    seed[("common/seed.yaml<br/>sellers, l_typical, r_typical")] --> load["load_seller_supply()"]
+    fetch --> parse["parse_endpoint_quotes()<br/>EndpointQuote per tag"]
+    parse --> build["build_asks()<br/>p_min = D1 task cost x (1 + margin)"]
+    load --> build
+    build --> submit["submit_supply()<br/>one Ask per seller per round"]
+    submit --> store[("OrderBookStore")]
+    store --> clear["OrderBook.clear_round()"]
+```
+
+### Scheduled capability-measurement flow
+
+- `prober_cli calibrate` validates the candidate bank before any provider call,
+  executes reviewed live calibration only with `--execute`, and activates a bank
+  only after the minimum-survivor gate passes.
+- `prober_worker.run_probe_worker()` repeatedly performs a non-blocking scheduler
+  pass. PostgreSQL atomically claims `(contract_id, probe_slot)`, making concurrent
+  workers safe.
+- The model receives an ordinary user message. Canary identity, expected answer,
+  grade, and grader version remain inside Noesis and are added only to persisted
+  evidence.
+
+```mermaid
+flowchart LR
+    candidate["Versioned candidate bank"] --> calibration["Live calibration<br/>3 attempts per target"]
+    calibration --> gate{"Healthy = 100%<br/>Weak <= 60%<br/>Survivors >= 150?"}
+    gate -->|yes| active["ACTIVE canary bank"]
+    gate -->|no| draft["DRAFT / not used"]
+    contract["ACTIVE contract window"] --> schedule["Secret balanced schedule"]
+    active --> schedule
+    schedule --> claim["Atomic probe-slot claim"]
+    claim --> route["Internal contract route"]
+    route --> provider["Pinned provider call"]
+    provider --> measure["CapabilityMeasurer"]
+    measure --> evidence["Server-only graded request evidence"]
 ```

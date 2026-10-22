@@ -42,11 +42,24 @@
 
 - **Decision**: Noesis injects known-answer questions under each contract; only
   questions every healthy provider gets right and the weaker 8B model mostly misses
-  are kept
+  are kept. Calibration runs every candidate three times per target, requires 100%
+  healthy-target accuracy and at most 60% weak-target accuracy, and activates a bank
+  only when at least 150 candidates survive
 - **Why**: real buyers won't label their traffic; uncalibrated questions make the
   checker's own error rate unknown. Evidence: on 10/4 the 8B model answered an easy
   probe ("9.9 vs 9.11") correctly, so easy questions can't expose a model swap
 - **Alternatives**: buyer-mixed canaries (PRD v0.1); LLM judge (later)
+
+### D-28. Canary schedules are secret, deterministic, and server-owned
+
+- **Decision**: derive balanced canary choices and times from an HMAC secret plus
+  contract identity. Send only the ordinary prompt to the provider; keep canary ID,
+  expected answer, grade, and grader version in Noesis-owned request evidence
+- **Why**: deterministic schedules are reproducible and testable, while the secret
+  prevents sellers from predicting which requests are probes. Server-only metadata
+  prevents a provider from recognizing a canary from the request envelope
+- **Alternatives**: fresh process-local randomness (hard to replay); public seeded
+  schedules (predictable); marking probes in provider requests (easy to game)
 
 ## Gateway
 
@@ -274,3 +287,52 @@
   which doesn't fit
 - **Alternatives**: the `random() < 0.9` coin flip of `mock_fulfill()`
 - **Status**: planned as `plan.md` T3.3 (`PR_M8`, redesigned); not built yet
+
+## OpenRouter Supply Adapter (PR_S9)
+
+### D-25. Price an Ask at the Worst-Case Task Cost With Zero Margin
+
+- **Decision**: `p_min` = `prompt_price * 1000 + completion_price * 256`, i.e., the
+  OpenRouter per-token prices times the PRD D1 task caps (≤1,000 prompt and ≤256
+  completion tokens), times `1 + margin` with `margin = 0` by default. Prices are
+  rounded to 1e-9 USD.
+- **Why**: PRD S2 says a seller's `p_min` is the real per-token price times the
+  task size plus a margin; the task size is the D1 definition. Pricing the cap
+  means a seller never sells a task below what it can cost to serve. No margin is
+  specified anywhere in the repo, so the default adds none and the value is a
+  parameter.
+- **Alternatives**: price the measured average token usage of the spike (cheaper
+  asks, but a long prompt would be served at a loss); keep a hardcoded price per
+  seller (the status quo this PR removes).
+
+### D-26. Sellers, Latency, and Reliability Come From the Seed File
+
+- **Decision**: the adapter builds asks only for the sellers in
+  `common/seed.yaml`, matched to OpenRouter endpoints by `provider_slug` (the
+  endpoint `tag`). Each seller's `l_typical` and `r_typical` are stored in the
+  seed, seeded with the p95 latency and ok-rate of
+  `docs/findings/openrouter_spike.md`, until PR_S11's calibration replaces them.
+  Endpoints that belong to no seller are ignored; a seller whose endpoint has left
+  the catalog gets no ask.
+- **Why**: the seed is already the one list of sellers the gateway and checker
+  use; OpenRouter's `latency_last_30m` is time-to-first-token, not the end-to-end
+  latency the contract measures, and its `status` codes are undocumented, so
+  neither is used as a contract term.
+- **Alternatives**: create a seller for every endpoint in the catalog (would add
+  providers the gateway cannot pin or blame); take latency from OpenRouter's
+  30-minute figures (wrong quantity).
+
+### D-27. Re-post One Ask per Seller Before Each Round
+
+- **Decision**: each refresh posts one ask per seller for `n_tasks = 60` in the
+  single `standard` tier; a seller that already has a pending ask in the current
+  round is skipped. The refresh is a function the round scheduler (PR_M7) calls
+  before `clear_round()`; it is not a background loop.
+- **Why**: `OrderBook.clear_round()` drops every order it processes (no standing
+  asks yet, K4), so supply must be re-posted each round; skipping pending sellers
+  keeps a second refresh from doubling supply. 60 is the largest bid the PRD S1
+  simulator posts in one round, so one seller can fill any single bid; OpenRouter
+  publishes no capacity figure to derive it from.
+- **Alternatives**: standing asks that survive clearing (K4, not built);
+  a thread that polls OpenRouter on a timer (adds a second clock next to the
+  scheduler's).
