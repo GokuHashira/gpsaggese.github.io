@@ -139,7 +139,9 @@ def load_settings(
         model_id=env.get("NOESIS_MODEL_ID", DEFAULT_MODEL_ID),
         max_tokens_cap=int(max_tokens_cap),
         spend_cap_usd=_get_positive(env, "NOESIS_SPEND_CAP_USD", "50"),
-        timeout_multiplier=_get_positive(env, "NOESIS_TIMEOUT_MULTIPLIER", "2.0"),
+        timeout_multiplier=_get_positive(
+            env, "NOESIS_TIMEOUT_MULTIPLIER", "2.0"
+        ),
         seed_path=env.get("NOESIS_SEED_PATH", DEFAULT_SEED_PATH),
     )
     return settings

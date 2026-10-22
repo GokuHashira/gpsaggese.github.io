@@ -16,7 +16,8 @@ import research.Noesis.gateway.gateway_app as rnogaapp
 import contextlib
 import logging
 import os
-from typing import AsyncIterator, Mapping, Optional
+from collections.abc import AsyncIterator, Mapping
+from typing import Optional
 
 import fastapi
 from fastapi.exceptions import RequestValidationError
