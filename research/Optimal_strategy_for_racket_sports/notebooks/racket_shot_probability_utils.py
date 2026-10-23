@@ -1233,6 +1233,67 @@ def _build_fault_text(
     return text
 
 
+def _build_shared_controls(
+    court: racket_params.CourtGeometry,
+) -> Dict[str, Tuple[Any, Any]]:
+    """
+    Build the controls that Cell 1.1 and Cell 2.1 share.
+
+    - `side`: deuce or ad, the side player 1 serves from
+    - `x1`, `y1`: where the serve lands
+    - `std_x2`, `std_y2`: the spread of the return
+    - `seed`: the seed of the Monte Carlo samples, placed last by both widgets
+
+    :param court: court geometry, for the slider ranges and the start of the
+        serve
+    :return: `{name: (control, box)}` for "side", "x1", "y1", "std_x2",
+        "std_y2", and "seed": the control to read, and the box to display;
+        the side toggle is both
+    """
+    _LOG.debug(hprint.to_str("court"))
+    half_width = court.width_m / 2
+    half_length = court.length_m / 2
+    # Side of the serve: it decides where the server stands and which box is
+    # legal.
+    side_toggle = ipywidgets.ToggleButtons(
+        options=["deuce", "ad"], value="deuce", description="side"
+    )
+    # Serve sliders: `(x1, y1)` anywhere on player 2's half, so faults are
+    # possible, starting in the middle of the deuce service box. `x1` spans the
+    # singles court from sideline to sideline; `y1` goes from 0.1 m past the
+    # net (never on the net line) to the baseline.
+    x1_init = round(-half_width / 2, 1)
+    x1_slider, x1_box = htutori.build_widget_control(
+        "x1", "serve x", -half_width, half_width, 0.1, x1_init
+    )
+    y1_init = round((court.non_volley_zone_m + court.service_line_m) / 2, 1)
+    y1_slider, y1_box = htutori.build_widget_control(
+        "y1", "serve y", 0.1, half_length, 0.1, y1_init
+    )
+    # Spread of the return: a std must be strictly positive. From 0.1 m (a
+    # very precise player) to 3 m (a wild shot, wider than a service box).
+    std_x2_slider, std_x2_box = htutori.build_widget_control(
+        "std_x2", "return std x", 0.1, 3.0, 0.1, 0.5
+    )
+    std_y2_slider, std_y2_box = htutori.build_widget_control(
+        "std_y2", "return std y", 0.1, 3.0, 0.1, 1.0
+    )
+    # Seed of the Monte Carlo samples, placed last as the notebook rules ask;
+    # 101 seeds are plenty to see the sampling noise.
+    seed_slider, seed_box = htutori.build_widget_control(
+        "seed", "random seed", 0, 100, 1, 1, is_float=False
+    )
+    controls: Dict[str, Tuple[Any, Any]] = {
+        "side": (side_toggle, side_toggle),
+        "x1": (x1_slider, x1_box),
+        "y1": (y1_slider, y1_box),
+        "std_x2": (std_x2_slider, std_x2_box),
+        "std_y2": (std_y2_slider, std_y2_box),
+        "seed": (seed_slider, seed_box),
+    }
+    return controls
+
+
 def cell1_1_plot_shot_widget(
     sport: racket_params.SportParams,
     *,
@@ -1264,23 +1325,12 @@ def cell1_1_plot_shot_widget(
     # Enough Monte Carlo points for a standard error of at most 0.016, few
     # enough to keep the scatter readable.
     n_samples = 1000
-    # Side of the serve: it decides where the server stands and which box is
-    # legal.
-    side_toggle = ipywidgets.ToggleButtons(
-        options=["deuce", "ad"], value="deuce", description="side"
-    )
-    # Serve sliders: `(x1, y1)` anywhere on player 2's half, so faults are
-    # possible, starting in the middle of the deuce service box. `x1` spans the
-    # singles court from sideline to sideline; `y1` goes from 0.1 m past the
-    # net (never on the net line) to the baseline.
-    x1_init = round(-half_width / 2, 1)
-    x1_slider, x1_box = htutori.build_widget_control(
-        "x1", "serve x", -half_width, half_width, 0.1, x1_init
-    )
-    y1_init = round((court.non_volley_zone_m + court.service_line_m) / 2, 1)
-    y1_slider, y1_box = htutori.build_widget_control(
-        "y1", "serve y", 0.1, half_length, 0.1, y1_init
-    )
+    # The side of the serve, the serve sliders, the spread of the return, and
+    # the seed, shared with Cell 2.1.
+    shared = _build_shared_controls(court)
+    side_toggle = shared["side"][0]
+    x1_slider, x1_box = shared["x1"]
+    y1_slider, y1_box = shared["y1"]
     # Return sliders: `(x2, y2)` on player 1's side (`y2 <= 0`), up to 2 m
     # outside the sidelines and the baseline, so out shots can be explored,
     # starting 1.5 m inside the baseline.
@@ -1292,19 +1342,9 @@ def cell1_1_plot_shot_widget(
     y2_slider, y2_box = htutori.build_widget_control(
         "y2", "return y", -half_length - 2, 0.0, 0.1, y2_init
     )
-    # Spread of the return: a std must be strictly positive. From 0.1 m (a
-    # very precise player) to 3 m (a wild shot, wider than a service box).
-    std_x2_slider, std_x2_box = htutori.build_widget_control(
-        "std_x2", "return std x", 0.1, 3.0, 0.1, 0.5
-    )
-    std_y2_slider, std_y2_box = htutori.build_widget_control(
-        "std_y2", "return std y", 0.1, 3.0, 0.1, 1.0
-    )
-    # Seed of the Monte Carlo samples, placed last as the notebook rules ask;
-    # 101 seeds are plenty to see the sampling noise.
-    seed_slider, seed_box = htutori.build_widget_control(
-        "seed", "random seed", 0, 100, 1, 1, is_float=False
-    )
+    std_x2_slider, std_x2_box = shared["std_x2"]
+    std_y2_slider, std_y2_box = shared["std_y2"]
+    seed_slider, seed_box = shared["seed"]
     output = ipywidgets.Output()
 
     def update_plot(change: Optional[Any] = None) -> None:
@@ -1608,33 +1648,18 @@ def cell2_1_plot_winner_widget(
     """
     _LOG.debug(hprint.to_str("sport"))
     court = sport.court
-    half_width = court.width_m / 2
-    half_length = court.length_m / 2
     # Grid and samples per target of the map (decision D24).
     n_x, n_y = HEATMAP_GRID_SIZE[sport.name]
     n_samples = HEATMAP_N_SAMPLES
-    # Side of the serve and serve sliders, the same as in Cell 1.1: `(x1, y1)`
-    # anywhere on player 2's half, so faults are possible, starting in the
-    # middle of the deuce service box.
-    side_toggle = ipywidgets.ToggleButtons(
-        options=["deuce", "ad"], value="deuce", description="side"
-    )
-    x1_init = round(-half_width / 2, 1)
-    x1_slider, x1_box = htutori.build_widget_control(
-        "x1", "serve x", -half_width, half_width, 0.1, x1_init
-    )
-    y1_init = round((court.non_volley_zone_m + court.service_line_m) / 2, 1)
-    y1_slider, y1_box = htutori.build_widget_control(
-        "y1", "serve y", 0.1, half_length, 0.1, y1_init
-    )
-    # Spread of the return, the same as in Cell 1.1; it does not depend on
-    # the ball speed (decision D9, #723).
-    std_x2_slider, std_x2_box = htutori.build_widget_control(
-        "std_x2", "return std x", 0.1, 3.0, 0.1, 0.5
-    )
-    std_y2_slider, std_y2_box = htutori.build_widget_control(
-        "std_y2", "return std y", 0.1, 3.0, 0.1, 1.0
-    )
+    # The side of the serve, the serve sliders, the spread of the return, and
+    # the seed, as in Cell 1.1; the spread does not depend on the ball speed
+    # (decision D9, #723).
+    shared = _build_shared_controls(court)
+    side_toggle = shared["side"][0]
+    x1_slider, x1_box = shared["x1"]
+    y1_slider, y1_box = shared["y1"]
+    std_x2_slider, std_x2_box = shared["std_x2"]
+    std_y2_slider, std_y2_box = shared["std_y2"]
     # Ball speed of the return, from a slow 5 m/s to the sport's fastest ball.
     ball_speed_slider, ball_speed_box = htutori.build_widget_control(
         "ball_speed",
@@ -1653,10 +1678,7 @@ def cell2_1_plot_winner_widget(
     v_p_slider, v_p_box = htutori.build_widget_control(
         "v_p", "player 1 speed (m/s)", 0.0, 6.0, 0.1, 1.5
     )
-    # Seed of the Monte Carlo samples, last as in Cell 1.1.
-    seed_slider, seed_box = htutori.build_widget_control(
-        "seed", "random seed", 0, 100, 1, 1, is_float=False
-    )
+    seed_slider, seed_box = shared["seed"]
     output = ipywidgets.Output()
     # The settings string as text under the figure, so it can be copied.
     settings_line = ipywidgets.HTML()

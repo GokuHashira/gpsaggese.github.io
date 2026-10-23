@@ -2862,6 +2862,77 @@ class Test__build_fault_text(hunitest.TestCase):
 
 
 # #############################################################################
+# Test__build_shared_controls
+# #############################################################################
+
+
+class Test__build_shared_controls(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils._build_shared_controls()`.
+    """
+
+    def helper(self, sport: racket_params.SportParams, expected: str) -> None:
+        """
+        Test helper that builds the shared controls for `sport`.
+
+        :param sport: sport whose court sets the ranges
+        :param expected: expected controls, as `name: (min, max, value)`, and
+            the type of each box
+        """
+        # Run test.
+        controls = racket_shot_probability_utils._build_shared_controls(
+            sport.court
+        )
+        # Check outputs.
+        lines = []
+        for name, (control, box) in controls.items():
+            if name == "side":
+                lines.append(f"side: {control.options}, {control.value}")
+            else:
+                lines.append(
+                    f"{name}: ({control.min}, {control.max}, {control.value})"
+                    f" in {type(box).__name__}"
+                )
+        actual = "\n".join(lines)
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test the shared controls for tennis: the Cell 1.1 ranges and starting
+        values.
+        """
+        # Prepare inputs.
+        sport = racket_params.TENNIS
+        # Prepare outputs.
+        expected = """
+        side: ('deuce', 'ad'), deuce
+        x1: (-4.115, 4.115, -2.1) in HBox
+        y1: (0.1, 11.885, 3.2) in HBox
+        std_x2: (0.1, 3.0, 0.5) in HBox
+        std_y2: (0.1, 3.0, 1.0) in HBox
+        seed: (0, 100, 1) in HBox"""
+        # Run test and check outputs.
+        self.helper(sport, expected)
+
+    def test2(self) -> None:
+        """
+        Test the shared controls for pickleball, whose court is smaller.
+        """
+        # Prepare inputs.
+        sport = racket_params.PICKLEBALL
+        # Prepare outputs.
+        expected = """
+        side: ('deuce', 'ad'), deuce
+        x1: (-3.05, 3.05, -1.5) in HBox
+        y1: (0.1, 6.705, 4.4) in HBox
+        std_x2: (0.1, 3.0, 0.5) in HBox
+        std_y2: (0.1, 3.0, 1.0) in HBox
+        seed: (0, 100, 1) in HBox"""
+        # Run test and check outputs.
+        self.helper(sport, expected)
+
+
+# #############################################################################
 # Test_cell1_1_plot_shot_widget
 # #############################################################################
 
