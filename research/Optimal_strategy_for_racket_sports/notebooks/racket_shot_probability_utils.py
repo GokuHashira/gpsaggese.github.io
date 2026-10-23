@@ -17,6 +17,7 @@ import research.Optimal_strategy_for_racket_sports.notebooks.racket_shot_probabi
 """
 
 import dataclasses
+import html
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -1400,6 +1401,11 @@ def cell1_1_plot_shot_widget(
 # #############################################################################
 
 
+# Default ball speed of the return per sport, in m/s (decision D8):
+# illustrative values, well under each sport's `max_ball_speed_mps`.
+WINNER_BALL_SPEED_MPS = {"Tennis": 25.0, "Pickleball": 12.0}
+
+
 def _build_settings_string(
     sport_name: str,
     side: str,
@@ -1568,3 +1574,221 @@ def _build_winner_fault_text(
     )
     _LOG.debug("return=%s", text)
     return text
+
+
+def cell2_1_plot_winner_widget(
+    sport: racket_params.SportParams,
+    *,
+    figsize: Tuple[float, float] = (18.0, 7.0),
+) -> ipywidgets.VBox:
+    """
+    Build the winner probability widget for `sport` and display it.
+
+    Player 1 serves from the chosen side to `(x1, y1)`, with the serve rules
+    of Cell 1.1. If the serve is in, player 2 returns from `(x1, y1)`, and
+    every target of a grid over player 1's half gets its probability of a
+    winner, from the spread `(std_x2, std_y2)`, the ball speed, and player 1's
+    reaction time `t_r` and running speed `v_p`. Every control change redraws
+    a 1 x 2 figure:
+    - Court: the map of `P(winner)` from `plot_winner_heatmap()`, with the
+      best region and the best target; for a fault, the fault as in Cell 1.1,
+      and no map
+    - Comments: whether the serve is in; for a serve that is in, the best
+      target with its `P(winner)`, `P(in)`, and `P(reached)`, and the size of
+      the best region; the settings string; and the legend of the court
+    Under the figure, the settings string is repeated as text, which can be
+    selected and copied into the Gdoc: the comments panel is part of the
+    image (decision D34).
+
+    :param sport: sport whose court is drawn, e.g., `racket_params.TENNIS`
+    :param figsize: figure size (width, height) in inches; wide enough that
+        the settings string fits on one line
+    :return: the displayed widget: the controls, the plot output, then the
+        settings line
+    """
+    _LOG.debug(hprint.to_str("sport"))
+    court = sport.court
+    half_width = court.width_m / 2
+    half_length = court.length_m / 2
+    # Grid and samples per target of the map (decision D24).
+    n_x, n_y = HEATMAP_GRID_SIZE[sport.name]
+    n_samples = HEATMAP_N_SAMPLES
+    # Side of the serve and serve sliders, the same as in Cell 1.1: `(x1, y1)`
+    # anywhere on player 2's half, so faults are possible, starting in the
+    # middle of the deuce service box.
+    side_toggle = ipywidgets.ToggleButtons(
+        options=["deuce", "ad"], value="deuce", description="side"
+    )
+    x1_init = round(-half_width / 2, 1)
+    x1_slider, x1_box = htutori.build_widget_control(
+        "x1", "serve x", -half_width, half_width, 0.1, x1_init
+    )
+    y1_init = round((court.non_volley_zone_m + court.service_line_m) / 2, 1)
+    y1_slider, y1_box = htutori.build_widget_control(
+        "y1", "serve y", 0.1, half_length, 0.1, y1_init
+    )
+    # Spread of the return, the same as in Cell 1.1; it does not depend on
+    # the ball speed (decision D9, #723).
+    std_x2_slider, std_x2_box = htutori.build_widget_control(
+        "std_x2", "return std x", 0.1, 3.0, 0.1, 0.5
+    )
+    std_y2_slider, std_y2_box = htutori.build_widget_control(
+        "std_y2", "return std y", 0.1, 3.0, 0.1, 1.0
+    )
+    # Ball speed of the return, from a slow 5 m/s to the sport's fastest ball.
+    ball_speed_slider, ball_speed_box = htutori.build_widget_control(
+        "ball_speed",
+        "ball speed (m/s)",
+        5.0,
+        sport.max_ball_speed_mps,
+        0.5,
+        WINNER_BALL_SPEED_MPS[sport.name],
+    )
+    # Player 1's reaction time and running speed, starting at the values of
+    # `racket_params.DEFAULT_PLAYER` (decision D8); `v_p = 0` means that
+    # player 1 does not move.
+    t_r_slider, t_r_box = htutori.build_widget_control(
+        "t_r", "reaction time (s)", 0.0, 1.0, 0.05, 0.2
+    )
+    v_p_slider, v_p_box = htutori.build_widget_control(
+        "v_p", "player 1 speed (m/s)", 0.0, 6.0, 0.1, 1.5
+    )
+    # Seed of the Monte Carlo samples, last as in Cell 1.1.
+    seed_slider, seed_box = htutori.build_widget_control(
+        "seed", "random seed", 0, 100, 1, 1, is_float=False
+    )
+    output = ipywidgets.Output()
+    # The settings string as text under the figure, so it can be copied.
+    settings_line = ipywidgets.HTML()
+
+    def update_plot(change: Optional[Any] = None) -> None:
+        """
+        Redraw both panels and the settings line from the current control
+        values.
+
+        :param change: change event sent by `observe()` (unused)
+        """
+        _ = change
+        with output:
+            clear_output(wait=True)
+            # Read the control values, rounded before any logic uses them.
+            side = side_toggle.value
+            serve_xy = (
+                _round_slider_value(x1_slider.value),
+                _round_slider_value(y1_slider.value),
+            )
+            std_xy = (
+                _round_slider_value(std_x2_slider.value),
+                _round_slider_value(std_y2_slider.value),
+            )
+            ball_speed_mps = _round_slider_value(ball_speed_slider.value)
+            reaction_time_s = _round_slider_value(t_r_slider.value)
+            move_speed_mps = _round_slider_value(v_p_slider.value)
+            seed = int(seed_slider.value)
+            settings = _build_settings_string(
+                sport.name,
+                side,
+                serve_xy,
+                std_xy,
+                ball_speed_mps,
+                reaction_time_s,
+                move_speed_mps,
+                seed,
+                (n_x, n_y),
+                n_samples,
+            )
+            settings_line.value = (
+                f"settings: <code>{html.escape(settings)}</code>"
+            )
+            # The serve rules of Cell 1.1, for the chosen side.
+            box, fault = _check_serve(side, serve_xy[0], serve_xy[1], court)
+            # The comments panel is wider, so the settings string fits on one
+            # line.
+            fig, (ax_court, ax_text) = plt.subplots(
+                1, 2, figsize=figsize, gridspec_kw={"width_ratios": [1, 1.6]}
+            )
+            if fault:
+                # A fault ends the point: the fault of Cell 1.1, and no map.
+                racket_strategy_utils.draw_court(ax_court, court)
+                _draw_center_service_line(ax_court, court)
+                _draw_service_box(ax_court, box)
+                server_xy = _get_server_xy(side, court)
+                _draw_fault(ax_court, server_xy, serve_xy, court)
+                text = _build_winner_fault_text(serve_xy, side, fault, settings)
+            else:
+                # `P(winner)` of every target of the grid, then the map with
+                # the best region, the best target, and the two players.
+                heatmap = compute_winner_heatmap(
+                    serve_xy,
+                    std_xy,
+                    ball_speed_mps,
+                    reaction_time_s,
+                    move_speed_mps,
+                    court,
+                    n_x,
+                    n_y,
+                    n_samples,
+                    seed,
+                )
+                plot_winner_heatmap(ax_court, heatmap, court, serve_xy)
+                _draw_service_box(ax_court, box)
+                # The legend goes to the comments panel, below. The star's
+                # label repeats `P(winner)` with a standard error of 0 when
+                # every sample agrees, so the comments give the number
+                # instead (decision D18).
+                ax_court.get_legend().remove()
+                for line in ax_court.get_lines():
+                    if line.get_marker() == "*":
+                        line.set_label("best target (middle of the region)")
+                best = find_best_target(heatmap)
+                text = _build_winner_text(
+                    serve_xy, side, heatmap, best, n_samples, settings
+                )
+            ax_court.set_title(sport.name)
+            # Panel 2: comments with the current state only. At most 9 pt, so
+            # the longest settings string stays on one line at any DPI.
+            ax_text.axis("off")
+            ax_text.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
+            htutori.add_fitted_text_box(
+                ax_text, text, max_fontsize=9, min_fontsize=8
+            )
+            # Legend in the free lower part of the comments panel, so it never
+            # covers the court.
+            handles, labels = ax_court.get_legend_handles_labels()
+            ax_text.legend(handles, labels, loc="lower left", fontsize=10)
+            plt.tight_layout()
+            plt.show()
+            # A figure left open inside an `Output` widget can stall the kernel
+            # on rerun, so close it once shown.
+            plt.close(fig)
+
+    # Redraw on every control change: no Run button.
+    controls = [
+        side_toggle,
+        x1_slider,
+        y1_slider,
+        std_x2_slider,
+        std_y2_slider,
+        ball_speed_slider,
+        t_r_slider,
+        v_p_slider,
+        seed_slider,
+    ]
+    for control in controls:
+        control.observe(update_plot, names="value")
+    # Draw once now, so the cell has output even without interaction.
+    update_plot()
+    # Controls on top, the plot below, then the settings line.
+    boxes = [
+        x1_box,
+        y1_box,
+        std_x2_box,
+        std_y2_box,
+        ball_speed_box,
+        t_r_box,
+        v_p_box,
+        seed_box,
+    ]
+    widget = ipywidgets.VBox([side_toggle] + boxes + [output, settings_line])
+    display(widget)
+    return widget

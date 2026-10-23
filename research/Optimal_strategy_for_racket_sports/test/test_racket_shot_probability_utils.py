@@ -7,6 +7,7 @@ import research.Optimal_strategy_for_racket_sports.test.test_racket_shot_probabi
 """
 
 import dataclasses
+import html
 import logging
 import types
 import unittest.mock as umock
@@ -3284,3 +3285,319 @@ class Test__build_winner_fault_text(hunitest.TestCase):
         )
         # Check outputs.
         self.assert_equal(actual, expected, dedent=True)
+
+
+# #############################################################################
+# Test_cell2_1_plot_winner_widget
+# #############################################################################
+
+
+class Test_cell2_1_plot_winner_widget(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils.cell2_1_plot_winner_widget()`.
+    """
+
+    def _build_and_record(
+        self, sport: racket_params.SportParams
+    ) -> Tuple[ipywidgets.VBox, Dict[str, Any], List[Dict[str, Any]]]:
+        """
+        Build the widget, recording what every redraw shows.
+
+        For this test only, `plt.show()` is replaced by a function that saves,
+        for the figure being shown:
+        - "text": the text of the comments panel
+        - "values": the `P(winner)` of the map, flat in the image order (`y`
+          outer, `x` inner), or None if there is no map
+        - "star": the position of the star, or None
+        - "court_labels": the text labels of the court, e.g., "Fault"
+        - "legend_panel": the panels with a legend, e.g., "comments", or
+          "court+comments" if the court also kept one
+
+        :param sport: sport whose court the widget draws
+        :return: the widget, its controls by name, and the list of redraws
+        """
+        redraws: List[Dict[str, Any]] = []
+
+        def _record_redraw() -> None:
+            fig = plt.gcf()
+            # The comments panel by its title: the colorbar of the map is also
+            # an axes of the figure.
+            ax_court = fig.axes[0]
+            ax_text = [ax for ax in fig.axes if ax.get_title() == "Comments"][0]
+            meshes = [
+                c
+                for c in ax_court.collections
+                if isinstance(c, mcollections.QuadMesh)
+            ]
+            stars = [line for line in ax_court.lines if line.get_marker() == "*"]
+            # Every panel with a legend, so a legend left on the court shows
+            # even when the comments panel has one too.
+            panels = [("court", ax_court), ("comments", ax_text)]
+            legend_panel = "+".join(
+                name for name, ax in panels if ax.get_legend() is not None
+            )
+            redraws.append(
+                {
+                    "text": ax_text.texts[-1].get_text(),
+                    "values": (
+                        np.asarray(meshes[0].get_array()).ravel().copy()
+                        if meshes
+                        else None
+                    ),
+                    "star": (
+                        tuple(stars[0].get_xydata()[0].tolist())
+                        if stars
+                        else None
+                    ),
+                    "court_labels": [
+                        t.get_text()
+                        for t in ax_court.texts
+                        if not isinstance(t, mtext.Annotation)
+                    ],
+                    "legend_panel": legend_panel,
+                }
+            )
+
+        self.enterContext(
+            umock.patch.object(
+                racket_shot_probability_utils.plt,
+                "show",
+                side_effect=_record_redraw,
+            )
+        )
+        widget = racket_shot_probability_utils.cell2_1_plot_winner_widget(sport)
+        # The side toggle, then one `[slider, -, text, +]` box per slider,
+        # then the plot and the settings line.
+        controls: Dict[str, Any] = {"side": widget.children[0]}
+        for box in widget.children[1:-2]:
+            controls[box.children[0].description] = box.children[0]
+        return widget, controls, redraws
+
+    def _get_direct_heatmap(
+        self, sport: racket_params.SportParams, controls: Dict[str, Any]
+    ) -> pd.DataFrame:
+        """
+        Compute the map with `compute_winner_heatmap()` called directly, for the
+        current values of the controls and the default grid.
+
+        :param sport: sport of the widget
+        :param controls: controls of the widget, by name
+        :return: the heatmap
+        """
+        n_x, n_y = racket_shot_probability_utils.HEATMAP_GRID_SIZE[sport.name]
+        heatmap: pd.DataFrame = (
+            racket_shot_probability_utils.compute_winner_heatmap(
+                (controls["x1"].value, controls["y1"].value),
+                (controls["std_x2"].value, controls["std_y2"].value),
+                controls["ball_speed"].value,
+                controls["t_r"].value,
+                controls["v_p"].value,
+                sport.court,
+                n_x,
+                n_y,
+                racket_shot_probability_utils.HEATMAP_N_SAMPLES,
+                controls["seed"].value,
+            )
+        )
+        return heatmap
+
+    def helper(self, sport: racket_params.SportParams, expected: str) -> None:
+        """
+        Test helper that builds the widget, which also renders its first plot,
+        and checks the controls and the settings string of that plot.
+
+        :param sport: sport whose court the widget draws
+        :param expected: expected controls, as `name: (min, max, value)`, and
+            settings string
+        """
+        # Run test.
+        widget, controls, redraws = self._build_and_record(sport)
+        # Check outputs.
+        # The side toggle, 8 slider boxes, the plot, then the settings line.
+        types = [type(child).__name__ for child in widget.children]
+        self.assert_equal(
+            str(types),
+            str(["ToggleButtons"] + ["HBox"] * 8 + ["Output", "HTML"]),
+        )
+        lines = [f"side: {controls['side'].options}, {controls['side'].value}"]
+        for name, control in list(controls.items())[1:]:
+            lines.append(
+                f"{name}: ({control.min}, {control.max}, {control.value})"
+            )
+        lines.append(redraws[-1]["text"].splitlines()[-1])
+        actual = "\n".join(lines)
+        plt.close("all")
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test that the widget builds and renders for tennis, with its default
+        controls.
+        """
+        # Prepare inputs.
+        sport = racket_params.TENNIS
+        # Prepare outputs.
+        # A ball speed of 25 m/s up to the tennis maximum of 73.14 m/s.
+        expected = """
+        side: ('deuce', 'ad'), deuce
+        x1: (-4.115, 4.115, -2.1)
+        y1: (0.1, 11.885, 3.2)
+        std_x2: (0.1, 3.0, 0.5)
+        std_y2: (0.1, 3.0, 1.0)
+        ball_speed: (5.0, 73.14, 25.0)
+        t_r: (0.0, 1.0, 0.2)
+        v_p: (0.0, 6.0, 1.5)
+        seed: (0, 100, 1)
+        sport=Tennis side=deuce x1=-2.1 y1=3.2 std_x2=0.5 std_y2=1.0 ball_speed=25.0 t_r=0.2 v_p=1.5 seed=1 n_x=10 n_y=15 n_samples=5000"""
+        # Run test and check outputs.
+        self.helper(sport, expected)
+
+    def test2(self) -> None:
+        """
+        Test that the widget builds and renders for pickleball, with its default
+        controls.
+        """
+        # Prepare inputs.
+        sport = racket_params.PICKLEBALL
+        # Prepare outputs.
+        # A ball speed of 12 m/s up to the pickleball maximum of 24.59 m/s.
+        expected = """
+        side: ('deuce', 'ad'), deuce
+        x1: (-3.05, 3.05, -1.5)
+        y1: (0.1, 6.705, 4.4)
+        std_x2: (0.1, 3.0, 0.5)
+        std_y2: (0.1, 3.0, 1.0)
+        ball_speed: (5.0, 24.59, 12.0)
+        t_r: (0.0, 1.0, 0.2)
+        v_p: (0.0, 6.0, 1.5)
+        seed: (0, 100, 1)
+        sport=Pickleball side=deuce x1=-1.5 y1=4.4 std_x2=0.5 std_y2=1.0 ball_speed=12.0 t_r=0.2 v_p=1.5 seed=1 n_x=9 n_y=10 n_samples=5000"""
+        # Run test and check outputs.
+        self.helper(sport, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a fault shows no map, the fault, and the settings string, with
+        the legend in the comments panel.
+        """
+        # Prepare inputs.
+        sport = racket_params.TENNIS
+        # The default `x1` (-2.1) is in the deuce box, so an ad serve to it
+        # goes into the wrong box.
+        side = "ad"
+        # Prepare outputs.
+        expected = """
+        redraws=1 map=False star=False labels=['Fault'] legend=comments
+        Serve to (x1, y1) = (-2.10, 3.20)
+          in the ad box: no
+
+        Fault: into the wrong box
+          No return, so no P(winner) and no heatmap
+
+        Settings:
+        sport=Tennis side=ad x1=-2.1 y1=3.2 std_x2=0.5 std_y2=1.0 ball_speed=25.0 t_r=0.2 v_p=1.5 seed=1 n_x=10 n_y=15 n_samples=5000"""
+        # Run test.
+        _, controls, redraws = self._build_and_record(sport)
+        n_before = len(redraws)
+        controls["side"].value = side
+        last = redraws[-1]
+        actual = (
+            f"redraws={len(redraws) - n_before} "
+            f"map={last['values'] is not None} star={last['star'] is not None} "
+            f"labels={last['court_labels']} legend={last['legend_panel']}\n"
+            + last["text"]
+        )
+        plt.close("all")
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test4(self) -> None:
+        """
+        Test that the map, the star, and the comments equal the Phase 3
+        functions called directly, with the legend in the comments panel.
+        """
+        # Prepare inputs.
+        sport = racket_params.PICKLEBALL
+        # Run test.
+        _, controls, redraws = self._build_and_record(sport)
+        last = redraws[-1]
+        heatmap = self._get_direct_heatmap(sport, controls)
+        best = racket_shot_probability_utils.find_best_target(heatmap)
+        plt.close("all")
+        # Check outputs.
+        # The map holds the direct `P(winner)` of every cell, in `cell_id`
+        # order.
+        expected_values = heatmap.sort_values("cell_id")["p_winner"].to_numpy()
+        np.testing.assert_array_equal(last["values"], expected_values)
+        # The star and the comments give the same best target.
+        self.assertEqual(last["star"], (best["x_m"], best["y_m"]))
+        p_winner = racket_shot_probability_utils._format_p_winner(
+            best["p_winner"],
+            best["p_winner_se"],
+            racket_shot_probability_utils.HEATMAP_N_SAMPLES,
+        )
+        star_xy = racket_shot_probability_utils._format_point(last["star"])
+        expected = (
+            f"Best target (star) = {star_xy}\n  P(winner) = {p_winner}\n"
+            f"legend=comments"
+        )
+        actual = (
+            "\n".join(last["text"].splitlines()[3:5])
+            + f"\nlegend={last['legend_panel']}"
+        )
+        self.assert_equal(actual, expected)
+
+    def test5(self) -> None:
+        """
+        Test that the `v_p` slider redraws once and reaches the map.
+        """
+        # Prepare inputs.
+        sport = racket_params.PICKLEBALL
+        move_speed_mps = 6.0
+        # Run test.
+        _, controls, redraws = self._build_and_record(sport)
+        n_before = len(redraws)
+        controls["v_p"].value = move_speed_mps
+        last = redraws[-1]
+        heatmap = self._get_direct_heatmap(sport, controls)
+        plt.close("all")
+        # Check outputs.
+        self.assertEqual(len(redraws) - n_before, 1)
+        self.assertIn("v_p=6.0", last["text"].splitlines()[-1])
+        expected_values = heatmap.sort_values("cell_id")["p_winner"].to_numpy()
+        np.testing.assert_array_equal(last["values"], expected_values)
+        # A faster player 1 reaches more returns, so the map changed.
+        self.assertFalse(np.array_equal(last["values"], redraws[0]["values"]))
+
+    def test6(self) -> None:
+        """
+        Test that the settings line under the figure, which can be copied, is
+        the settings string of the comments panel after every redraw.
+        """
+        # Prepare inputs.
+        sport = racket_params.PICKLEBALL
+        # Run test.
+        widget, controls, redraws = self._build_and_record(sport)
+        settings_line = widget.children[-1]
+        lines = [settings_line.value]
+        texts = [redraws[-1]["text"]]
+        controls["seed"].value = 2
+        lines.append(settings_line.value)
+        texts.append(redraws[-1]["text"])
+        # A fault keeps the line too.
+        controls["side"].value = "ad"
+        lines.append(settings_line.value)
+        texts.append(redraws[-1]["text"])
+        plt.close("all")
+        # Check outputs.
+        expected = (
+            "settings: <code>sport=Pickleball side=ad x1=-1.5 y1=4.4 "
+            "std_x2=0.5 std_y2=1.0 ball_speed=12.0 t_r=0.2 v_p=1.5 "
+            "seed=2 n_x=9 n_y=10 n_samples=5000</code>"
+        )
+        self.assert_equal(lines[-1], expected)
+        for line, text in zip(lines, texts):
+            settings = text.splitlines()[-1]
+            self.assertEqual(
+                line, f"settings: <code>{html.escape(settings)}</code>"
+            )
