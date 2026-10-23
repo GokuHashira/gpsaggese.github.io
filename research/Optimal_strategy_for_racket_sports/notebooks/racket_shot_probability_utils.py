@@ -1393,3 +1393,178 @@ def cell1_1_plot_shot_widget(
     widget = ipywidgets.VBox([side_toggle] + boxes + [output])
     display(widget)
     return widget
+
+
+# #############################################################################
+# Cell 2.1: Winner probability widget
+# #############################################################################
+
+
+def _build_settings_string(
+    sport_name: str,
+    side: str,
+    serve_xy: Tuple[float, float],
+    std_xy: Tuple[float, float],
+    ball_speed_mps: float,
+    reaction_time_s: float,
+    move_speed_mps: float,
+    seed: int,
+    grid_size: Tuple[int, int],
+    n_samples: int,
+) -> str:
+    """
+    Build the one-line settings string of the winner widget.
+
+    It lists every control as `name=value`, in the order of the controls, then
+    the grid size and the samples per target, so a result copied into the
+    Gdoc can be reproduced exactly (GP on #694). Each float is written with
+    `repr()`, the shortest text that reads back as the same float, e.g.,
+    "-2.1" and not "-2.10".
+
+    :param sport_name: name of the sport, e.g., "Tennis"
+    :param side: "deuce" or "ad", the side the server serves from
+    :param serve_xy: where the serve lands, `(x1, y1)`
+    :param std_xy: standard deviations `(std_x2, std_y2)` of the return
+    :param ball_speed_mps: speed of the return in m/s
+    :param reaction_time_s: reaction time `t_r` of player 1 in seconds
+    :param move_speed_mps: running speed `v_p` of player 1 in m/s
+    :param seed: seed of the Monte Carlo samples
+    :param grid_size: grid `(n_x, n_y)` of the map, e.g., `(10, 15)`
+    :param n_samples: Monte Carlo samples per target, e.g., 5000
+    :return: e.g., "sport=Tennis side=deuce x1=-2.1 y1=3.2 std_x2=0.5
+        std_y2=1.0 ball_speed=25.0 t_r=0.2 v_p=1.5 seed=1 n_x=10 n_y=15
+        n_samples=5000"
+    """
+    _LOG.debug(
+        hprint.to_str("sport_name side serve_xy std_xy seed grid_size n_samples")
+    )
+    values = [
+        ("sport", sport_name),
+        ("side", side),
+        ("x1", repr(float(serve_xy[0]))),
+        ("y1", repr(float(serve_xy[1]))),
+        ("std_x2", repr(float(std_xy[0]))),
+        ("std_y2", repr(float(std_xy[1]))),
+        ("ball_speed", repr(float(ball_speed_mps))),
+        ("t_r", repr(float(reaction_time_s))),
+        ("v_p", repr(float(move_speed_mps))),
+        ("seed", str(int(seed))),
+        ("n_x", str(int(grid_size[0]))),
+        ("n_y", str(int(grid_size[1]))),
+        ("n_samples", str(int(n_samples))),
+    ]
+    settings = " ".join(f"{name}={value}" for name, value in values)
+    _LOG.debug("return=%s", settings)
+    return settings
+
+
+def _format_p_winner(p_winner: float, p_winner_se: float, n_samples: int) -> str:
+    """
+    Format a probability of a winner with its standard error.
+
+    When every sample agrees (`P(winner)` is 0 or 1) the standard error
+    `sqrt(p * (1 - p) / N)` is 0, which does not mean that there is no
+    uncertainty (decision D18): the count of winners is shown instead.
+
+    :param p_winner: probability of a winner, from `find_best_target()`
+    :param p_winner_se: its standard error
+    :param n_samples: number of Monte Carlo samples per target
+    :return: e.g., "0.9312 +- 0.0036 (N = 5000)", or "1.0000 (5000 of 5000
+        samples)" when the standard error is 0
+    """
+    _LOG.debug(hprint.to_str("p_winner p_winner_se n_samples"))
+    if p_winner_se > 0:
+        text = f"{p_winner:.4f} +- {p_winner_se:.4f} (N = {n_samples})"
+    else:
+        n_winners = int(round(p_winner * n_samples))
+        text = f"{p_winner:.4f} ({n_winners} of {n_samples} samples)"
+    _LOG.debug("return=%s", text)
+    return text
+
+
+def _format_point(xy: Tuple[float, float]) -> str:
+    """
+    Format a point as "(x, y)" with 2 decimals, never as "-0.00".
+
+    Grid cell centers can be off by a rounding error, e.g., -2.2e-16 instead
+    of 0 for the middle column of the pickleball grid, which would print as
+    "-0.00".
+
+    :param xy: point in meters, e.g., `(-2.2e-16, -3.0175)`
+    :return: e.g., "(0.00, -3.02)"
+    """
+    _LOG.debug(hprint.to_str("xy"))
+    # Adding 0.0 turns the -0.0 of `round()` into 0.0.
+    x, y = (round(float(value), 6) + 0.0 for value in xy)
+    text = f"({x:.2f}, {y:.2f})"
+    _LOG.debug("return=%s", text)
+    return text
+
+
+def _build_winner_text(
+    serve_xy: Tuple[float, float],
+    side: str,
+    heatmap: pd.DataFrame,
+    best: Dict[str, float],
+    n_samples: int,
+    settings: str,
+) -> str:
+    """
+    Build the text of the comments panel of the winner widget for a serve
+    that is in.
+
+    :param serve_xy: where the serve lands, `(x1, y1)`
+    :param side: "deuce" or "ad", the side the server serves from
+    :param heatmap: the map from `compute_winner_heatmap()`
+    :param best: the best target of `heatmap`, from `find_best_target()`
+    :param n_samples: number of Monte Carlo samples per target
+    :param settings: settings string, from `_build_settings_string()`
+    :return: multi-line text, e.g., starting with
+        "Serve to (x1, y1) = (-2.10, 3.20)"
+    """
+    _LOG.debug(hprint.to_str("serve_xy side best n_samples settings"))
+    # The row of the marked target, for its `P(in)` and `P(reached)`: the star
+    # is a cell of `heatmap`, so its coordinates match exactly.
+    is_best = (heatmap["x_m"] == best["x_m"]) & (heatmap["y_m"] == best["y_m"])
+    hdbg.dassert_eq(
+        int(is_best.sum()), 1, "The best target must be one cell of heatmap"
+    )
+    row = heatmap[is_best].iloc[0]
+    p_winner = _format_p_winner(best["p_winner"], best["p_winner_se"], n_samples)
+    text = (
+        f"Serve to (x1, y1) = ({serve_xy[0]:.2f}, {serve_xy[1]:.2f})\n"
+        f"  in the {side} box: yes\n\n"
+        f"Best target (star) = {_format_point((best['x_m'], best['y_m']))}\n"
+        f"  P(winner) = {p_winner}\n"
+        f"  P(in) = {row['p_in']:.4f}, P(reached) = {row['p_reached']:.4f}\n"
+        f"Best region: {int(best['n_region_cells'])} of {len(heatmap)} cells\n"
+        f"  within {_BEST_REGION_N_SE:g} SE of the highest P(winner)\n\n"
+        f"Settings:\n{settings}"
+    )
+    _LOG.debug("return=%s", text)
+    return text
+
+
+def _build_winner_fault_text(
+    serve_xy: Tuple[float, float], side: str, fault: str, settings: str
+) -> str:
+    """
+    Build the text of the comments panel of the winner widget for a serve
+    that is a fault.
+
+    :param serve_xy: where the serve lands, `(x1, y1)`
+    :param side: "deuce" or "ad", the side the server serves from
+    :param fault: why the serve is a fault, from `_check_serve()`, e.g., "long"
+    :param settings: settings string, from `_build_settings_string()`
+    :return: multi-line text, e.g., with the line "Fault: long"
+    """
+    _LOG.debug(hprint.to_str("serve_xy side fault settings"))
+    text = (
+        f"Serve to (x1, y1) = ({serve_xy[0]:.2f}, {serve_xy[1]:.2f})\n"
+        f"  in the {side} box: no\n\n"
+        f"Fault: {fault}\n"
+        f"  No return, so no P(winner) and no heatmap\n\n"
+        f"Settings:\n{settings}"
+    )
+    _LOG.debug("return=%s", text)
+    return text

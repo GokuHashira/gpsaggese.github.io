@@ -3012,3 +3012,275 @@ class Test_cell1_1_plot_shot_widget(hunitest.TestCase):
         plt.close("all")
         # Check outputs.
         self.assert_equal(actual, expected, dedent=True)
+
+
+# #############################################################################
+# Test__build_settings_string
+# #############################################################################
+
+
+class Test__build_settings_string(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils._build_settings_string()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that every setting is listed once, in the order of the controls,
+        then the grid size and the samples per target.
+        """
+        # Prepare inputs.
+        sport_name = "Tennis"
+        side = "deuce"
+        serve_xy = (-2.1, 3.2)
+        std_xy = (0.5, 1.0)
+        ball_speed_mps = 25.0
+        reaction_time_s = 0.2
+        move_speed_mps = 1.5
+        seed = 1
+        grid_size = (10, 15)
+        n_samples = 5000
+        # Prepare outputs.
+        expected = (
+            "sport=Tennis side=deuce x1=-2.1 y1=3.2 std_x2=0.5 std_y2=1.0 "
+            "ball_speed=25.0 t_r=0.2 v_p=1.5 seed=1 n_x=10 n_y=15 "
+            "n_samples=5000"
+        )
+        # Run test.
+        actual = racket_shot_probability_utils._build_settings_string(
+            sport_name,
+            side,
+            serve_xy,
+            std_xy,
+            ball_speed_mps,
+            reaction_time_s,
+            move_speed_mps,
+            seed,
+            grid_size,
+            n_samples,
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test that each value reads back as exactly the same number.
+        """
+        # Prepare inputs.
+        # Values that 2 decimals would round: the pickleball maximum ball speed
+        # and a reaction time of 3 `+` clicks of 0.05 from 0.2.
+        values = {
+            "x1": 1.234567,
+            "y1": 6.705,
+            "std_x2": 0.1,
+            "std_y2": 3.0,
+            "ball_speed": 24.59,
+            "t_r": 0.35,
+            "v_p": 0.0,
+            "seed": 100,
+            "n_x": 9,
+            "n_y": 10,
+            "n_samples": 5000,
+        }
+        # Run test.
+        settings = racket_shot_probability_utils._build_settings_string(
+            "Pickleball",
+            "ad",
+            (values["x1"], values["y1"]),
+            (values["std_x2"], values["std_y2"]),
+            values["ball_speed"],
+            values["t_r"],
+            values["v_p"],
+            int(values["seed"]),
+            (int(values["n_x"]), int(values["n_y"])),
+            int(values["n_samples"]),
+        )
+        parsed = dict(item.split("=", 1) for item in settings.split(" "))
+        # Check outputs.
+        self.assert_equal(
+            str(list(parsed)),
+            str(["sport", "side"] + list(values)),
+        )
+        for name, value in values.items():
+            self.assertEqual(float(parsed[name]), value, name)
+
+
+# #############################################################################
+# Test__format_p_winner
+# #############################################################################
+
+
+class Test__format_p_winner(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils._format_p_winner()`.
+    """
+
+    def helper(self, p_winner: float, p_winner_se: float, expected: str) -> None:
+        """
+        Test helper for `_format_p_winner()` with 5000 samples.
+
+        :param p_winner: probability of a winner
+        :param p_winner_se: its standard error
+        :param expected: expected text
+        """
+        # Prepare inputs.
+        n_samples = 5000
+        # Run test.
+        actual = racket_shot_probability_utils._format_p_winner(
+            p_winner, p_winner_se, n_samples
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test a probability with a standard error above 0.
+        """
+        # Prepare inputs.
+        p_winner = 0.9312
+        p_winner_se = 0.003578
+        # Prepare outputs.
+        expected = "0.9312 +- 0.0036 (N = 5000)"
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test2(self) -> None:
+        """
+        Test that a probability of 0 gives the count of winners, not a standard
+        error of 0.
+        """
+        # Prepare inputs.
+        p_winner = 0.0
+        p_winner_se = 0.0
+        # Prepare outputs.
+        expected = "0.0000 (0 of 5000 samples)"
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+    def test3(self) -> None:
+        """
+        Test that a probability of 1 gives the count of winners.
+        """
+        # Prepare inputs.
+        p_winner = 1.0
+        p_winner_se = 0.0
+        # Prepare outputs.
+        expected = "1.0000 (5000 of 5000 samples)"
+        # Run test and check outputs.
+        self.helper(p_winner, p_winner_se, expected)
+
+
+# #############################################################################
+# Test__format_point
+# #############################################################################
+
+
+class Test__format_point(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils._format_point()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that a rounding error around 0 does not print as "-0.00".
+        """
+        # Prepare inputs.
+        # The middle column of the pickleball grid, as `make_target_grid()`
+        # computes it.
+        xy = (-2.220446049250313e-16, -3.0175)
+        # Prepare outputs.
+        expected = "(0.00, -3.02)"
+        # Run test.
+        actual = racket_shot_probability_utils._format_point(xy)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+
+# #############################################################################
+# Test__build_winner_text
+# #############################################################################
+
+
+class Test__build_winner_text(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils._build_winner_text()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that the text gives the numbers of the marked target, from its own
+        row of the heatmap.
+        """
+        # Prepare inputs.
+        # A 3 x 4 tennis grid with `P(winner)` from 0.2 to 0.8 in grid order,
+        # so the last cell is the best and the only one of the best region;
+        # `P(in)` and `P(reached)` differ in every row.
+        court = racket_params.TENNIS.court
+        region = racket_shot_probability_utils.get_striker_half_region(court)
+        heatmap = racket_scoring.make_target_grid(region, 3, 4)
+        heatmap["p_winner"] = np.linspace(0.2, 0.8, len(heatmap))
+        heatmap["p_winner_se"] = 0.01
+        heatmap["p_in"] = np.linspace(0.3, 0.9, len(heatmap))
+        heatmap["p_reached"] = np.linspace(0.0, 0.11, len(heatmap))
+        best = racket_shot_probability_utils.find_best_target(heatmap)
+        serve_xy = (-2.1, 3.2)
+        side = "deuce"
+        n_samples = 5000
+        settings = "sport=Tennis side=deuce"
+        # Prepare outputs.
+        expected = """
+        Serve to (x1, y1) = (-2.10, 3.20)
+          in the deuce box: yes
+
+        Best target (star) = (2.74, -1.49)
+          P(winner) = 0.8000 +- 0.0100 (N = 5000)
+          P(in) = 0.9000, P(reached) = 0.1100
+        Best region: 1 of 12 cells
+          within 2 SE of the highest P(winner)
+
+        Settings:
+        sport=Tennis side=deuce"""
+        # Run test.
+        actual = racket_shot_probability_utils._build_winner_text(
+            serve_xy, side, heatmap, best, n_samples, settings
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
+
+
+# #############################################################################
+# Test__build_winner_fault_text
+# #############################################################################
+
+
+class Test__build_winner_fault_text(hunitest.TestCase):
+    """
+    Test `racket_shot_probability_utils._build_winner_fault_text()`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that a fault names the reason, shows no probability, and keeps the
+        settings string.
+        """
+        # Prepare inputs.
+        serve_xy = (-2.1, 3.2)
+        side = "ad"
+        fault = "into the wrong box"
+        settings = "sport=Tennis side=ad"
+        # Prepare outputs.
+        expected = """
+        Serve to (x1, y1) = (-2.10, 3.20)
+          in the ad box: no
+
+        Fault: into the wrong box
+          No return, so no P(winner) and no heatmap
+
+        Settings:
+        sport=Tennis side=ad"""
+        # Run test.
+        actual = racket_shot_probability_utils._build_winner_fault_text(
+            serve_xy, side, fault, settings
+        )
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
