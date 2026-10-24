@@ -36,5 +36,6 @@ placeholder is committed until the reviewed paid run is executed.
 | `spec.PR_P2.md`                | Implementation spec: containerized cloud deployment                                   | Specs      |
 | `spec.PR_P2b.md`               | Implementation spec: Postgres backend                                                 | Specs      |
 | `spec.PR_S13.md`               | Implementation spec: standalone monitoring and model-nerfing detection                | Specs      |
+| `research.model_quality.md`    | Open research questions and candidate model-quality monitoring experiments            | Research   |
 | `dev_notes.md`                 | Build and OpenAPI-generation notes                                                    | Notes      |
 | `gp_todos.md`                  | Open TODOs                                                                            | Notes      |
