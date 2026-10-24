@@ -34,6 +34,7 @@ def _contract(
         checker_policy="m2-v1",
         window_start=window_start,
         window_end=None,
+        seller_id="seller_1",
     )
 
 
