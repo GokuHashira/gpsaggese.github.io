@@ -1,26 +1,37 @@
 // type=UMD_slides
 // course_title=NewCo: Investor Presentation
-// lesson_title=Series Seed: Automate customer / investor outreach with AI
+// lesson_title=Series Seed: Automating outreach for customers and investors with AI
 // Authors=GP, Samarth, Vedanshu
 // logo=assets/images/NewCo_logo_placeholder.png
 // slides_engine=typst
 
 * NewCo at a Glance
 
-- @What@: AI agents to find and book qualified sales meetings
+- @Problem@: Any company runs outreach to get meetings with customers, talent, and
+  investors
 
-- @Who pays@: founders and B2B sales teams who need meetings with
-  investors, customers, and partners
+- @What@: NewCo use AI agents to find and book qualified sales meetings
 
-- @Model@: pay per confirmed meeting, in packs of 10, 50, or 100
+- @Who pays@: founders and B2B sales teams who need meetings with customers,
+  investors, and partners
 
-- @Edge@: NewCo
+- @Business model@: pay per _confirmed meeting_ in packs of 10, 50, or 100
+
+- @Edge@: NewCo:
+  - Provide meeting-as-a-service to customers so that they don't divert energy
+    from core functions
   - Centralizes all the knowledge for finding and booking meetings using AI
-  - Carries the cost of failed outreach and the risk to the sender's domain
+  - Carries the cost of failed outreach attempts
 
 - @Raising@: $1M Series Seed round to reach \<MILESTONE\>
 
 * Outbound Burns Time, Money, and is Risky for Customers
+
+- @Problem@: Companies need to find and engage with
+  - Customers to increase sales
+  - Investors to raise money
+  - Talent to fuel expansion
+  - ...
 
 // TODO(gp): Find reference
 - @Under 1% hit rate@: hundreds of cold emails yield a handful of replies
@@ -186,9 +197,6 @@ digraph ProductFlow {
 
 ::: columns
 :::: {.column width=60%}
-// TODO(gp): Provide <TAM>, <N>, <REGION>, <M>, <P> with a cited source for each : not in the input
-// TODO(gp): Check the 10% of firms that run outbound: assumption, no source found
-// TODO(gp): Check the $325 price: midpoint of vendor ranges, should match <PRICE>
 - **TAM \$21B a year**: about 550K B2B teams in the US that run outbound
   $\times$ 120 meetings a year $\times$ \$325 per meeting
   - Inputs: 5.5M US firms (Census BDS), about 10 meetings per rep a month
@@ -398,9 +406,9 @@ digraph GoToMarket {
 
 * Pipeline Built and Running Since 2024
 
-// TODO(ai_gp): Used this flow to help more than 60 UMD startup raise $10M in seed
-// funding and booking more than 6600 interviews in many verticals
-// See https://docs.google.com/presentation/d/1eVMExBQyzNP_JJnhJqvf9X7jkL9YK8Rn/edit#slide=id.p17
+// TODO(gp): Check whether the $10M is the total raised or per startup
+- **Track record**: this pipeline helped more than 60 UMD startups raise \$10M
+  in seed funding and book more than 6,600 interviews
 
 // TODO(gp): Provide meetings booked, paying customers, and letters of intent : not in the input
 - **Commercial**: \<MEETINGS\> meetings booked, \<CUSTOMERS\> paying
@@ -493,3 +501,6 @@ digraph GoToMarket {
 - **MarketsandMarkets**: _"AI SDR Market: Global Forecast to 2030"_, market
   report (2025),
   https://www.marketsandmarkets.com/Market-Reports/ai-sdr-market-83561460.html
+
+- **UMD startups**: internal slides on pipeline results,
+  https://docs.google.com/presentation/d/1eVMExBQyzNP_JJnhJqvf9X7jkL9YK8Rn/edit#slide=id.p17
