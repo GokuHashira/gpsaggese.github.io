@@ -5,10 +5,14 @@
 // logo=assets/images/NewCo_logo_placeholder.png
 // slides_engine=typst
 
+# Elevator Pitch
+
 * NewCo at a Glance
 
 - @Problem@: Any company runs outreach to get meetings with customers, talent, and
   investors
+  - Requires specialized expertise that companies don't have
+  - Requires effort and it yields very low conversion rate
 
 - @What@: NewCo use AI agents to find and book qualified sales meetings
 
@@ -18,12 +22,15 @@
 - @Business model@: pay per _confirmed meeting_ in packs of 10, 50, or 100
 
 - @Edge@: NewCo:
-  - Provide meeting-as-a-service to customers so that they don't divert energy
+  - Provides meeting-as-a-service to customers so that they don't divert energy
     from core functions
   - Centralizes all the knowledge for finding and booking meetings using AI
   - Carries the cost of failed outreach attempts
+  - Provides a meeting-as-a-service to companies
 
 - @Raising@: $1M Series Seed round to reach \<MILESTONE\>
+
+# Problem and Solution
 
 * Outbound Burns Time, Money, and is Risky for Customers
 
@@ -193,6 +200,148 @@ digraph ProductFlow {
   - E.g., \$0.016 to \$0.03 per email
   - The problem is the "intelligence" now to find the signal in the data
 
+
+* Pipeline Built and Running Since 2024
+
+// TODO(gp): Check whether the $10M is the total raised or per startup
+- **Track record**: this pipeline helped more than 60 UMD startups raise \$10M
+  in seed funding and book more than 6,600 interviews
+
+// TODO(gp): Provide meetings booked, paying customers, and letters of intent : not in the input
+- **Commercial**: \<MEETINGS\> meetings booked, \<CUSTOMERS\> paying
+  customers, \<LOIS\> letters of intent as of \<MONTH_YEAR\>
+
+// TODO(gp): Check the start date : the meeting notes discuss lead automation on 2024-06-03, so the pipeline may be older
+- **Live since June 2024**: in-house pipeline from Sales Navigator search to
+  a custom email per company
+
+- **5 data vendors benchmarked**: PhantomBuster, Hunter.io, Dropcontact,
+  Snov.io, and Proxycurl on accuracy, speed, and price
+
+// TODO(gp): Check which target lists are complete : the notes show them as tasks in progress
+- **3 verticals targeted**: fintech, sports betting, and ERCOT energy
+
+// TODO(gp): Check I-Corps participation and provide <INTERVIEWS> : only a doc title mentions I-Corps
+- **NSF I-Corps**: \<INTERVIEWS\> customer discovery interviews
+
+# Competitive Analysis
+
+* Everyone Else Bills for Effort
+
+// TODO(gp): Check pricing and domain risk of appointment-setting agencies : not in the input, some may already charge per meeting
+```{=typst}
+#styled-table(
+  headers: ("Option", "Customer pays for", "Finds prospects", "Who takes domain risk", "Books meeting"),
+  rows: (
+    ("Manual outreach", "Staff time", "By hand", "Customer", "By hand"),
+    ("Hunter.io, Dropcontact, Snov.io", "Each email found", "Emails only", "Customer", "No"),
+    ("Sales Navigator, PhantomBuster", "Seats, credits", "Yes", "Customer", "No"),
+    ("Appointment-setting agencies", "<MODEL>", "Yes", "<RISK>", "Yes"),
+    ("NewCo", "Confirmed meeting", "AI agents", "NewCo", "Yes"),
+  ),
+  col-widths: (1.8fr, 1.2fr, 1fr, 1.2fr, 1fr),
+  bold-first-col: true,
+)
+```
+
+// TODO(gp): Provide the moat that stops agencies and tools from copying the pricing : not in the input
+- **NewCo's edge**: paid only on outcome, while taking on the outreach work
+  and the domain risk
+
+* Pricing: \$\<PRICE\> per Confirmed Meeting
+
+// TODO(gp): Provide <PRICE> and <REORDERS> : not in the input
+- **Pricing**: \$\<PRICE\> per confirmed meeting, sold in packs of 10, 50,
+  or 100
+
+- **Repeat buying**: \<REORDERS\> packs per customer a year
+
+// TODO(gp): Check prospects per meeting : the product doc plans about 10 (a 10% meeting rate), but the problem slide states a hit rate below 1%
+- **Cost driver**: cost per meeting = cost per prospect $\times$ prospects
+  contacted per meeting, planned at about 10
+
+// TODO(gp): Provide cost per meeting, gross margin, LTV, and CAC : not in the input
+- **Unit economics**
+  ```{=typst}
+  #styled-table(
+    headers: ("Price per meeting", "Cost per meeting", "Gross margin", "LTV / CAC"),
+    rows: (
+      ("$<PRICE>", "$<COST>", "<GM>%", "<RATIO>"),
+    ),
+    bold-first-col: false,
+  )
+  ```
+
+# Target Market
+
+* Land NSF I-Corps Startups, Then Expand
+
+// TODO(gp): Check buyer, channel, and motion: chosen by AI, not in the input
+
+::: columns
+:::: {.column width=60%}
+- **Beachhead**: NSF I-Corps startups commercializing university research,
+  bought by the founders, sold through email and LinkedIn with a pilot pack
+  of 10 meetings
+
+- **Months 0-12**: win NSF I-Corps startups, reach \<N\> paying customers
+
+- **Months 12-30**: expand to \<ADJACENT_SEGMENT\> via \<CHANNEL_2\>, reach
+  \$\<ARR_1\> ARR
+
+- **Months 30-60**: scale through \<NEW_CHANNEL\>, reach \$\<ARR_2\> ARR
+
+- **Target CAC**: \$\<CAC\> per customer, paid back in \<MONTHS\> months
+::::
+:::: {.column width=40%}
+
+```graphviz
+digraph GoToMarket {
+  bgcolor="transparent";
+  pad="0.15";
+  splines=spline;
+  nodesep=0.30;
+  ranksep=0.25;
+  rankdir=LR;
+
+  node [shape=box,
+        style="rounded,filled",
+        fillcolor="#FFFFFF",
+        color="#9AA9B8",
+        penwidth=1.8,
+        fontname="Helvetica",
+        fontcolor="#243B53",
+        fontsize=16,
+        margin="0.12,0.08",
+        height=0.50];
+
+  edge [color="#A3B1C0",
+        penwidth=1.3,
+        arrowhead=vee,
+        arrowsize=0.75,
+        fontname="Helvetica",
+        fontsize=10,
+        fontcolor="#7B8794"];
+
+  // beachhead goal : orange | later phases : blue
+
+  Beachhead [label=<<b>1. Land</b><br/><font point-size="13" color="#946A2E">Months 0-12<br/>&lt;N&gt; customers</font>>,
+             fillcolor="#FBEBD4", color="#D9A85F", fontcolor="#6B4517"];
+  Expand    [label=<<b>2. Expand</b><br/><font point-size="13" color="#41719C">Months 12-30<br/>$&lt;ARR_1&gt; ARR</font>>,
+             fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+  Scale     [label=<<b>3. Scale</b><br/><font point-size="13" color="#41719C">Months 30-60<br/>$&lt;ARR_2&gt; ARR</font>>,
+             fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
+
+  Beachhead -> Expand -> Scale;
+}
+```
+// label=fig:gtm-phases
+// caption=The three go-to-market phases from the beachhead to scale, with the beachhead in orange.
+
+::::
+:::
+
+
 * A \$21B Market, Sized Bottom-Up
 
 ::: columns
@@ -291,141 +440,7 @@ digraph MarketSize {
 ::::
 :::
 
-* Land NSF I-Corps Startups, Then Expand
-
-// TODO(gp): Check buyer, channel, and motion: chosen by AI, not in the input
-
-::: columns
-:::: {.column width=60%}
-- **Beachhead**: NSF I-Corps startups commercializing university research,
-  bought by the founders, sold through email and LinkedIn with a pilot pack
-  of 10 meetings
-
-- **Months 0-12**: win NSF I-Corps startups, reach \<N\> paying customers
-
-- **Months 12-30**: expand to \<ADJACENT_SEGMENT\> via \<CHANNEL_2\>, reach
-  \$\<ARR_1\> ARR
-
-- **Months 30-60**: scale through \<NEW_CHANNEL\>, reach \$\<ARR_2\> ARR
-
-- **Target CAC**: \$\<CAC\> per customer, paid back in \<MONTHS\> months
-::::
-:::: {.column width=40%}
-
-```graphviz
-digraph GoToMarket {
-  bgcolor="transparent";
-  pad="0.15";
-  splines=spline;
-  nodesep=0.30;
-  ranksep=0.25;
-  rankdir=LR;
-
-  node [shape=box,
-        style="rounded,filled",
-        fillcolor="#FFFFFF",
-        color="#9AA9B8",
-        penwidth=1.8,
-        fontname="Helvetica",
-        fontcolor="#243B53",
-        fontsize=16,
-        margin="0.12,0.08",
-        height=0.50];
-
-  edge [color="#A3B1C0",
-        penwidth=1.3,
-        arrowhead=vee,
-        arrowsize=0.75,
-        fontname="Helvetica",
-        fontsize=10,
-        fontcolor="#7B8794"];
-
-  // beachhead goal : orange | later phases : blue
-
-  Beachhead [label=<<b>1. Land</b><br/><font point-size="13" color="#946A2E">Months 0-12<br/>&lt;N&gt; customers</font>>,
-             fillcolor="#FBEBD4", color="#D9A85F", fontcolor="#6B4517"];
-  Expand    [label=<<b>2. Expand</b><br/><font point-size="13" color="#41719C">Months 12-30<br/>$&lt;ARR_1&gt; ARR</font>>,
-             fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
-  Scale     [label=<<b>3. Scale</b><br/><font point-size="13" color="#41719C">Months 30-60<br/>$&lt;ARR_2&gt; ARR</font>>,
-             fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79"];
-
-  Beachhead -> Expand -> Scale;
-}
-```
-// label=fig:gtm-phases
-// caption=The three go-to-market phases from the beachhead to scale, with the beachhead in orange.
-
-::::
-:::
-
-* Everyone Else Bills for Effort
-
-// TODO(gp): Check pricing and domain risk of appointment-setting agencies : not in the input, some may already charge per meeting
-```{=typst}
-#styled-table(
-  headers: ("Option", "Customer pays for", "Finds prospects", "Who takes domain risk", "Books meeting"),
-  rows: (
-    ("Manual outreach", "Staff time", "By hand", "Customer", "By hand"),
-    ("Hunter.io, Dropcontact, Snov.io", "Each email found", "Emails only", "Customer", "No"),
-    ("Sales Navigator, PhantomBuster", "Seats, credits", "Yes", "Customer", "No"),
-    ("Appointment-setting agencies", "<MODEL>", "Yes", "<RISK>", "Yes"),
-    ("NewCo", "Confirmed meeting", "AI agents", "NewCo", "Yes"),
-  ),
-  col-widths: (1.8fr, 1.2fr, 1fr, 1.2fr, 1fr),
-  bold-first-col: true,
-)
-```
-
-// TODO(gp): Provide the moat that stops agencies and tools from copying the pricing : not in the input
-- **NewCo's edge**: paid only on outcome, while taking on the outreach work
-  and the domain risk
-
-* Pricing: \$\<PRICE\> per Confirmed Meeting
-
-// TODO(gp): Provide <PRICE> and <REORDERS> : not in the input
-- **Pricing**: \$\<PRICE\> per confirmed meeting, sold in packs of 10, 50,
-  or 100
-
-- **Repeat buying**: \<REORDERS\> packs per customer a year
-
-// TODO(gp): Check prospects per meeting : the product doc plans about 10 (a 10% meeting rate), but the problem slide states a hit rate below 1%
-- **Cost driver**: cost per meeting = cost per prospect $\times$ prospects
-  contacted per meeting, planned at about 10
-
-// TODO(gp): Provide cost per meeting, gross margin, LTV, and CAC : not in the input
-- **Unit economics**
-  ```{=typst}
-  #styled-table(
-    headers: ("Price per meeting", "Cost per meeting", "Gross margin", "LTV / CAC"),
-    rows: (
-      ("$<PRICE>", "$<COST>", "<GM>%", "<RATIO>"),
-    ),
-    bold-first-col: false,
-  )
-  ```
-
-* Pipeline Built and Running Since 2024
-
-// TODO(gp): Check whether the $10M is the total raised or per startup
-- **Track record**: this pipeline helped more than 60 UMD startups raise \$10M
-  in seed funding and book more than 6,600 interviews
-
-// TODO(gp): Provide meetings booked, paying customers, and letters of intent : not in the input
-- **Commercial**: \<MEETINGS\> meetings booked, \<CUSTOMERS\> paying
-  customers, \<LOIS\> letters of intent as of \<MONTH_YEAR\>
-
-// TODO(gp): Check the start date : the meeting notes discuss lead automation on 2024-06-03, so the pipeline may be older
-- **Live since June 2024**: in-house pipeline from Sales Navigator search to
-  a custom email per company
-
-- **5 data vendors benchmarked**: PhantomBuster, Hunter.io, Dropcontact,
-  Snov.io, and Proxycurl on accuracy, speed, and price
-
-// TODO(gp): Check which target lists are complete : the notes show them as tasks in progress
-- **3 verticals targeted**: fintech, sports betting, and ERCOT energy
-
-// TODO(gp): Check I-Corps participation and provide <INTERVIEWS> : only a doc title mentions I-Corps
-- **NSF I-Corps**: \<INTERVIEWS\> customer discovery interviews
+# Ask
 
 * Team Behind the Pipeline
 
