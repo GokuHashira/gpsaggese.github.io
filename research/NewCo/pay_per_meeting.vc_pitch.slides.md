@@ -182,15 +182,17 @@ digraph ProductFlow {
   - E.g., \$0.016 to \$0.03 per email
   - The problem is the "intelligence" now to find the signal in the data
 
-* A \<TAM\> Market, Sized Bottom-Up
-
-// TODO(ai_gp): Find reasonable data
+* A \$21B Market, Sized Bottom-Up
 
 ::: columns
 :::: {.column width=60%}
 // TODO(gp): Provide <TAM>, <N>, <REGION>, <M>, <P> with a cited source for each : not in the input
-- **TAM \$\<TAM\> a year**: \<N\> B2B teams in \<REGION\> that run outbound
-  $\times$ \<M\> meetings a year $\times$ \$\<P\> per meeting
+// TODO(gp): Check the 10% of firms that run outbound: assumption, no source found
+// TODO(gp): Check the $325 price: midpoint of vendor ranges, should match <PRICE>
+- **TAM \$21B a year**: about 550K B2B teams in the US that run outbound
+  $\times$ 120 meetings a year $\times$ \$325 per meeting
+  - Inputs: 5.5M US firms (Census BDS), about 10 meetings per rep a month
+    (FullEnrich), price range of \$150 to \$500 per booked meeting (Smartlead)
 
 // TODO(gp): Provide <SAM> and <N_REACH> : not in the input
 - **SAM \$\<SAM\> a year**: \<N_REACH\> teams reachable today through email
@@ -201,7 +203,8 @@ digraph ProductFlow {
   beachhead
 
 // TODO(gp): Provide a top-down cross-check from an analyst report : not in the input
-- **Cross-check**: \<REPORT\> sizes \<CATEGORY\> at \$\<USD\> in \<YEAR\>
+// TODO(gp): Check the cross-check: the AI SDR category is narrower than the TAM
+- **Cross-check**: MarketsandMarkets sizes the AI SDR market at \$4.12B in 2025
 ::::
 :::: {.column width=40%}
 
@@ -224,7 +227,7 @@ digraph MarketSize {
   // hierarchy : neutral gray | obtainable segment : blue
 
   subgraph cluster_tam {
-    label     = "TAM: $<TAM> a year";
+    label     = "TAM: $21B a year";
     labelloc  = "t";
     fontname  = "Helvetica-Bold";
     fontsize  = 12.5;
@@ -264,7 +267,7 @@ digraph MarketSize {
         margin    = 12;
 
         Som [shape=box, style="rounded,filled", fontsize=12,
-             label="Beachhead\n<SEGMENT>",
+             label="Beachhead\nNSF I-Corps startups",
              fillcolor="#D3E3F3", color="#7CA6CE", fontcolor="#1F4E79",
              penwidth=1.8, margin="0.22,0.14"];
       }
@@ -280,17 +283,17 @@ digraph MarketSize {
 ::::
 :::
 
-* Land \<SEGMENT\>, Then Expand
+* Land NSF I-Corps Startups, Then Expand
 
-// TODO(ai_gp): Customize segment is startup doing NSF I-Corps to commercialize university
-// research (both to find initial customers and for funding VCs)
+// TODO(gp): Check buyer, channel, and motion: chosen by AI, not in the input
 
 ::: columns
 :::: {.column width=60%}
-- **Beachhead**: \<SEGMENT\>, bought by the \<BUYER_TITLE\>, sold through
-  \<CHANNEL\> with \<MOTION\>
+- **Beachhead**: NSF I-Corps startups commercializing university research,
+  bought by the founders, sold through email and LinkedIn with a pilot pack
+  of 10 meetings
 
-- **Months 0-12**: win \<SEGMENT\>, reach \<N\> paying customers
+- **Months 0-12**: win NSF I-Corps startups, reach \<N\> paying customers
 
 - **Months 12-30**: expand to \<ADJACENT_SEGMENT\> via \<CHANNEL_2\>, reach
   \$\<ARR_1\> ARR
@@ -395,6 +398,10 @@ digraph GoToMarket {
 
 * Pipeline Built and Running Since 2024
 
+// TODO(ai_gp): Used this flow to help more than 60 UMD startup raise $10M in seed
+// funding and booking more than 6600 interviews in many verticals
+// See https://docs.google.com/presentation/d/1eVMExBQyzNP_JJnhJqvf9X7jkL9YK8Rn/edit#slide=id.p17
+
 // TODO(gp): Provide meetings booked, paying customers, and letters of intent : not in the input
 - **Commercial**: \<MEETINGS\> meetings booked, \<CUSTOMERS\> paying
   customers, \<LOIS\> letters of intent as of \<MONTH_YEAR\>
@@ -473,3 +480,16 @@ digraph GoToMarket {
 
 - **Google**: _"Email sender guidelines FAQ"_, Google Workspace Admin Help
   (2024), https://support.google.com/a/answer/14229414
+
+- **Census Bureau**: _"Business Dynamics Statistics"_, 2022 active firm count
+  via YCharts, https://ycharts.com/indicators/categories/nonfinancial_business_statistics
+
+- **FullEnrich**: _"SDR Metrics"_, vendor benchmark for meetings per rep,
+  https://fullenrich.com/content/sdr-metrics
+
+- **Smartlead**: _"What Is B2B Appointment Setting"_, vendor price ranges
+  (2026), https://www.smartlead.ai/blog/what-is-b2b-appointment-setting
+
+- **MarketsandMarkets**: _"AI SDR Market: Global Forecast to 2030"_, market
+  report (2025),
+  https://www.marketsandmarkets.com/Market-Reports/ai-sdr-market-83561460.html
