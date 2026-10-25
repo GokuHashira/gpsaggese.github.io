@@ -1,77 +1,77 @@
 // type=UMD_slides
 // course_title=NewCo: Investor Presentation
-// lesson_title=\<ROUND\>: Founders and sales teams pay only for confirmed meetings, not for cold outreach
+// lesson_title=Series Seed: Automate customer / investor outreach with AI
 // Authors=GP, Samarth, Vedanshu
 // logo=assets/images/NewCo_logo_placeholder.png
 // slides_engine=typst
-// TODO(gp): Replace NewCo with the final company name : NewCo is a working name
-// TODO(gp): Replace the placeholder logo with the NewCo logo : downloaded from placehold.co
-// TODO(gp): Provide <ROUND> and <ASK> : not in the input
 
 * NewCo at a Glance
 
-- **What**: AI agents that book qualified meetings on the customer's calendar
+- @What@: AI agents to find and book qualified sales meetings
 
-- **Who pays**: founders and B2B sales teams who need meetings with
+- @Who pays@: founders and B2B sales teams who need meetings with
   investors, customers, and partners
 
-- **Model**: pay per confirmed meeting, in packs of 10, 50, or 100
+- @Model@: pay per confirmed meeting, in packs of 10, 50, or 100
 
-- **Edge**: NewCo carries the cost of failed outreach and the risk to the
-  sender's domain
+- @Edge@: NewCo
+  - Centralizes all the knowledge for finding and booking meetings using AI
+  - Carries the cost of failed outreach and the risk to the sender's domain
 
-// TODO(gp): Provide <MILESTONE> : not in the input
-- **Raising**: \<ASK\> \<ROUND\> to reach \<MILESTONE\>
+- @Raising@: $1M Series Seed round to reach \<MILESTONE\>
 
-* Outbound Burns Time, Money, and Domains
+* Outbound Burns Time, Money, and is Risky for Customers
 
-// TODO(gp): Check hit rate below 1% : stated in the input without a source
-- **Under 1% hit rate**: hundreds of cold emails yield a handful of replies
+// TODO(gp): Find reference
+- @Under 1% hit rate@: hundreds of cold emails yield a handful of replies
 
-// TODO(gp): Provide <HOURS> : not in the input
-- **\<HOURS\> hours a week**: finding emails and decision makers, writing,
+// TODO(gp): Find reference
+- @20 hours a week@: finding emails and decision makers, writing,
   and following up
 
-- **Account risk**: spam flags hurt the domain, Google pauses accounts for
-  days, and LinkedIn restricts profiles
+- @Complexities and risks@:
+  - Spam flags hurt the domain (e.g., Google pauses accounts for days)
+  - LinkedIn restricts profiles
+  - Expensive datasets to buy (e.g., Pitchbook, Crunchbase)
 
-- **Specialist work**: domain warm-up, inbox rotation, bounce control, and
-  spam filters
-
-// TODO(gp): Provide <N> and <M> from one real customer interview : not in the input
-- **Typical case**: a founder emails \<N\> investors, books \<M\> meetings,
-  and puts the company domain at risk
+- @Specialist work@:
+  - Domain warm-up, inbox rotation, bounce control, and spam filters
+  - Searching and matching profiles
 
 * Pay Only for Meetings That Happen
 
-- **Today**: teams stitch together Sales Navigator, PhantomBuster, email
-  finders, and mail merge, then pay for every attempt
+- @Without NewCo@: teams stitch together tools (e.g., Sales Navigator,
+  PhantomBuster, email finders, and mail merge)
+  - Pay for every attempt
+  - Need for specialized epertise that teams don't have
+  - Inefficiency and lack of expertise bring email yield to < 1%
 
-- **With NewCo**: the customer states who to meet and how many meetings,
-  and NewCo books them on the customer's calendar
+- @With NewCo@: the customer states who to meet and how many meetings,
+  and NewCo finds them and books them on the customer's calendar
 
-- **Pay on outcome**: only confirmed meetings are billed, never emails sent
-  or leads found
+- @Advantages for Customers@
+  - **Pay on outcome**: only confirmed meetings are billed, never emails sent
+    or leads found
 
-- **Clean accounts**: all outreach runs on NewCo infrastructure, so customer
-  domains stay safe
+  - **Clean accounts**: all outreach runs on NewCo infrastructure, so customer
+    domains stay safe
 
-- **Known cost**: the price per meeting is fixed before the campaign starts
+  - **Known cost**: the price per meeting is fixed before the campaign starts
 
 * From Target Profile to Booked Meeting
 
 ::: columns
 :::: {.column width=60%}
-- **Customer in control**: approves every prospect before any outreach
-  - E.g., for 50 meetings with Heads of Growth at Series A to C US fintech
-    startups, NewCo lists about 500 prospects to approve
+- @Customer in control@: approves every prospect before any outreach
+  - E.g., For _"50 meetings with Heads of Growth at Series A US fintech startups"_,
+    NewCo lists about 500 prospects to approve
 
-- **Agents do the work**: search LinkedIn, PitchBook, and Crunchbase, then
+- @Agents do the work@: search LinkedIn, PitchBook, and Crunchbase, then
   email, message, and call
 
-- **Calendar ready**: NewCo handles time zones and confirms attendance
+- @Calendar ready@: NewCo handles time zones and confirms attendance
 
-- **Warm handoff**: the customer joins only once the meeting is confirmed
+- @Warm handoff@: the customer joins only once the meeting is confirmed
 ::::
 :::: {.column width=40%}
 
@@ -170,23 +170,21 @@ digraph ProductFlow {
 * Why Now: Agents Got Cheap, Email Got Strict
 
 // TODO(gp): Provide <MINUTES> : not in the input
-- **Agents can do the research**: profile each prospect and write a custom
-  email per company, work that takes a sales rep \<MINUTES\> minutes
+- **Agents can do the research**: work that takes a sales rep \<MINUTES\> minutes
+  - Profile each prospect
+  - Write a custom email per company
 
-// TODO(gp): Check the Google rule summary against the official page : found by a web search, the page title is not verified
-- **Email rules got strict**: since February 2024, Gmail requires senders of
-  5,000+ emails a day to authenticate and stay under a 0.3% spam rate
-  (Google, 2024)
-
-// TODO(gp): Provide <X>, <Y>, <YEAR> with a cited source : not in the input
-- **Model costs keep falling**: one custom email costs \$\<X\> in LLM calls,
-  down from \$\<Y\> in \<YEAR\>
+- **Email rules getting stricter**: since February 2024, Gmail requires senders of
+  5,000+ emails a day to authenticate and stay under a 0.3% spam rate (Google, 2024)
 
 // TODO(gp): Check prices and speeds : from team tests in the I-Corps notes, the test date is not stated
-- **Contact data is a commodity**: \$0.016 to \$0.03 per email, found in 5
-  to 30 seconds (team tests of Hunter.io, Dropcontact, Snov.io)
+- **Contact data is a commodity**: 
+  - E.g., \$0.016 to \$0.03 per email
+  - The problem is the "intelligence" now to find the signal in the data
 
 * A \<TAM\> Market, Sized Bottom-Up
+
+// TODO(ai_gp): Find reasonable data
 
 ::: columns
 :::: {.column width=60%}
@@ -284,13 +282,14 @@ digraph MarketSize {
 
 * Land \<SEGMENT\>, Then Expand
 
+// TODO(ai_gp): Customize segment is startup doing NSF I-Corps to commercialize university
+// research (both to find initial customers and for funding VCs)
+
 ::: columns
 :::: {.column width=60%}
-// TODO(gp): Provide <SEGMENT>, <BUYER_TITLE>, <CHANNEL>, <MOTION> : not in the input, candidates are founders doing VC outreach or customer discovery
 - **Beachhead**: \<SEGMENT\>, bought by the \<BUYER_TITLE\>, sold through
   \<CHANNEL\> with \<MOTION\>
 
-// TODO(gp): Provide the time windows, channels, and milestones : not in the input
 - **Months 0-12**: win \<SEGMENT\>, reach \<N\> paying customers
 
 - **Months 12-30**: expand to \<ADJACENT_SEGMENT\> via \<CHANNEL_2\>, reach
@@ -298,7 +297,6 @@ digraph MarketSize {
 
 - **Months 30-60**: scale through \<NEW_CHANNEL\>, reach \$\<ARR_2\> ARR
 
-// TODO(gp): Provide <CAC> and <MONTHS> : not in the input
 - **Target CAC**: \$\<CAC\> per customer, paid back in \<MONTHS\> months
 ::::
 :::: {.column width=40%}
@@ -459,8 +457,8 @@ digraph GoToMarket {
 
 * Why Invest in NewCo
 
-- **Common, costly problem**: every founder and sales team needs meetings,
-  and cold outreach hits under 1%
+- **Common, costly problem**: every founder and sales team needs meetings, and cold
+  outreach hits under 1%
 
 - **Outcome pricing**: customers pay only for confirmed meetings
 
