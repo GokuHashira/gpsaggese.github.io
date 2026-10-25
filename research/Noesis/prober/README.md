@@ -43,6 +43,8 @@
   150 canaries survive, and writes `docs/findings/calibration.md`.
 - Run one combined probe/checker cycle with `probe --once`, or omit `--once` for
   a worker that polls once per second until `SIGINT` or `SIGTERM`.
+- Run `research/Noesis/scripts/demo_contract_monitoring.py` to see the complete
+  probe-to-verdict flow without credentials, network access, or PostgreSQL.
 - Live modes require `OPENROUTER_API_KEY`, `NOESIS_DATABASE_URL`, and
   `NOESIS_CANARY_SCHEDULE_SECRET` in `.env` or the process environment.
 
