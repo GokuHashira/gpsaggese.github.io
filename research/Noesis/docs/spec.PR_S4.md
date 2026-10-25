@@ -7,8 +7,10 @@
     evidence
   - Reuse the existing evidence, statistics, verdict, and persistence logic
   - Publish actionable verdicts through a mocked market-facing `VerdictSink`
-- This is a specification only: it does not add runtime behavior
-- The implementation is intentionally split into smaller reviewable PRs
+- This PR is specification-only; runtime behavior is implemented by the linked
+  follow-up PRs
+- The implementation is intentionally split into smaller reviewable PRs and
+  finishes with one runnable end-to-end demonstration
 
 ## Objective
 
@@ -250,11 +252,21 @@ No new external Python dependency is required.
 
 ## Implementation PR Breakdown
 
-The issue remains one roadmap component, but implementation is divided into three
-reviewable PRs after this specification is approved. Follow-up issue numbers should
-be created before those PRs so each PR has one tracking issue.
+Issue #640 remains one roadmap component, but the work is divided into this
+specification and three sequential implementation PRs:
 
-### Implementation PR 1: Window and Reporting Contracts
+| Order | Scope | Tracking issue | Pull request | Review base |
+| :---- | :---- | :------------- | :----------- | :---------- |
+| 0 | Architecture and specification | #640 | #742 | `master` |
+| 1 | Window and reporting contracts | #743 | #744 | `master` |
+| 2 | Runtime and persistence orchestration | #746 | #747 | PR #744 branch |
+| 3 | Worker integration and runnable demo | #748 | #749 | PR #747 branch |
+
+Merge and review in that order. PRs #747 and #749 are stacked so each review
+contains only its own conceptual change. They can be retargeted to `master` as
+their parent PRs merge.
+
+### Implementation PR 1: Window and Reporting Contracts (#744)
 
 - Add immutable runtime/report models
 - Add pure readiness and evidence-count functions
@@ -262,7 +274,7 @@ be created before those PRs so each PR has one tracking issue.
 - Add deterministic unit tests
 - No database or worker changes
 
-### Implementation PR 2: Runtime and Persistence Orchestration
+### Implementation PR 2: Runtime and Persistence Orchestration (#747)
 
 - Add one-contract evaluation and one non-blocking active-contract pass
 - Reuse existing evidence, verdict, and finalization functions
@@ -270,16 +282,45 @@ be created before those PRs so each PR has one tracking issue.
 - Add PostgreSQL-backed finalization tests
 - No market implementation
 
-### Implementation PR 3: Prober-worker Integration
+### Implementation PR 3: Prober-worker Integration (#749)
 
 - Run due probes before evaluating ready windows
 - Reuse one clock, shutdown event, and retry boundary
 - Verify the mocked market-facing payload
+- Add an offline command that demonstrates healthy, slow, weak, and sparse
+  contract windows through the real checker logic
 - Update checker/prober READMEs, architecture, and progress docs
 - Close issue #640 when all acceptance criteria are demonstrated
 
 The PRs are sequential because each imports the public contracts from the previous
 one. They must not be opened as independent implementations of the same logic.
+
+## Runnable Demonstration
+
+After PRs #742, #744, #747, and #749 are applied, activate the project virtual
+environment and run from the repository root:
+
+```bash
+> research/Noesis/scripts/demo_contract_monitoring.py
+```
+
+The command uses the production worker composition, readiness rules, evidence
+classifier, confidence-bound verdict engine, report builder, and
+`RecordingVerdictSink`. OpenRouter and PostgreSQL are replaced with deterministic
+in-memory boundaries so the command is free and requires no credentials or local
+services.
+
+The output demonstrates:
+
+- healthy evidence -> persisted and published `PASSED`
+- conclusively slow buyer evidence -> persisted and published `FAILED`
+- conclusively incorrect canaries -> persisted and published `FAILED`
+- sparse evidence at the deadline -> persisted `INSUFFICIENT`, not published
+
+The complete command and expected output are documented in
+`docs/run_contract_monitoring_demo.how_to_guide.md`, added by PR #749. The demo has
+a golden-output regression test. PostgreSQL transaction behavior remains covered
+by the real integration tests rather than the in-memory demonstration.
 
 ## Failure and Concurrency Behavior
 
@@ -329,16 +370,21 @@ one. They must not be opened as independent implementations of the same logic.
 - Market-facing payload is verified:
   assert the complete immutable report through a recording mock
 
-## Open Review Questions
+## Resolved Design Decisions
 
-- Confirm that early closure should use eligible evidence rather than raw logged
-  request counts
-- Confirm that the market-facing sink receives only actionable `VALID` outcomes
-- Confirm that durable sink retry belongs with the real `PR_M3` consumer
-- Confirm the three implementation-PR boundaries before creating follow-up issues
+- Early closure uses eligible evidence rather than raw logged request counts.
+- The market-facing sink receives only actionable `VALID` outcomes.
+- Durable sink retry belongs with the real `PR_M3` consumer.
+- The implementation uses the three sequential PR boundaries listed above.
 
 ## Result
 
-- Placeholder: record the implementation PRs, tests, and any approved changes from
-  this specification after #640 is complete
+- Specification: PR #742
+- Pure readiness and report contracts: PR #744
+- Atomic runtime and persistence orchestration: PR #747
+- Worker integration and runnable demonstration: PR #749
+- Verification on 2026-10-25: 82 checker, prober, demo, component-boundary, and
+  PostgreSQL integration tests passed
+- Remaining scope is intentionally outside #640: paid calibration, offline replay,
+  and the real `PR_M3` reputation adapter
 
