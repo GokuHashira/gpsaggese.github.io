@@ -85,6 +85,22 @@ def math_steps_valid(completion: str) -> bool:
     return bool(steps) and all(check_math_step(s) is True for s in steps)
 
 
+def logic_steps_valid(completion: str) -> Optional[bool]:
+    """
+    Whether every step of a symbolic logic completion is a valid inference
+    (checked with z3).
+
+    :return: None when some step is not symbolic (e.g. English L3 steps), so
+        the metric is only computed where it is defined
+    """
+    import logic_slm_logic as lslog  # z3 import only when needed
+
+    checks = [lslog.check_logic_step(s) for s in lsform.parse_steps(completion)]
+    if any(c is None for c in checks):
+        return None
+    return all(checks)
+
+
 def score_completions(
     completions: Sequence[str],
     golds: Sequence[str],
@@ -110,6 +126,12 @@ def score_completions(
         valid = [math_steps_valid(c) for c in completions]
         out["steps_valid"] = sum(valid) / n
         out["correct_invalid_steps"] = sum(e and not v for e, v in zip(em, valid)) / n
+    elif task == "logic":
+        checked = [(e, v) for e, v in zip(em, map(logic_steps_valid, completions)) if v is not None]
+        if checked:
+            out["steps_checked"] = len(checked) / n
+            out["steps_valid"] = sum(v for _, v in checked) / len(checked)
+            out["correct_invalid_steps"] = sum(e and not v for e, v in checked) / len(checked)
     return out
 
 

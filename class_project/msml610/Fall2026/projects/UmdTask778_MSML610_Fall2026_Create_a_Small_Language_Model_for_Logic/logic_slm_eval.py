@@ -82,12 +82,15 @@ def evaluate_jsonl(
     comps = generate_completions(model, tok, [r["prompt"] for r in recs], **gen_kwargs)
     golds = [r["answer"] for r in recs]
     metrics = lssco.score_completions(comps, golds, task)
-    if "n_ops" in recs[0]:
+    # Accuracy by difficulty: operations (M1), steps (M2, M3) or proof depth (logic).
+    key = next((k for k in ("n_ops", "n_steps", "depth") if k in recs[0]), None)
+    if key is not None:
         by: Dict[int, List[bool]] = {}
         for r, c in zip(recs, comps):
-            by.setdefault(r["n_ops"], []).append(lssco.exact_match(c, r["answer"], task))
+            by.setdefault(r[key], []).append(lssco.exact_match(c, r["answer"], task))
+        short = {"n_ops": "ops", "n_steps": "steps", "depth": "depth"}[key]
         for k in sorted(by):
-            metrics[f"exact_match@ops={k}"] = sum(by[k]) / len(by[k])
+            metrics[f"exact_match@{short}={k}"] = sum(by[k]) / len(by[k])
     if out_path:
         os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
         with open(out_path, "w") as f:

@@ -95,3 +95,18 @@ class Test_score_completions:
     def test_wilson(self) -> None:
         lo, hi = lssco.wilson_interval(50, 100)
         assert lo < 0.5 < hi and hi - lo < 0.21
+
+
+class Test_logic_scoring:
+    def test_logic_steps(self) -> None:
+        good = "p, p -> q => q\n#### yes"
+        bad = "p, p -> q => r\n#### yes"
+        english = "Tom is a cat, all cats are mammals => Tom is a mammal\n#### yes"
+        assert lssco.logic_steps_valid(good) is True
+        assert lssco.logic_steps_valid(bad) is False
+        assert lssco.logic_steps_valid(english) is None
+        out = lssco.score_completions([good, bad, english], ["yes"] * 3, "logic")
+        assert out["exact_match"] == pytest.approx(1.0)
+        assert out["steps_checked"] == pytest.approx(2 / 3)
+        assert out["steps_valid"] == pytest.approx(0.5)
+        assert out["correct_invalid_steps"] == pytest.approx(0.5)
