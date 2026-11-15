@@ -11,7 +11,7 @@ step (`a op b = c`), as specified in `references/format_v1.md`.
 
 Import as:
 
-import logic_slm.math_m1 as lsmam1
+import logic_slm_math_m1 as lsmam1
 """
 
 import argparse
@@ -20,7 +20,7 @@ import json
 import random
 from typing import Iterator, List, Optional, Tuple, Union
 
-import logic_slm.format as lsform
+import logic_slm_format as lsform
 
 OPS = ("+", "-", "*", "/")
 _PREC = {"+": 1, "-": 1, "*": 2, "/": 2}

@@ -1,9 +1,9 @@
 """
-Unit tests for `logic_slm/math_m1.py`.
+Unit tests for `logic_slm_math_m1.py`.
 
 Import as:
 
-import test.test_math_m1 as ttmam1
+import test.test_logic_slm_math_m1 as ttlsmm
 """
 
 import ast
@@ -14,8 +14,8 @@ import re
 
 import pytest
 
-import logic_slm.format as lsform
-import logic_slm.math_m1 as lsmam1
+import logic_slm_format as lsform
+import logic_slm_math_m1 as lsmam1
 
 _BINOPS = {
     ast.Add: operator.add,

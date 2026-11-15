@@ -3,7 +3,7 @@
 Every training, SFT and evaluation example uses this format. Generators,
 scorers, the tokenizer and SFT loss masking all depend on it. Changes require a
 new version (`format_v2.md`) and a bump of `FORMAT_VERSION` in
-`logic_slm/format.py`, which is the single reference implementation.
+`logic_slm_format.py`, which is the single reference implementation.
 
 ## 1. Layout
 
@@ -68,7 +68,7 @@ q, q -> r => r
   - `unknown`: steps derive every fact reachable from the premises (closure),
     none of which is the formula or its negation. May be empty.
 
-## 4. Parsing Contract (`logic_slm/format.py`)
+## 4. Parsing Contract (`logic_slm_format.py`)
 
 - `parse_answer(text)`: the answer is the text after the **first** line that
   starts with `####` following `Solution:` (or anywhere, if `Solution:` is

@@ -7,7 +7,7 @@ reads model output with `parse_answer()` / `parse_steps()`.
 
 Import as:
 
-import logic_slm.format as lsform
+import logic_slm_format as lsform
 """
 
 import dataclasses

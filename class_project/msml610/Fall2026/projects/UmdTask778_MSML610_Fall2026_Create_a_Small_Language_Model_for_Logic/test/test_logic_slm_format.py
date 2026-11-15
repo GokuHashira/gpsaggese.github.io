@@ -1,14 +1,14 @@
 """
-Unit tests for `logic_slm/format.py`.
+Unit tests for `logic_slm_format.py`.
 
 Import as:
 
-import test.test_format as ttform
+import test.test_logic_slm_format as ttlsfo
 """
 
 import pytest
 
-import logic_slm.format as lsform
+import logic_slm_format as lsform
 
 MATH = lsform.Example(
     task="math",
