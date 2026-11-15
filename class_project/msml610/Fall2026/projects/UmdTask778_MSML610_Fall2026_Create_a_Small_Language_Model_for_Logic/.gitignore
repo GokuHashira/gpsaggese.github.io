@@ -1,0 +1,21 @@
+# Slurm job scripts and job logs are local to Zaratan: never commit them.
+slurm/
+*.sbatch
+slurm-*.out
+logs/
+
+# Generated data and checkpoints (cookiecutter-data-science: data/models are
+# not versioned; checkpoints go to the Hugging Face Hub).
+data/**
+!data/**/
+!data/**/.gitkeep
+models/**
+!models/.gitkeep
+runs/
+wandb/
+
+# Python.
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
