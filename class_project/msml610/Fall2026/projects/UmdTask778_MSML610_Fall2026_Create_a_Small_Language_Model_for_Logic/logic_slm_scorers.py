@@ -96,7 +96,8 @@ def logic_steps_valid(completion: str) -> Optional[bool]:
     import logic_slm_logic as lslog  # z3 import only when needed
 
     checks = [lslog.check_logic_step(s) for s in lsform.parse_steps(completion)]
-    if any(c is None for c in checks):
+    if not checks or any(c is None for c in checks):
+        # No steps (e.g. empty output) or non-symbolic steps: undefined.
         return None
     return all(checks)
 

@@ -110,3 +110,7 @@ class Test_logic_scoring:
         assert out["steps_checked"] == pytest.approx(2 / 3)
         assert out["steps_valid"] == pytest.approx(0.5)
         assert out["correct_invalid_steps"] == pytest.approx(0.5)
+
+    def test_empty_is_undefined(self) -> None:
+        assert lssco.logic_steps_valid("") is None
+        assert lssco.logic_steps_valid("#### unknown") is None
