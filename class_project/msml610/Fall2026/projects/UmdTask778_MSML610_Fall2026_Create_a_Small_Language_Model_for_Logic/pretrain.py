@@ -35,6 +35,7 @@ from typing import Dict, Iterator, List
 import numpy as np
 import torch
 import torch.nn.functional as F
+import transformers
 
 import logic_slm_data as lsdata
 import logic_slm_eval as lseval
@@ -155,6 +156,10 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     ap.add_argument("--eval-limit", type=int, default=500)
     ap.add_argument("--max-new-tokens", type=int, default=192)
     ap.add_argument("--compile", action="store_true")
+    ap.add_argument("--deadline-unix", type=float, default=0.0,
+                    help="save a checkpoint and stop (marker INCOMPLETE) after this time")
+    ap.add_argument("--rewarm-steps", type=int, default=50,
+                    help="LR ramp after resuming from a weights-only checkpoint")
     lstrain.add_common_args(ap)
     a = ap.parse_args(argv)
     if a.corpus:
@@ -218,10 +223,21 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     opt = lstrain.make_optimizer(model, peak_lr, a.weight_decay)
 
     ckpt_path = os.path.join(a.out, "last.pt")
-    step = 0
-    if os.path.exists(ckpt_path):
+    final_dir = os.path.join(a.out, "final")
+    marker = os.path.join(a.out, "INCOMPLETE")
+    step, rewarm_from = 0, -1
+    eval_only = os.path.exists(os.path.join(final_dir, "config.json"))
+    if eval_only:
+        # Training already finished (e.g. the job stopped during evaluation).
+        model = transformers.LlamaForCausalLM.from_pretrained(final_dir).to(device)
+        step = total_steps
+        _LOG.info("Found %s: skipping training, evaluating only", final_dir)
+    elif os.path.exists(ckpt_path):
         step = lstrain.load_checkpoint(ckpt_path, model, opt, device)
-        _LOG.info("Resumed from step %d", step)
+        if not opt.state:
+            rewarm_from = step  # fresh optimizer moments: ramp the LR back up
+        _LOG.info("Resumed from step %d (optimizer state %s)", step,
+                  "restored" if opt.state else "reset, re-warming LR")
 
     train_model = model
     if d.world > 1:
@@ -252,7 +268,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
                 "gpu": lstrain.gpu_name(), "su_per_gpu_hour": lstrain.su_rate(a.su_per_gpu_hour)}
     wb = tb = None
     if d.is_main:
-        wb = lstrain.init_wandb(a.wandb_project, a.wandb_name, a.out, run_info)
+        wb = lstrain.init_wandb(a.wandb_project, a.wandb_name, a.out, run_info, resume=True)
         from torch.utils.tensorboard import SummaryWriter
 
         tb = SummaryWriter(os.path.join(a.out, "tb"))
@@ -265,6 +281,8 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     batches = iter(loader)
     while step < total_steps:
         lr = lstrain.lr_at(step, total_steps, warmup, peak_lr)
+        if rewarm_from >= 0 and step - rewarm_from < a.rewarm_steps:
+            lr *= (step - rewarm_from + 1) / a.rewarm_steps
         for g in opt.param_groups:
             g["lr"] = lr
         loss_acc = 0.0
@@ -307,6 +325,22 @@ def main(argv: List[str] = None) -> Dict[str, float]:
             if d.is_main:
                 lstrain.save_checkpoint(ckpt_path, model, opt, step, a.ckpt_weights_only)
             d.barrier()
+        if a.deadline_unix and step < total_steps:
+            # Rank 0 decides so all ranks stop at the same step.
+            late = d.mean(float(d.is_main and time.time() > a.deadline_unix)) > 0
+            if late:
+                if d.is_main:
+                    if not a.no_save:
+                        lstrain.save_checkpoint(ckpt_path, model, opt, step, a.ckpt_weights_only)
+                    with open(marker, "w") as f:
+                        f.write(f"stopped at step {step}/{total_steps} before the time limit\n")
+                    _LOG.info("Deadline reached: checkpoint at step %d, resubmit to continue", step)
+                    tb.close()
+                    if wb is not None:
+                        wb.finish()
+                d.barrier()
+                lstrain.cleanup_dist(d)
+                return {"stopped_at_step": step}
 
     train_time = time.time() - t_start
     metrics: Dict[str, float] = {}
@@ -314,7 +348,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         trained_tokens = total_steps * seqs_per_step * a.seq_len
         rate = run_info["su_per_gpu_hour"] * d.world
         metrics = {
-            "val_loss": val_loss(model, val, a.val_blocks, a.micro_batch, device, amp),
+            "val_loss": val_loss(model.float(), val, a.val_blocks, a.micro_batch, device, amp),
             "train_time_s": train_time,
             "tokens_per_s": trained_tokens / max(train_time, 1e-9),
             "non_embedding_params": params["non_embedding"],
@@ -324,11 +358,22 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         metrics["su_used_train"] = train_time / 3600 * rate
         if a.save_dtype == "bf16":
             model = model.to(torch.bfloat16)
-        if not a.no_save:
-            model.save_pretrained(os.path.join(a.out, "final"))
-            tok.save_pretrained(os.path.join(a.out, "final"))
+        if eval_only:
+            prev = os.path.join(a.out, "metrics.json")
+            if os.path.exists(prev):
+                with open(prev) as f:
+                    old = json.load(f)
+                for k in ("train_time_s", "tokens_per_s", "su_per_1b_tokens", "su_used_train"):
+                    if k in old:
+                        metrics[k] = old[k]
+        elif not a.no_save:
+            model.save_pretrained(final_dir)
+            tok.save_pretrained(final_dir)
             if os.path.exists(ckpt_path):
                 os.remove(ckpt_path)
+            # Partial metrics so an eval-only rerun can keep the training stats.
+            with open(os.path.join(a.out, "metrics.json"), "w") as f:
+                json.dump(metrics, f, indent=2)
         for spec in a.eval_jsonl:
             name, path = spec.split("=", 1)
             m = lseval.evaluate_jsonl(
@@ -341,6 +386,8 @@ def main(argv: List[str] = None) -> Dict[str, float]:
             _LOG.info("eval %s: %s", name, {k: round(v, 4) for k, v in m.items()})
         with open(os.path.join(a.out, "metrics.json"), "w") as f:
             json.dump(metrics, f, indent=2)
+        if os.path.exists(marker):
+            os.remove(marker)
         _LOG.info("metrics: %s", json.dumps(metrics, indent=2))
         tb.close()
         if wb is not None:

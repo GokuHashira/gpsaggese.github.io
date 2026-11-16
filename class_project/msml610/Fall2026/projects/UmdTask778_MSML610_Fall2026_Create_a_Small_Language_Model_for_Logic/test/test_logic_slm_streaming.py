@@ -174,3 +174,51 @@ class Test_full_mixture:
         text = "".join(tok.decode(ds[j].tolist()) for j in range(40))
         for marker in ("Problem:", "Premises:", "forall", "Is "):
             assert marker in text, marker
+
+
+class Test_interrupt_and_resume:
+    @pytest.mark.parametrize("nproc", [1, 2])
+    def test_deadline_resume_eval_only(self, corpus, tmp_path, nproc) -> None:
+        out = tmp_path / f"run{nproc}"
+        args = ["--corpus", str(corpus), "--out", str(out), "--ckpt-weights-only",
+                "--wandb-project", "", *_PT_ARGS]
+
+        def run(extra):
+            if nproc == 1:
+                return pretrain.main(args + extra)
+            cmd = [sys.executable, "-m", "torch.distributed.run", "--nproc_per_node=2",
+                   f"--master_port={29600 + len(extra)}", os.path.join(_PROJ, "pretrain.py"),
+                   *args, *extra]
+            env = dict(os.environ, OMP_NUM_THREADS="1",
+                       PYTHONPATH=_PROJ + os.pathsep + os.environ.get("PYTHONPATH", ""))
+            r = subprocess.run(cmd, capture_output=True, text=True, env=env, cwd=_PROJ, timeout=600)
+            assert r.returncode == 0, r.stderr[-3000:]
+            return None
+
+        # 1) Deadline in the past: stops after the first step with a checkpoint.
+        m = run(["--deadline-unix", "1"])
+        if nproc == 1:
+            assert m == {"stopped_at_step": 1}
+        assert (out / "INCOMPLETE").exists() and (out / "last.pt").exists()
+        assert not (out / "final").exists()
+        assert torch.load(out / "last.pt")["step"] == 1
+        # 2) Resume to completion: marker and checkpoint removed, final saved.
+        run([])
+        assert (out / "final" / "config.json").exists()
+        assert not (out / "INCOMPLETE").exists() and not (out / "last.pt").exists()
+        metrics = json.loads((out / "metrics.json").read_text())
+        assert "a_test_id/exact_match" in metrics and "train_time_s" in metrics
+        # 3) Rerun: evaluation only, training stats kept.
+        mtime = (out / "final" / "model.safetensors").stat().st_mtime
+        run([])
+        assert (out / "final" / "model.safetensors").stat().st_mtime == mtime
+        again = json.loads((out / "metrics.json").read_text())
+        assert again["train_time_s"] == metrics["train_time_s"]
+
+    def test_rewarm_lr_logged(self, corpus, tmp_path, caplog) -> None:
+        out = tmp_path / "rw"
+        args = ["--corpus", str(corpus), "--out", str(out), "--ckpt-weights-only", *_PT_ARGS]
+        pretrain.main(args + ["--deadline-unix", "1"])
+        with caplog.at_level("INFO", logger="pretrain"):
+            pretrain.main(args + ["--rewarm-steps", "2"])
+        assert any("re-warming LR" in r.message for r in caplog.records)

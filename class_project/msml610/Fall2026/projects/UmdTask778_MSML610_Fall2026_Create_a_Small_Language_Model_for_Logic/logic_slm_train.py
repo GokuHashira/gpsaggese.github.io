@@ -17,6 +17,7 @@ import dataclasses
 import logging
 import math
 import os
+import uuid
 from typing import Optional
 
 import torch
@@ -66,7 +67,7 @@ def su_rate(override: float = 0.0) -> float:
     return 0.0
 
 
-def init_wandb(project: str, name: str, out_dir: str, config: dict):
+def init_wandb(project: str, name: str, out_dir: str, config: dict, resume: bool = False):
     """
     Start a W&B run that mirrors the TensorBoard logs, or return None.
 
@@ -78,6 +79,18 @@ def init_wandb(project: str, name: str, out_dir: str, config: dict):
         return None
     import wandb
 
+    kwargs = {}
+    if resume:
+        # Keep one W&B run per output dir across resubmissions.
+        id_path = os.path.join(out_dir, "wandb_run_id.txt")
+        if os.path.exists(id_path):
+            with open(id_path) as f:
+                run_id = f.read().strip()
+        else:
+            run_id = uuid.uuid4().hex[:12]
+            with open(id_path, "w") as f:
+                f.write(run_id)
+        kwargs = {"id": run_id, "resume": "allow"}
     return wandb.init(
         project=project,
         name=name or os.path.basename(os.path.normpath(out_dir)),
@@ -85,6 +98,7 @@ def init_wandb(project: str, name: str, out_dir: str, config: dict):
         config=config,
         mode=os.environ.get("WANDB_MODE", "offline"),
         sync_tensorboard=True,
+        **kwargs,
     )
 
 
