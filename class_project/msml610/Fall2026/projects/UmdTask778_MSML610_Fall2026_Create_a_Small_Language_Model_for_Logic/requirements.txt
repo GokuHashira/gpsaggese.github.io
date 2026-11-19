@@ -1,6 +1,370 @@
-ipywidgets
-matplotlib
-numpy
-pandas
-seaborn
-tqdm
+# Project-specific requirements (see "Python Dependencies Policy" in
+# class_project/project_template/docker_scripts.README.md).
+#
+# Why this file is needed: training small LMs needs torch, transformers,
+# tokenizers, accelerate, datasets and trl at mutually compatible versions,
+# plus z3-solver / python-sat for labels. This is a long list of pinned
+# transitive dependencies that cannot be installed reliably from a notebook.
+#
+# Do not edit by hand. Edit requirements.in, then regenerate:
+#   pip-compile --no-header --strip-extras --no-emit-index-url \
+#       -o requirements.txt requirements.in
+#
+absl-py==2.5.1
+    # via tensorboard
+accelerate==1.15.0
+    # via
+    #   -r requirements.in
+    #   trl
+annotated-doc==0.0.6
+    # via typer
+annotated-types==0.8.0
+    # via pydantic
+anyio==4.16.0
+    # via httpx2
+asttokens==3.0.2
+    # via stack-data
+click==8.5.1
+    # via huggingface-hub
+comm==0.2.3
+    # via
+    #   ipykernel
+    #   ipywidgets
+contourpy==1.3.3
+    # via matplotlib
+cuda-bindings==13.5.0
+    # via torch
+cuda-pathfinder==1.9.0
+    # via cuda-bindings
+cuda-toolkit==13.2.2
+    # via torch
+cycler==0.12.1
+    # via matplotlib
+datasets==5.2.0
+    # via
+    #   -r requirements.in
+    #   trl
+debugpy==1.8.22
+    # via ipykernel
+dill==0.4.1
+    # via
+    #   datasets
+    #   multiprocess
+executing==2.3.0
+    # via stack-data
+filelock==4.2.10
+    # via
+    #   datasets
+    #   huggingface-hub
+    #   torch
+fonttools==4.68.0
+    # via matplotlib
+fsspec==2026.9.0
+    # via
+    #   datasets
+    #   huggingface-hub
+    #   torch
+grpcio==1.85.1
+    # via tensorboard
+h11==0.16.0
+    # via httpcore2
+hf-xet==1.8.0
+    # via huggingface-hub
+httpcore2==2.16.0
+    # via httpx2
+httpx2==2.16.0
+    # via huggingface-hub
+huggingface-hub==2.4.0
+    # via
+    #   -r requirements.in
+    #   accelerate
+    #   datasets
+    #   tokenizers
+    #   transformers
+    #   trl
+idna==3.20
+    # via
+    #   anyio
+    #   httpx2
+iniconfig==2.3.1
+    # via pytest
+ipykernel==7.4.0
+    # via -r requirements.in
+ipython==9.18.1
+    # via
+    #   ipykernel
+    #   ipywidgets
+ipython-pygments-lexers==1.1.1
+    # via ipython
+ipywidgets==8.1.9
+    # via -r requirements.in
+jedi==0.20.1
+    # via ipython
+jinja2==3.1.6
+    # via
+    #   torch
+    #   trl
+jupyter-client==8.10.0
+    # via ipykernel
+jupyter-core==5.9.1
+    # via
+    #   ipykernel
+    #   jupyter-client
+jupyterlab-widgets==3.0.17
+    # via ipywidgets
+kiwisolver==1.5.1
+    # via matplotlib
+markdown==3.11.3
+    # via tensorboard
+markdown-it-py==4.3.0
+    # via rich
+markupsafe==3.0.4
+    # via
+    #   jinja2
+    #   werkzeug
+matplotlib==3.11.2
+    # via
+    #   -r requirements.in
+    #   seaborn
+matplotlib-inline==0.2.2
+    # via
+    #   ipykernel
+    #   ipython
+mdurl==0.1.2
+    # via markdown-it-py
+mpmath==1.3.0
+    # via sympy
+multiprocess==0.70.19
+    # via datasets
+nest-asyncio2==1.7.4
+    # via ipykernel
+networkx==3.6.1
+    # via torch
+numpy==2.4.6
+    # via
+    #   -r requirements.in
+    #   accelerate
+    #   contourpy
+    #   datasets
+    #   matplotlib
+    #   pandas
+    #   scipy
+    #   seaborn
+    #   tensorboard
+    #   transformers
+    #   trl
+nvidia-cublas==13.4.1.3
+    # via
+    #   cuda-toolkit
+    #   nvidia-cudnn-cu13
+    #   nvidia-cusolver
+nvidia-cuda-cccl==13.3.5.0.6
+    # via nvidia-nvshmem-cu13
+nvidia-cuda-cupti==13.2.86
+    # via cuda-toolkit
+nvidia-cuda-nvrtc==13.2.86
+    # via
+    #   cuda-toolkit
+    #   nvidia-cublas
+nvidia-cuda-runtime==13.2.86
+    # via cuda-toolkit
+nvidia-cudnn-cu13==9.26.0.51
+    # via torch
+nvidia-cufft==12.2.0.57
+    # via cuda-toolkit
+nvidia-cufile==1.17.1.22
+    # via cuda-toolkit
+nvidia-cusolver==12.2.0.11
+    # via cuda-toolkit
+nvidia-cusparse==12.7.10.12
+    # via
+    #   cuda-toolkit
+    #   nvidia-cusolver
+nvidia-cusparselt-cu13==0.8.1
+    # via torch
+nvidia-nccl-cu13==2.30.7
+    # via torch
+nvidia-nvjitlink==13.5.37
+    # via
+    #   cuda-toolkit
+    #   nvidia-cufft
+    #   nvidia-cusolver
+    #   nvidia-cusparse
+nvidia-nvshmem-cu13==3.7.2
+    # via torch
+nvidia-nvtx==13.2.86
+    # via cuda-toolkit
+packaging==26.3
+    # via
+    #   accelerate
+    #   datasets
+    #   huggingface-hub
+    #   ipykernel
+    #   matplotlib
+    #   pytest
+    #   tensorboard
+    #   transformers
+    #   trl
+pandas==3.1.1
+    # via
+    #   -r requirements.in
+    #   datasets
+    #   seaborn
+    #   trl
+parso==0.8.7
+    # via jedi
+pexpect==4.9.0
+    # via ipython
+pillow==13.0.0
+    # via
+    #   matplotlib
+    #   tensorboard
+platformdirs==4.14.5
+    # via jupyter-core
+pluggy==1.7.0
+    # via pytest
+prompt-toolkit==3.0.53
+    # via ipython
+protobuf==7.36.2
+    # via tensorboard
+psutil==7.2.2
+    # via
+    #   accelerate
+    #   ipython
+    #   trl
+ptyprocess==0.7.0
+    # via pexpect
+pure-eval==0.2.4
+    # via stack-data
+pyarrow==26.0.1
+    # via
+    #   datasets
+    #   trl
+pydantic==2.14.3
+    # via typer
+pydantic-core==2.50.4
+    # via pydantic
+pygments==2.21.0
+    # via
+    #   ipython
+    #   ipython-pygments-lexers
+    #   pytest
+    #   rich
+pyparsing==3.3.3
+    # via matplotlib
+pytest==9.2.0
+    # via -r requirements.in
+python-dateutil==4.0.0
+    # via
+    #   jupyter-client
+    #   matplotlib
+    #   pandas
+python-sat==1.9.dev22
+    # via -r requirements.in
+pyyaml==6.0.3
+    # via
+    #   accelerate
+    #   datasets
+    #   huggingface-hub
+    #   transformers
+    #   trl
+pyzmq==27.3.0
+    # via
+    #   ipykernel
+    #   jupyter-client
+regex==2026.11.15
+    # via transformers
+rich==15.0.0
+    # via typer
+safetensors==0.8.0
+    # via
+    #   accelerate
+    #   transformers
+scipy==1.17.1
+    # via -r requirements.in
+seaborn==0.13.2
+    # via -r requirements.in
+shellingham==1.5.4
+    # via typer
+six==1.17.0
+    # via python-sat
+stack-data==0.6.3
+    # via ipython
+sympy==1.14.0
+    # via
+    #   -r requirements.in
+    #   torch
+tensorboard==2.21.0
+    # via -r requirements.in
+tensorboard-data-server==0.7.2
+    # via tensorboard
+tokenizers==0.23.3
+    # via
+    #   -r requirements.in
+    #   transformers
+torch==2.15.0
+    # via
+    #   -r requirements.in
+    #   accelerate
+    #   trl
+tornado==6.6.1
+    # via
+    #   ipykernel
+    #   jupyter-client
+tqdm==4.70.1
+    # via
+    #   -r requirements.in
+    #   datasets
+    #   huggingface-hub
+    #   transformers
+traitlets==5.16.1
+    # via
+    #   ipykernel
+    #   ipython
+    #   ipywidgets
+    #   jupyter-client
+    #   jupyter-core
+    #   matplotlib-inline
+transformers==5.23.0
+    # via
+    #   -r requirements.in
+    #   trl
+triton==3.9.0
+    # via torch
+trl==1.18.0
+    # via -r requirements.in
+truststore==0.10.5
+    # via
+    #   httpcore2
+    #   httpx2
+typer==0.29.1
+    # via transformers
+typing-extensions==4.16.0
+    # via
+    #   anyio
+    #   grpcio
+    #   httpx2
+    #   huggingface-hub
+    #   ipython
+    #   jupyter-client
+    #   pydantic
+    #   pydantic-core
+    #   torch
+    #   typing-inspection
+typing-inspection==0.4.5
+    # via pydantic
+tzdata==2026.6
+    # via python-dateutil
+wcwidth==0.9.4
+    # via prompt-toolkit
+werkzeug==3.1.9
+    # via tensorboard
+widgetsnbextension==4.0.16
+    # via ipywidgets
+xxhash==4.1.0
+    # via datasets
+z3-solver==5.4.1.0
+    # via -r requirements.in
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

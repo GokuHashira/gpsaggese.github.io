@@ -1,0 +1,25 @@
+# Direct dependencies; requirements.txt is generated with pip-compile.
+# Template basics.
+ipywidgets
+matplotlib
+numpy
+pandas
+seaborn
+tqdm
+# Training stack (versions must be mutually compatible).
+torch==2.15.0
+transformers==5.23.0
+tokenizers==0.23.3
+datasets==5.2.0
+accelerate==1.15.0
+trl==1.18.0
+huggingface_hub==2.4.0
+tensorboard==2.21.0
+# Labels and step checking.
+z3-solver==5.4.1.0
+python-sat==1.9.dev22
+sympy==1.14.0
+# Notebooks and tests.
+ipykernel
+scipy
+pytest

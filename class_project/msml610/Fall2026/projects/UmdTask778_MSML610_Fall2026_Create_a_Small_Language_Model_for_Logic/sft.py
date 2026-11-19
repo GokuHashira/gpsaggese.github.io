@@ -1,0 +1,243 @@
+#!/usr/bin/env python
+"""
+Supervised fine-tuning (SFT) of a pretrained checkpoint.
+
+- Data: (prompt, solution) pairs generated from the corpus mixture with SFT
+  seeds; eval / validation prompts are excluded. Loss only on solution tokens.
+- Attention dropout 0.1, AdamW, warmup + cosine, bf16 autocast; single GPU or torchrun.
+- After every epoch: greedy exact match and pass@k on validation problems of
+  every generator. Following Cobbe et al. (sample diversity collapses after a
+  few epochs), the checkpoint kept as `best/` maximizes pass@`--select-k`, not
+  pass@1. `last/` holds the final epoch.
+- At the end the best checkpoint is evaluated greedily on all eval sets.
+
+Example:
+
+> python sft.py --init models/pt_125m/final --corpus data/processed/corpus_v1 \
+    --out models/sft_125m --epochs 4 --wandb-project logic-slm
+"""
+
+import argparse
+import glob
+import json
+import logging
+import sys
+import os
+import shutil
+import time
+from typing import Dict, List
+
+import torch
+import transformers
+
+import logic_slm_data as lsdata
+import logic_slm_eval as lseval
+import logic_slm_mixture as lsmix
+import logic_slm_sft as lssft
+import logic_slm_tokenizer as lstok
+import logic_slm_train as lstrain
+
+_LOG = logging.getLogger("sft")
+
+
+def parse_args(argv: List[str] = None) -> argparse.Namespace:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--init", required=True, help="pretrained model dir (save_pretrained)")
+    ap.add_argument("--corpus", required=True, help="dir from build_corpus.py")
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--n-examples", type=int, default=200_000, help="SFT set size")
+    ap.add_argument("--epochs", type=int, default=4)
+    ap.add_argument("--batch-size", type=int, default=128, help="sequences per step (global)")
+    ap.add_argument("--micro-batch", type=int, default=64, help="per GPU")
+    ap.add_argument("--max-len", type=int, default=1024)
+    ap.add_argument("--lr", type=float, default=1e-4)
+    ap.add_argument("--warmup-frac", type=float, default=0.03)
+    ap.add_argument("--weight-decay", type=float, default=0.1)
+    ap.add_argument("--dropout", type=float, default=0.1)
+    ap.add_argument("--grad-clip", type=float, default=1.0)
+    ap.add_argument("--seed", type=int, default=4321)
+    ap.add_argument("--log-every", type=int, default=20)
+    ap.add_argument("--val-per-gen", type=int, default=100, help="problems per generator for pass@k")
+    ap.add_argument("--n-samples", type=int, default=8, help="samples per problem for pass@k")
+    ap.add_argument("--ks", type=int, nargs="+", default=[1, 4, 8])
+    ap.add_argument("--select-k", type=int, default=8, help="pick checkpoint by pass@k")
+    ap.add_argument("--temperature", type=float, default=0.7)
+    ap.add_argument("--eval-limit", type=int, default=500)
+    ap.add_argument("--max-new-tokens", type=int, default=192)
+    ap.add_argument("--compile", action="store_true")
+    lstrain.add_common_args(ap)
+    return ap.parse_args(argv)
+
+
+def _val_records(corpus: str, per_gen: int) -> List[dict]:
+    recs = lsdata.read_records(os.path.join(corpus, "val.jsonl"))
+    by: Dict[str, List[dict]] = {}
+    for r in recs:
+        by.setdefault(r.get("gen", r["task"]), []).append(r)
+    return [r for g in sorted(by) for r in by[g][:per_gen]]
+
+
+def _save(model, tok, path: str, dtype: str) -> None:
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    state_dtype = next(model.parameters()).dtype
+    if dtype == "bf16":
+        model.to(torch.bfloat16)
+    model.save_pretrained(path)
+    tok.save_pretrained(path)
+    model.to(state_dtype)
+
+
+def main(argv: List[str] = None) -> Dict[str, float]:
+    a = parse_args(argv)
+    d = lstrain.setup_dist()
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO if d.is_main else logging.WARNING,
+                        format="%(asctime)s %(message)s")
+    if d.is_main:
+        os.makedirs(a.out, exist_ok=True)
+    torch.manual_seed(a.seed)
+    device = d.device
+    use_bf16 = device.type == "cuda" and torch.cuda.get_device_capability(device)[0] >= 8
+    amp = torch.autocast(device.type, dtype=torch.bfloat16, enabled=use_bf16)
+
+    tok = lstok.load_tokenizer(a.init)
+    # Llama only has dropout on the attention probabilities; that is the
+    # regularizer used for SFT (--dropout).
+    model = transformers.LlamaForCausalLM.from_pretrained(
+        a.init, attention_dropout=a.dropout, dtype=torch.float32
+    ).to(device)
+    with open(os.path.join(a.corpus, "manifest.json")) as f:
+        mixture = json.load(f)["mixture"]
+    held = lsmix.load_held_prompts(a.corpus)
+    total_share = sum(s["share"] for s in mixture.values())
+    pairs = lssft.build_sft_examples(mixture, int(a.n_examples / total_share), a.seed, held)
+    ds = lssft.SFTDataset(pairs, tok, a.max_len)
+    _LOG.info("sft examples: %d (kept %d <= %d tokens)", len(pairs), len(ds), a.max_len)
+
+    if a.batch_size % (a.micro_batch * d.world):
+        raise ValueError("batch-size must be a multiple of micro-batch * GPUs")
+    accum = a.batch_size // (a.micro_batch * d.world)
+    steps_per_epoch = len(ds) // a.batch_size
+    if steps_per_epoch < 1:
+        raise ValueError(f"Only {len(ds)} SFT examples for batch size {a.batch_size}")
+    total_steps = steps_per_epoch * a.epochs
+    warmup = max(1, int(a.warmup_frac * total_steps))
+    opt = lstrain.make_optimizer(model, a.lr, a.weight_decay)
+    train_model = model
+    if d.world > 1:
+        ids = [d.local_rank] if device.type == "cuda" else None
+        train_model = torch.nn.parallel.DistributedDataParallel(model, device_ids=ids)
+    if a.compile:
+        train_model = torch.compile(train_model, dynamic=True)
+
+    val_recs = _val_records(a.corpus, a.val_per_gen)
+    run_info = {**vars(a), "n_train": len(ds), "total_steps": total_steps, "world": d.world,
+                "gpu": lstrain.gpu_name(), "su_per_gpu_hour": lstrain.su_rate(a.su_per_gpu_hour)}
+    wb = tb = None
+    if d.is_main:
+        wb = lstrain.init_wandb(a.wandb_project, a.wandb_name, a.out, run_info)
+        from torch.utils.tensorboard import SummaryWriter
+
+        tb = SummaryWriter(os.path.join(a.out, "tb"))
+        with open(os.path.join(a.out, "args.json"), "w") as f:
+            json.dump(run_info, f, indent=2)
+
+    step, best, best_epoch = 0, -1.0, -1
+    history = []
+    t_start = time.time()
+    for epoch in range(1, a.epochs + 1):
+        g = torch.Generator().manual_seed(a.seed + epoch)
+        order = torch.randperm(len(ds), generator=g).tolist()
+        model.train()
+        t_log = time.time()
+        for s in range(steps_per_epoch):
+            lr = lstrain.lr_at(step, total_steps, warmup, a.lr)
+            for grp in opt.param_groups:
+                grp["lr"] = lr
+            loss_acc = 0.0
+            base = s * a.batch_size
+            for m in range(accum):
+                first = base + (m * d.world + d.rank) * a.micro_batch
+                batch = ds.collate([ds[i] for i in order[first : first + a.micro_batch]])
+                batch = {k: v.to(device, non_blocking=True) for k, v in batch.items()}
+                sync = m == accum - 1 or d.world == 1
+                ctx = train_model.no_sync() if (not sync and hasattr(train_model, "no_sync")) else _null()
+                with ctx:
+                    with amp:
+                        loss = lssft.masked_lm_loss(train_model, batch) / accum
+                    loss.backward()
+                loss_acc += loss.item()
+            gnorm = torch.nn.utils.clip_grad_norm_(model.parameters(), a.grad_clip).item()
+            opt.step()
+            opt.zero_grad(set_to_none=True)
+            step += 1
+            if step % a.log_every == 0:
+                loss_avg = d.mean(loss_acc)
+                if d.is_main:
+                    _LOG.info("epoch %d step %d/%d loss %.4f lr %.2e gnorm %.2f (%.1fs)",
+                              epoch, step, total_steps, loss_avg, lr, gnorm, time.time() - t_log)
+                    tb.add_scalar("sft/loss", loss_avg, step)
+                    tb.add_scalar("sft/lr", lr, step)
+                    tb.add_scalar("sft/grad_norm", gnorm, step)
+                t_log = time.time()
+        if d.is_main:
+            model.eval()
+            with amp:
+                ev = lssft.pass_at_k_eval(
+                    model, tok, val_recs, n_samples=a.n_samples, ks=a.ks,
+                    temperature=a.temperature, max_new_tokens=a.max_new_tokens,
+                )
+            ev["epoch"] = epoch
+            history.append(ev)
+            _LOG.info("epoch %d val: %s", epoch, {k: round(v, 4) for k, v in ev.items()})
+            for k, v in ev.items():
+                tb.add_scalar(f"sft_val/{k}", v, epoch)
+            key = f"pass@{a.select_k}" if f"pass@{a.select_k}" in ev else "greedy_exact_match"
+            if not a.no_save:
+                if ev[key] > best:
+                    best, best_epoch = ev[key], epoch
+                    _save(model, tok, os.path.join(a.out, "best"), a.save_dtype)
+                _save(model, tok, os.path.join(a.out, "last"), a.save_dtype)
+        d.barrier()
+
+    metrics: Dict[str, float] = {}
+    if d.is_main:
+        train_time = time.time() - t_start
+        rate = run_info["su_per_gpu_hour"] * d.world
+        metrics = {"best_epoch": best_epoch, "best_select_metric": best,
+                   "train_time_s": train_time, "su_used": train_time / 3600 * rate}
+        final = model
+        if not a.no_save and best_epoch > 0:
+            final = transformers.LlamaForCausalLM.from_pretrained(
+                os.path.join(a.out, "best")).to(device)
+        evals = sorted(glob.glob(os.path.join(a.corpus, "eval", "*.jsonl")))
+        for path in evals:
+            name = os.path.basename(path)[:-6]
+            m = lseval.evaluate_jsonl(final, tok, path, limit=a.eval_limit,
+                                      max_new_tokens=a.max_new_tokens,
+                                      out_path=os.path.join(a.out, f"pred_{name}.jsonl"))
+            for k, v in m.items():
+                metrics[f"{name}/{k}"] = v
+                tb.add_scalar(f"eval_{name}/{k}", v, a.epochs)
+            _LOG.info("eval %s: %s", name, {k: round(v, 4) for k, v in m.items()})
+        with open(os.path.join(a.out, "metrics.json"), "w") as f:
+            json.dump({"final": metrics, "per_epoch": history}, f, indent=2)
+        tb.close()
+        if wb is not None:
+            wb.summary.update(metrics)
+            wb.finish()
+    d.barrier()
+    lstrain.cleanup_dist(d)
+    return metrics
+
+
+class _null:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+if __name__ == "__main__":
+    main()
