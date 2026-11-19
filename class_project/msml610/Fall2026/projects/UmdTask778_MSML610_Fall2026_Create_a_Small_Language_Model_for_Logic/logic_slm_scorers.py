@@ -47,8 +47,14 @@ def pass_at_k(n: int, c: int, k: int) -> float:
     return 1.0 - float(np.prod(1.0 - k / np.arange(n - c + 1, n + 1)))
 
 
-def _to_frac(s: str) -> fractions.Fraction:
-    return fractions.Fraction(s)
+def _to_frac(s: str) -> Optional[fractions.Fraction]:
+    """
+    Parse an integer or fraction; None for a zero denominator (e.g. "685/0").
+    """
+    try:
+        return fractions.Fraction(s)
+    except ZeroDivisionError:
+        return None
 
 
 def check_math_step(step: str) -> Optional[bool]:
@@ -62,6 +68,9 @@ def check_math_step(step: str) -> Optional[bool]:
     if not m:
         return None
     a, op, b, c = _to_frac(m[1]), m[2], _to_frac(m[3]), _to_frac(m[4])
+    if a is None or b is None or c is None:
+        # A number with a zero denominator is never a correct step.
+        return False
     if op == "+":
         v = a + b
     elif op == "-":

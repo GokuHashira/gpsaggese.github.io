@@ -25,6 +25,7 @@ import json
 import logging
 import multiprocessing as mp
 import os
+import sys
 from typing import Dict, List, Set
 
 import numpy as np
@@ -129,7 +130,7 @@ def main(argv: List[str] = None) -> None:
     ap.add_argument("--seq-len", type=int, default=1024)
     ap.add_argument("--workers", type=int, default=os.cpu_count())
     a = ap.parse_args(argv)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(asctime)s %(message)s")
     os.makedirs(a.out, exist_ok=True)
     mixture = lsmix.load_mixture(a.mixture)
     held = build_eval_and_val(mixture, a.out, a.seed, a.n_eval, a.n_val)

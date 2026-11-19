@@ -21,6 +21,7 @@ import argparse
 import glob
 import json
 import logging
+import sys
 import os
 import shutil
 import time
@@ -90,7 +91,7 @@ def _save(model, tok, path: str, dtype: str) -> None:
 def main(argv: List[str] = None) -> Dict[str, float]:
     a = parse_args(argv)
     d = lstrain.setup_dist()
-    logging.basicConfig(level=logging.INFO if d.is_main else logging.WARNING,
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO if d.is_main else logging.WARNING,
                         format="%(asctime)s %(message)s")
     if d.is_main:
         os.makedirs(a.out, exist_ok=True)

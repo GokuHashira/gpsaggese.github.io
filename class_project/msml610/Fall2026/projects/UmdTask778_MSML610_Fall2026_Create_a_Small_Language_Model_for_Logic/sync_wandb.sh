@@ -10,7 +10,7 @@
 # Login nodes cap processes per user, so thread counts are limited to 1.
 set -euo pipefail
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 GOMAXPROCS=1
-export PYTHONPATH=$HOME/msml610/pylibs${PYTHONPATH:+:$PYTHONPATH}
+export PYTHONPATH=/scratch/zt1/project/msml610/user/gsakthiv/pylibs${PYTHONPATH:+:$PYTHONPATH}
 PY=/scratch/zt1/project/msml610/user/gsakthiv/envs/slm/bin/python
 ROOT=${1:-models}
 n=0

@@ -14,6 +14,7 @@ import logic_slm_tokenizer as lstok
 import argparse
 import json
 import logging
+import sys
 from typing import Iterable, Iterator, List
 
 import tokenizers
@@ -113,7 +114,7 @@ def _main() -> None:
     ap.add_argument("--limit", type=int, default=500_000, help="max texts (0 = all)")
     ap.add_argument("--out", required=True, help="output directory")
     a = ap.parse_args()
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     tok = build_tokenizer(iter_jsonl_texts(a.jsonl, a.limit), a.vocab_size)
     tok.save_pretrained(a.out)
     _LOG.info("Saved tokenizer with %d tokens to %s", len(tok), a.out)

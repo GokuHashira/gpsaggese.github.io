@@ -60,6 +60,8 @@ class Test_math_steps:
             ("80 / 5 = 16", True),
             ("7 / 2 = 7/2", True),
             ("7 / 0 = 0", False),
+            ("5 * 137 = 685/0", False),
+            ("685/0 + 1 = 2", False),
             ("cost of trays: 10 * 50 = 500", True),
             ("cost of trays: 10 * 50 = 600", False),
             ("p, p -> q => q", None),

@@ -28,6 +28,7 @@ import argparse
 import glob
 import json
 import logging
+import sys
 import os
 import time
 from typing import Dict, Iterator, List
@@ -187,10 +188,24 @@ def _train_dataset(a: argparse.Namespace) -> torch.utils.data.Dataset:
     )
 
 
+def _per_rank_compile_caches() -> None:
+    """
+    Give each torchrun process its own compile cache dir, so concurrent
+    processes never read each other's half-written kernel files.
+    """
+    rank = os.environ.get("LOCAL_RANK")
+    if rank is None:
+        return
+    for key in ("TRITON_CACHE_DIR", "TORCHINDUCTOR_CACHE_DIR"):
+        if key in os.environ and not os.environ[key].endswith(f"rank{rank}"):
+            os.environ[key] = os.path.join(os.environ[key], f"rank{rank}")
+
+
 def main(argv: List[str] = None) -> Dict[str, float]:
     a = parse_args(argv)
+    _per_rank_compile_caches()
     d = lstrain.setup_dist()
-    logging.basicConfig(
+    logging.basicConfig(stream=sys.stdout, 
         level=logging.INFO if d.is_main else logging.WARNING,
         format="%(asctime)s %(message)s",
     )

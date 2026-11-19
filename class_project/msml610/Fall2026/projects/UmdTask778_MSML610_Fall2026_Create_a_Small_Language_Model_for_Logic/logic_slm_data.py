@@ -12,6 +12,7 @@ import logic_slm_data as lsdata
 import argparse
 import json
 import logging
+import sys
 from typing import Iterator, List
 
 import numpy as np
@@ -84,7 +85,7 @@ def _main() -> None:
     ap.add_argument("--tokenizer", required=True)
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     tokenize_jsonl_to_bin(a.jsonl, a.tokenizer, a.out)
 
 
