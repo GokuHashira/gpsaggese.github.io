@@ -240,7 +240,8 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     ckpt_path = os.path.join(a.out, "last.pt")
     final_dir = os.path.join(a.out, "final")
     marker = os.path.join(a.out, "INCOMPLETE")
-    step, rewarm_from = 0, -1
+    # `prior_time` is the training wall time of earlier jobs of this run.
+    step, rewarm_from, prior_time = 0, -1, 0.0
     eval_only = os.path.exists(os.path.join(final_dir, "config.json"))
     if eval_only:
         # Training already finished (e.g. the job stopped during evaluation).
@@ -248,7 +249,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         step = total_steps
         _LOG.info("Found %s: skipping training, evaluating only", final_dir)
     elif os.path.exists(ckpt_path):
-        step = lstrain.load_checkpoint(ckpt_path, model, opt, device)
+        step, prior_time = lstrain.load_checkpoint(ckpt_path, model, opt, device)
         if not opt.state:
             rewarm_from = step  # fresh optimizer moments: ramp the LR back up
         _LOG.info("Resumed from step %d (optimizer state %s)", step,
@@ -291,6 +292,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
             json.dump(run_info, f, indent=2)
 
     model.train()
+    start_step = step
     t_start = time.time()
     t_log, tok_log = time.time(), 0
     batches = iter(loader)
@@ -338,7 +340,8 @@ def main(argv: List[str] = None) -> Dict[str, float]:
             d.barrier()
         if step % a.save_every == 0 and step < total_steps and not a.no_save:
             if d.is_main:
-                lstrain.save_checkpoint(ckpt_path, model, opt, step, a.ckpt_weights_only)
+                lstrain.save_checkpoint(ckpt_path, model, opt, step, a.ckpt_weights_only,
+                                        prior_time + time.time() - t_start)
             d.barrier()
         if a.deadline_unix and step < total_steps:
             # Rank 0 decides so all ranks stop at the same step.
@@ -346,7 +349,8 @@ def main(argv: List[str] = None) -> Dict[str, float]:
             if late:
                 if d.is_main:
                     if not a.no_save:
-                        lstrain.save_checkpoint(ckpt_path, model, opt, step, a.ckpt_weights_only)
+                        lstrain.save_checkpoint(ckpt_path, model, opt, step, a.ckpt_weights_only,
+                                                prior_time + time.time() - t_start)
                     with open(marker, "w") as f:
                         f.write(f"stopped at step {step}/{total_steps} before the time limit\n")
                     _LOG.info("Deadline reached: checkpoint at step %d, resubmit to continue", step)
@@ -357,20 +361,22 @@ def main(argv: List[str] = None) -> Dict[str, float]:
                 lstrain.cleanup_dist(d)
                 return {"stopped_at_step": step}
 
-    train_time = time.time() - t_start
+    # Throughput uses only the steps of this job; the SU cost covers all jobs.
+    job_time = time.time() - t_start
     metrics: Dict[str, float] = {}
     if d.is_main:
-        trained_tokens = total_steps * seqs_per_step * a.seq_len
+        job_tokens = (total_steps - start_step) * seqs_per_step * a.seq_len
         rate = run_info["su_per_gpu_hour"] * d.world
         metrics = {
             "val_loss": val_loss(model.float(), val, a.val_blocks, a.micro_batch, device, amp),
-            "train_time_s": train_time,
-            "tokens_per_s": trained_tokens / max(train_time, 1e-9),
+            "train_time_s": prior_time + job_time,
             "non_embedding_params": params["non_embedding"],
             "gpus": d.world,
         }
-        metrics["su_per_1b_tokens"] = 1e9 / metrics["tokens_per_s"] / 3600 * rate
-        metrics["su_used_train"] = train_time / 3600 * rate
+        if job_tokens > 0:
+            metrics["tokens_per_s"] = job_tokens / max(job_time, 1e-9)
+            metrics["su_per_1b_tokens"] = 1e9 / metrics["tokens_per_s"] / 3600 * rate
+        metrics["su_used_train"] = metrics["train_time_s"] / 3600 * rate
         if a.save_dtype == "bf16":
             model = model.to(torch.bfloat16)
         if eval_only:

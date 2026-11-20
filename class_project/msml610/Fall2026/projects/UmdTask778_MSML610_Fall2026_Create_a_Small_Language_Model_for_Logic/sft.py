@@ -78,14 +78,23 @@ def _val_records(corpus: str, per_gen: int) -> List[dict]:
 
 
 def _save(model, tok, path: str, dtype: str) -> None:
+    """
+    Save the model and tokenizer without modifying the model being trained.
+
+    A bf16 save writes a bf16 copy of the weights: casting the live model to
+    bf16 and back would permanently round its fp32 weights.
+    """
     if os.path.exists(path):
         shutil.rmtree(path)
-    state_dtype = next(model.parameters()).dtype
     if dtype == "bf16":
-        model.to(torch.bfloat16)
-    model.save_pretrained(path)
+        model.save_pretrained(path, state_dict=lstrain.bf16_state_dict(model))
+        # Record the stored dtype, as `model.to(bf16)` would have.
+        cfg = transformers.AutoConfig.from_pretrained(path)
+        cfg.dtype = torch.bfloat16
+        cfg.save_pretrained(path)
+    else:
+        model.save_pretrained(path)
     tok.save_pretrained(path)
-    model.to(state_dtype)
 
 
 def main(argv: List[str] = None) -> Dict[str, float]:
@@ -193,10 +202,11 @@ def main(argv: List[str] = None) -> Dict[str, float]:
             for k, v in ev.items():
                 tb.add_scalar(f"sft_val/{k}", v, epoch)
             key = f"pass@{a.select_k}" if f"pass@{a.select_k}" in ev else "greedy_exact_match"
-            if not a.no_save:
-                if ev[key] > best:
-                    best, best_epoch = ev[key], epoch
+            if ev[key] > best:
+                best, best_epoch = ev[key], epoch
+                if not a.no_save:
                     _save(model, tok, os.path.join(a.out, "best"), a.save_dtype)
+            if not a.no_save:
                 _save(model, tok, os.path.join(a.out, "last"), a.save_dtype)
         d.barrier()
 

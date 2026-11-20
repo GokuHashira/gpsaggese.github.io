@@ -168,9 +168,10 @@ def normalize_answer(answer: Optional[str], task: str) -> Optional[str]:
     a = " ".join(answer.split())
     if task == "logic":
         return a.lower().rstrip(".")
+    # Strip "+" first, so that "+1,234" is also recognized as "1,234".
+    a = a.lstrip("+")
     if _THOUSANDS_RE.match(a):
         a = a.replace(",", "")
-    a = a.lstrip("+")
     if _INT_RE.match(a):
         return str(int(a))
     if _FRAC_RE.match(a):

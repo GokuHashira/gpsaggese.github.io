@@ -12,6 +12,7 @@ import os
 
 import pytest
 import torch
+import transformers
 
 import build_corpus
 import logic_slm_mixture as lsmix
@@ -82,3 +83,61 @@ class Test_sft_script:
         assert {"pass@1", "pass@4", "greedy_exact_match"} <= set(hist[0])
         assert m["best_epoch"] in (1, 2)
         assert {"a_test_id/exact_match", "l_test_id/exact_match"} <= set(m)
+
+    def test_no_save_tracks_best_epoch(self, setup) -> None:
+        """
+        With `--no-save` the best epoch is still reported.
+        """
+        root, corpus, pre = setup
+        out = root / "sft_nosave"
+        m = sft.main(["--init", str(pre / "final"), "--corpus", str(corpus), "--out", str(out),
+                      "--n-examples", "128", "--epochs", "2", "--batch-size", "32",
+                      "--micro-batch", "16", "--val-per-gen", "4", "--n-samples", "4",
+                      "--ks", "1", "4", "--select-k", "4", "--eval-limit", "4",
+                      "--max-new-tokens", "24", "--no-save"])
+        assert m["best_epoch"] in (1, 2)
+        assert m["best_select_metric"] >= 0
+        assert not (out / "best").exists()
+
+
+class Test_save:
+    def test_bf16_save_keeps_training_weights(self, setup) -> None:
+        """
+        A bf16 save writes bf16 weights and leaves the fp32 model unchanged.
+        """
+        root, _, pre = setup
+        model = transformers.LlamaForCausalLM.from_pretrained(str(pre / "final"),
+                                                              dtype=torch.float32)
+        # Perturb the weights so they are not exactly representable in bf16.
+        with torch.no_grad():
+            for p in model.parameters():
+                p.add_(torch.randn_like(p) * 1e-4)
+        before = {k: v.clone() for k, v in model.state_dict().items()}
+        tok = lstok.load_tokenizer(str(pre / "final"))
+        path = root / "saved_bf16"
+        sft._save(model, tok, str(path), "bf16")
+        for k, v in model.state_dict().items():
+            assert v.dtype == torch.float32 and torch.equal(v, before[k]), k
+        cfg = json.loads((path / "config.json").read_text())
+        assert cfg.get("dtype", cfg.get("torch_dtype")) == "bfloat16"
+        loaded = transformers.LlamaForCausalLM.from_pretrained(str(path))
+        assert next(loaded.parameters()).dtype == torch.bfloat16
+        emb = before["model.embed_tokens.weight"].to(torch.bfloat16)
+        assert torch.equal(loaded.get_input_embeddings().weight, emb)
+        assert loaded.lm_head.weight.data_ptr() == loaded.get_input_embeddings().weight.data_ptr()
+
+
+class Test_pass_at_k_eval:
+    def test_restores_global_rng(self, setup) -> None:
+        """
+        Seeded evaluation does not reset the global RNG used for training.
+        """
+        _, corpus, pre = setup
+        model = transformers.LlamaForCausalLM.from_pretrained(str(pre / "final"))
+        tok = lstok.load_tokenizer(str(pre / "final"))
+        recs = [json.loads(line) for line in open(corpus / "val.jsonl")][:2]
+        torch.manual_seed(123)
+        expected = torch.rand(3)
+        torch.manual_seed(123)
+        lssft.pass_at_k_eval(model, tok, recs, n_samples=2, ks=[1, 2], max_new_tokens=8)
+        assert torch.equal(torch.rand(3), expected)

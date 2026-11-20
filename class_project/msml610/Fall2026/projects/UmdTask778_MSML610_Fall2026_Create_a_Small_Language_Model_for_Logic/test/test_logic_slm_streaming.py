@@ -111,18 +111,62 @@ class Test_checkpoints:
         m1(input_ids=torch.zeros(1, 4, dtype=torch.long)).logits.sum().backward()
         opt.step()
         path = str(tmp_path / "ck.pt")
-        lstrain.save_checkpoint(path, m1, opt, 17, weights_only)
+        lstrain.save_checkpoint(path, m1, opt, 17, weights_only, train_time_s=12.5)
         m2 = lsmod.make_model(cfg)
         opt2 = lstrain.make_optimizer(m2, 1e-3, 0.1)
-        assert lstrain.load_checkpoint(path, m2, opt2, "cpu") == 17
+        assert lstrain.load_checkpoint(path, m2, opt2, "cpu") == (17, 12.5)
         for (k, v1), v2 in zip(m1.state_dict().items(), m2.state_dict().values()):
             tol = 1e-2 if weights_only else 0
             assert torch.allclose(v1, v2, atol=tol), k
         assert bool(opt2.state) == (not weights_only)
 
+    def test_old_checkpoint_without_train_time(self, tmp_path) -> None:
+        """
+        Checkpoints written before `train_time_s` existed load with 0 seconds.
+        """
+        cfg = lsmod.make_config("tiny", 64, eos_token_id=0, pad_token_id=1)
+        m = lsmod.make_model(cfg)
+        path = str(tmp_path / "old.pt")
+        torch.save({"step": 5, "model": m.state_dict()}, path)
+        opt = lstrain.make_optimizer(m, 1e-3, 0.1)
+        assert lstrain.load_checkpoint(path, m, opt, "cpu") == (5, 0.0)
+
     def test_su_rate(self) -> None:
         assert lstrain.su_rate(99.0) == 99.0
         assert lstrain.su_rate() in (0.0, 7.0, 48.0, 144.0)
+
+
+class Test_bf16_state_dict:
+    def test_model_untouched_and_tied(self) -> None:
+        """
+        The copy is bf16, the model stays fp32, and tied weights stay shared.
+        """
+        cfg = lsmod.make_config("tiny", 64, eos_token_id=0, pad_token_id=1)
+        m = lsmod.make_model(cfg)
+        before = {k: v.clone() for k, v in m.state_dict().items()}
+        sd = lstrain.bf16_state_dict(m)
+        assert all(v.dtype == torch.bfloat16 for v in sd.values())
+        for k, v in m.state_dict().items():
+            assert v.dtype == torch.float32 and torch.equal(v, before[k]), k
+        assert sd["lm_head.weight"] is sd["model.embed_tokens.weight"]
+
+
+class Test_setup_dist:
+    def test_long_timeout(self, monkeypatch) -> None:
+        """
+        Multi-process runs use `DIST_TIMEOUT`, not the 10-minute default.
+        """
+        calls = []
+        monkeypatch.setenv("WORLD_SIZE", "2")
+        monkeypatch.setenv("LOCAL_RANK", "0")
+        monkeypatch.setattr(lstrain.dist, "init_process_group",
+                            lambda backend, **kw: calls.append((backend, kw)))
+        monkeypatch.setattr(lstrain.dist, "get_rank", lambda: 0)
+        monkeypatch.setattr(lstrain.torch.cuda, "is_available", lambda: False)
+        d = lstrain.setup_dist()
+        assert d.world == 2
+        assert calls == [("gloo", {"timeout": lstrain.DIST_TIMEOUT})]
+        assert lstrain.DIST_TIMEOUT.total_seconds() >= 3600
 
 
 _PT_ARGS = [
@@ -201,13 +245,18 @@ class Test_interrupt_and_resume:
             assert m == {"stopped_at_step": 1}
         assert (out / "INCOMPLETE").exists() and (out / "last.pt").exists()
         assert not (out / "final").exists()
-        assert torch.load(out / "last.pt")["step"] == 1
+        ck = torch.load(out / "last.pt")
+        assert ck["step"] == 1
+        first_job_time = ck["train_time_s"]
+        assert first_job_time > 0
         # 2) Resume to completion: marker and checkpoint removed, final saved.
         run([])
         assert (out / "final" / "config.json").exists()
         assert not (out / "INCOMPLETE").exists() and not (out / "last.pt").exists()
         metrics = json.loads((out / "metrics.json").read_text())
         assert "a_test_id/exact_match" in metrics and "train_time_s" in metrics
+        # The SU cost includes the time of the first job.
+        assert metrics["train_time_s"] > first_job_time
         # 3) Rerun: evaluation only, training stats kept.
         mtime = (out / "final" / "model.safetensors").stat().st_mtime
         run([])

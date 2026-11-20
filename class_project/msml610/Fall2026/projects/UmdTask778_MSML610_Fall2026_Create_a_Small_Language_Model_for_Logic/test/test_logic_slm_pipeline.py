@@ -15,6 +15,7 @@ import pytest
 import torch
 
 import logic_slm_data as lsdata
+import logic_slm_eval as lseval
 import logic_slm_format as lsform
 import logic_slm_math_m1 as lsmam1
 import logic_slm_model as lsmod
@@ -126,3 +127,13 @@ class Test_block_stream:
         assert lrs[0] == pytest.approx(0.1) and lrs[9] == pytest.approx(1.0)
         assert lrs[-1] == pytest.approx(0.1, abs=0.01)
         assert all(x >= y for x, y in zip(lrs[10:], lrs[11:]))
+
+
+class Test_evaluate_jsonl:
+    def test_empty_file(self, tmp_path) -> None:
+        """
+        An empty eval file gives empty metrics instead of crashing.
+        """
+        path = tmp_path / "empty.jsonl"
+        path.write_text("")
+        assert lseval.evaluate_jsonl(None, None, str(path)) == {"n": 0.0}

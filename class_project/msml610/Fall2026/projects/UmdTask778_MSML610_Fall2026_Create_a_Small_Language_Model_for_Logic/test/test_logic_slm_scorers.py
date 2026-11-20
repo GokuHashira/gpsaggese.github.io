@@ -116,3 +116,34 @@ class Test_logic_scoring:
     def test_empty_is_undefined(self) -> None:
         assert lssco.logic_steps_valid("") is None
         assert lssco.logic_steps_valid("#### unknown") is None
+        assert lssco.logic_steps_valid("#### unknown", symbolic=True) is None
+
+    def test_symbolic_malformed_step_is_invalid(self) -> None:
+        """
+        On symbolic (L1 / L2) problems, a step that does not parse is invalid.
+        """
+        garbled = "p, p -> => q\n#### yes"
+        mixed = "p, p -> q => q\nso q holds\n#### yes"
+        assert lssco.logic_steps_valid(garbled) is None
+        assert lssco.logic_steps_valid(garbled, symbolic=True) is False
+        assert lssco.logic_steps_valid(mixed, symbolic=True) is False
+        assert lssco.logic_steps_valid("p, p -> q => q\n#### yes", symbolic=True) is True
+
+    def test_symbolic_score_counts_malformed(self) -> None:
+        """
+        A garbled completion lowers `steps_valid` instead of being dropped.
+        """
+        good = "p, p -> q => q\n#### yes"
+        garbled = "p, p -> => q\n#### yes"
+        out = lssco.score_completions([good, garbled], ["yes"] * 2, "logic", symbolic=True)
+        assert out["steps_checked"] == pytest.approx(1.0)
+        assert out["steps_valid"] == pytest.approx(0.5)
+        assert out["correct_invalid_steps"] == pytest.approx(0.5)
+        out = lssco.score_completions([good, garbled], ["yes"] * 2, "logic")
+        assert out["steps_checked"] == pytest.approx(0.5)
+        assert out["steps_valid"] == pytest.approx(1.0)
+
+
+class Test_score_completions_empty:
+    def test_no_completions(self) -> None:
+        assert lssco.score_completions([], [], "math") == {"n": 0.0}
