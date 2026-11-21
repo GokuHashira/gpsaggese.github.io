@@ -213,6 +213,8 @@ and only with the team's explicit approval.
 - [ ] SFT + fixes: small / medium / large
 - [ ] Post-training: RFT, verifier best-of-N, GRPO
 - [ ] Ablations, notebooks, README, Docker, report, video
+- [ ] Publish on Hugging Face (after GRPO): model repos + model cards (eval tables, cost, limits), free CPU Space demo; first check course permission and TinyGSM's license
+- Running story of the project (what failed and how it was fixed): `references/project_log.md`
 
 ## 10. Risks
 | Risk | Mitigation |
