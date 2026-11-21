@@ -21,15 +21,78 @@ import logic_slm_scorers as lssco
 IGNORE_INDEX = -100
 
 
+# Real SFT data (plan v2): source -> (JSONL glob relative to the project, max examples).
+REAL_SFT: Dict[str, Tuple[str, int]] = {
+    "openmathinstruct2": ("data/processed/real/openmathinstruct2/*.jsonl.gz", 150_000),
+    "metamathqa": ("data/processed/real/metamathqa/*.jsonl.gz", 100_000),
+    "tinygsm": ("data/processed/real/tinygsm/*.jsonl.gz", 80_000),
+    "orcamath": ("data/processed/real/orcamath/*.jsonl.gz", 60_000),
+    "gsm8k_train": ("data/processed/real/gsm8k-train/*.jsonl.gz", 10_000),
+}
+
+
+def load_real_pairs(
+    spec: Dict[str, Tuple[str, int]], seed: int, held: Set[str], n_val: int, scale: float = 1.0,
+    eval_index: Optional[Set[int]] = None,
+) -> Tuple[List[Tuple[str, str]], List[dict], Dict[str, int]]:
+    """
+    Read real (prompt, solution) pairs from converted JSONL shards.
+
+    Per source, files are visited in a seeded order; the first `n_val` usable
+    records become validation records, the next `scale * max` become training
+    pairs. Prompts in `held` and records with a 13-gram overlap with the eval
+    sets (`eval_index`) are skipped.
+
+    :return: (training pairs, validation records, training count per source)
+    """
+    import glob
+    import gzip
+    import json
+
+    import logic_slm_decontam as lsdec
+
+    pairs: List[Tuple[str, str]] = []
+    val: List[dict] = []
+    counts: Dict[str, int] = {}
+    for name in sorted(spec):
+        pattern, n_max = spec[name]
+        n_train = int(n_max * scale)
+        paths = sorted(glob.glob(pattern))
+        random.Random(lsmix.stable_seed(seed, "sft-real", name)).shuffle(paths)
+        got_val = got = 0
+        for path in paths:
+            with gzip.open(path, "rt") as f:
+                for line in f:
+                    r = json.loads(line)
+                    if r["prompt"] in held:
+                        continue
+                    if eval_index and lsdec.is_contaminated(r["prompt"] + r["solution"], eval_index):
+                        continue
+                    if got_val < n_val:
+                        val.append({**r, "gen": name})
+                        got_val += 1
+                    elif got < n_train:
+                        pairs.append((r["prompt"], r["solution"]))
+                        got += 1
+                    else:
+                        break
+            if got >= n_train and got_val >= n_val:
+                break
+        counts[name] = got
+    return pairs, val, counts
+
+
 def build_sft_examples(
     mixture: Dict[str, dict], n_per_unit_share: int, seed: int, held: Set[str],
 ) -> List[Tuple[str, str]]:
     """
-    Generate (prompt, solution) pairs; generator `g` contributes
-    `share_g * n_per_unit_share` examples. Held-out prompts are skipped.
+    Generate (prompt, solution) pairs from the generator entries of `mixture`
+    (stored real-data entries are skipped; see `load_real_pairs`); generator
+    `g` contributes `share_g * n_per_unit_share` examples. Held-out prompts are
+    skipped.
     """
     pairs: List[Tuple[str, str]] = []
-    for name in sorted(mixture):
+    for name in sorted(n for n, s in mixture.items() if not lsmix.is_stored(s)):
         n = max(1, int(mixture[name]["share"] * n_per_unit_share))
         got = 0
         for ex in lsmix.generate(mixture, name, 3 * n, lsmix.stable_seed(seed, "sft", name)):

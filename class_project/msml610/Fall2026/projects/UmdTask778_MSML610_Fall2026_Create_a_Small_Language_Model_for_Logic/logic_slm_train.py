@@ -233,3 +233,5 @@ def add_common_args(ap: argparse.ArgumentParser) -> None:
                     help="dtype of the final saved weights")
     ap.add_argument("--ckpt-weights-only", action="store_true",
                     help="resume checkpoints without optimizer state (for big models)")
+    ap.add_argument("--ledger", default="results/runs.jsonl",
+                    help="run ledger (JSONL) that every run appends its metrics to")

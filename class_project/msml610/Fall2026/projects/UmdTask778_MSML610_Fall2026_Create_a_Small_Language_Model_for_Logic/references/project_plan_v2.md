@@ -1,0 +1,191 @@
+# Small Language Models for Math and Logic: Project Plan v2
+
+- **Course:** MSML610 Advanced Machine Learning, Fall 2026 (Small Research Project)
+- **Team:** Gokulakannan Sakthivel, Basil Varghese
+- **Branch flow:** `gk-dev` → PR into `UmdTask778_MSML610_Fall2026_Create_a_Small_Language_Model_for_Logic_1` (fork only)
+- **Plan v2 adopted:** 2026-11-18 (replaces `idea.v1.txt`)
+- **Status tracker:** see section 9 (update it as work completes)
+
+---
+
+## 1. Goal
+
+Train small decoder-only language models **from scratch** to be as strong as possible at
+grade-school math and multi-step logic, using **real open datasets plus our own
+program-verified synthetic data**, and measure how ability depends on model size and on each
+training stage (pretraining → SFT → post-training with checkable rewards).
+
+### What changed from v1
+| | v1 (done) | v2 (this plan) |
+|---|---|---|
+| Data | Synthetic only (M1–M3, L1–L3) | Real open math data **+** synthetic |
+| Architecture | Llama-style, multi-head attention | **Qwen2.5-style** (grouped-query attention) |
+| Sizes | 25M / 125M / 1B | **~125M / 358M (Qwen2.5-0.5B shape) / 1.31B (Qwen2.5-1.5B shape)** |
+| Tokenizer | 2k BPE | **32k BPE**, still one token per digit |
+| Context | 1,024 | **2,048** |
+| Tokens per model | 2.5B | **5B / 8B / 12B** |
+
+The v1 models (25M and 125M, synthetic-only) are kept as **baselines**. The v1 1B run was
+cancelled at 53% to save SU for v2.
+
+## 2. Research Questions
+
+1. **Size:** how do accuracy and multi-step generalization scale from ~125M to 358M to 1.31B?
+2. **Stages:** how much does each stage (pretraining, SFT, post-training) add at each size?
+3. **Real vs. synthetic data:** do real math datasets improve generalization over synthetic-only
+   training (v1 baselines vs. v2)?
+4. **Checkable signal:** is post-training with a correctness signal (rejection sampling, verifier
+   best-of-N, GRPO) better than SFT alone at matched compute?
+5. **Generalization:** longer-than-training problems, held-out templates, real benchmarks
+   (GSM8K, SVAMP), and symbolic→English logic transfer.
+
+## 3. Data
+
+### 3.1 Training sources (all open; licenses checked on the dataset cards)
+| Source | License | Size used | Role |
+|---|---|---|---|
+| FineMath-4+ (HuggingFaceTB) | ODC-By | 32 of 64 shards (~9 GB, ~5B tokens) | Pretraining: real math explanations in English |
+| TinyGSM | MIT | 11.8M problems (3.75 GB) | Pretraining + SFT: Python solutions converted to checkable steps (parsed, never executed) |
+| OpenMathInstruct-2 (NVIDIA) | CC-BY-4.0 | 2M subset (1.3 GB) | Pretraining mix + SFT |
+| MetaMathQA | MIT | 395k | SFT (+ pretraining mix) |
+| Orca-Math-200k (Microsoft) | MIT | 200k | SFT (+ pretraining mix) |
+| GSM8K train | MIT | 7.5k | SFT |
+| Our generators M1–M3, L1–L3 | ours | unlimited, streamed | Pretraining + SFT; logic and checkable steps |
+
+### 3.2 Evaluation sets (never trained on)
+| Set | Size | Measures |
+|---|---|---|
+| **GSM8K test** | 1,319 | Main real-world benchmark |
+| SVAMP test | 300 | Robustness of simple word problems |
+| MATH-500 | 500 | Stretch goal (harder math) |
+| ProofWriter test | — | Real-world English logic (L3 transfer) |
+| Our 13 synthetic test sets | 2,000 each | In-distribution, 5–8-step extrapolation, held-out templates |
+| FOLIO | ~200 | Optional (gated; needs accepting terms on Hugging Face) |
+
+### 3.3 Hygiene
+- **Decontamination:** every training example with a word-level 13-gram overlap with any eval set
+  is dropped.
+- Synthetic training data excludes all eval/validation prompts (exact match).
+- Format: `Problem: … Solution: <steps> #### <answer>` for every source (format v2: real-data
+  steps are free text; answers compared by exact numeric value).
+
+### 3.4 Pretraining mixture (token shares, corpus v2)
+| FineMath-4+ | TinyGSM | OpenMathInstruct-2 | MetaMathQA + Orca + GSM8K | Synthetic math M1–M3 | Synthetic logic L1–L3 |
+|---|---|---|---|---|---|
+| 46% | 20% | 19% | 5% (3% + 1.96% + 0.04%) | 5% | 5% |
+
+Measured corpus v2 (2026-11-19): 6.92B training tokens after decontamination — FineMath 5.24B,
+OpenMathInstruct-2 0.90B, TinyGSM 0.63B (6.5M problems), MetaMathQA 0.09B, Orca-Math 0.06B,
+GSM8K train 1.1M; 32k vocabulary. Shares were rebalanced to these counts so the large model reads
+every source at most ~4 times.
+
+Real data 90%, synthetic 10% (decision 2026-11-18: keep synthetic low). Shares are capped so no
+source exceeds ~4 passes for any model (data-constrained scaling, Muennighoff et al. 2023); exact
+values are re-checked once real token counts are known after tokenization.
+
+Real sources are pre-tokenized once (uint16 token files + document offsets); synthetic data is
+generated on the fly. Training blocks are deterministic in `(seed, block index)`, so every size
+sees the same data in the same order.
+
+## 4. Models (Qwen2.5-style: RMSNorm, RoPE, SwiGLU, GQA, QKV bias, tied embeddings)
+| | Small | Medium | Large |
+|---|---|---|---|
+| Layers × width | 18 × 768 | 24 × 896 | 28 × 1536 |
+| Query / KV heads | 12 / 4 | 14 / 2 | 12 / 2 |
+| FFN size | 2,176 | 4,864 | 8,960 |
+| Non-embedding params | ~119M | **~358M (= Qwen2.5-0.5B)** | **~1.31B (= Qwen2.5-1.5B / Qwen2.5-Math-1.5B)** |
+| Vocab / context | 32k / 2,048 | 32k / 2,048 | 32k / 2,048 |
+| Pretraining tokens | 5B | 8B | 12B |
+
+Same layer shapes as the Qwen2.5 models, but with our own tokenizer and trained from scratch
+(not compatible with Qwen weights).
+
+## 5. Training Stages
+1. **Pretraining** on corpus v2 (section 3.4).
+2. **SFT:** loss on solutions only; real instruction data + TinyGSM + synthetic; pass@k each
+   epoch; checkpoint selected by pass@k (Cobbe et al.).
+3. **Post-training:** rejection-sampling fine-tuning (all sizes), verifier + best-of-N (all
+   sizes, including small-generator / large-verifier pairings), GRPO on the medium model.
+
+## 6. Evaluation
+Exact-match accuracy, pass@k, accuracy by number of steps, step validity (synthetic sets),
+extrapolation, held-out templates, GSM8K / SVAMP / MATH-500, ProofWriter transfer.
+Every model is evaluated **after each stage** with the same `evaluate.py`.
+
+## 7. Experiments
+| # | Experiment | Answers |
+|---|---|---|
+| E1 | v1 synthetic-only baselines (25M, 125M) | done: baseline for Q3 |
+| E2 | v2: 3 sizes × 3 stages | Q1, Q2 |
+| E3 | Extrapolation, held-out templates, real benchmarks, logic transfer | Q5 |
+| E4 | v1 (synthetic-only) vs. v2 (real + synthetic) | Q3 |
+| E5 | RFT vs. verifier best-of-N vs. GRPO at matched compute | Q4 |
+| E6 | Generator / verifier size pairings | TinyGSM finding |
+| E7 | Optional: architecture comparison at small size (Llama vs. Qwen2 vs. Phi block) | design choice |
+
+## 8. Resources
+
+### 8.1 Compute (Zaratan, account `msml610-class` only; H100 = 144 SU/GPU-hour)
+| Item | Est. SU |
+|---|---|
+| Already spent on v1 (benchmarks, 25M, 125M, cancelled 1B, tests) | ~2.9k |
+| Benchmark of v2 configs | ~0.1k |
+| Pretraining: small 5B tokens / medium 8B / large 12B | ~0.4k / ~1.8k / ~9.7k |
+| SFT, all sizes | ~1.0k |
+| Post-training (RFT + verifier all sizes, GRPO medium) | ~2.5k |
+| Ablations + evaluation | ~1.0k |
+| **v2 total (excluding v1)** | **~16.5k** |
+
+Class pool on 2026-11-18: 50 kSU limit, **45.2 kSU unused** (shared by the whole class).
+v2 uses ~35% of what is left: feasible, but give the TA a heads-up before the large run.
+
+### 8.2 Storage (class quota 150 GB, ~60 GB free, shared)
+| Item | Size |
+|---|---|
+| Raw downloads (deleted after tokenization) | ~18 GB (peak) |
+| Tokenized real data (uint16) | ~15 GB |
+| Checkpoints (all sizes and stages, bf16, pruned) | ~10–12 GB |
+| **Steady state** | **~27 GB** |
+
+All project files live under `/scratch/zt1/project/msml610/user/gsakthiv` only.
+
+**Data retention (decision 2026-11-19):** keep the raw downloads (`data/raw/`, ~14 GB), the
+converted data (`data/processed/real/`) and corpus v2 for the whole project, so any converter,
+tokenizer or corpus fix can be rebuilt. Nothing is deleted unless storage actually runs short,
+and only with the team's explicit approval.
+
+### 8.3 Time (deadline ~mid-December)
+| Phase | Target |
+|---|---|
+| Data download, conversion, decontamination, tokenizer, corpus v2 | Nov 19–21 |
+| Benchmark + pretraining (small, medium, large; large ≈ 17 h on 4 H100s) | Nov 21–24 |
+| SFT (all sizes) | Nov 24–27 |
+| Post-training + ablations | Nov 27 – Dec 5 |
+| Notebooks, README, Docker, report, video | Dec 5–13 |
+
+## 9. Status Tracker
+- [x] Format v1, synthetic generators M1–M3 and L1–L3 (z3-checked), scorers, tokenizer v1
+- [x] Streamed pretraining, DDP, W&B/TensorBoard, stop/resume, eval-only, SFT script
+- [x] v1 pretraining: 25M and 125M done (98–100% in-distribution); 1B cancelled at 53%
+- [x] Downloads (login node; compute nodes cannot reach the Hugging Face file servers)
+- [x] Converters: TinyGSM → steps (6.5M kept of 11.8M); OpenMathInstruct-2 1.98M, MetaMathQA 393k, Orca-Math 165k, GSM8K 7.5k
+- [x] 13-gram decontamination against all eval sets (incl. FineMath: 2,056 docs removed)
+- [x] Qwen2.5-style model configs (~119M / 358M / 1.31B)
+- [x] 32k tokenizer (single digits, reserved symbols)
+- [x] Corpus v2 (6.92B tokens, tokenized real sources + streamed synthetic)
+- [x] `evaluate.py` (greedy + pass@k + majority vote + cost) and run ledger `results/runs.jsonl`
+- [x] H100 benchmark: 295k / 144k / 54k tok/s per GPU → pretraining ≈ 11.7k SU
+- [ ] Pretraining: small / medium / large (queued 2026-11-19 behind a CPU smoke test)
+- [ ] SFT: small / medium / large
+- [ ] Post-training: RFT, verifier best-of-N, GRPO
+- [ ] Ablations, notebooks, README, Docker, report, video
+
+## 10. Risks
+| Risk | Mitigation |
+|---|---|
+| Shared class SU pool drained by others | Run the large pretraining first; check `sbalance` after each stage |
+| Shared class storage fills up | Delete raw files after tokenization; bf16, pruned checkpoints |
+| GPU queue delays | Submit early; H100 or A100 by availability |
+| Small models stay weak on GSM8K | Verifier best-of-N and RFT (TinyGSM's key finding); report honestly |
+| Data contamination | 13-gram decontamination + exact-prompt exclusion |
+| Job interruptions | Checkpoints, clean stop before the time limit, self-resubmission |
