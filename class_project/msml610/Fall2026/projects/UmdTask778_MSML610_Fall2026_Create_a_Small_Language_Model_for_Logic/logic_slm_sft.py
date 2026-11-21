@@ -208,8 +208,16 @@ def _pass_at_k_eval(
     greedy = lseval.generate_completions(
         model, tok, prompts, max_new_tokens=max_new_tokens, batch_size=batch_size
     )
-    out = {"greedy_exact_match": sum(
-        lssco.exact_match(c, g, t) for c, g, t in zip(greedy, golds, tasks)) / len(records)}
+    hits = [lssco.exact_match(c, g, t) for c, g, t in zip(greedy, golds, tasks)]
+    out = {"greedy_exact_match": sum(hits) / len(records)}
+    # Per-source breakdown (generator / real source), so a regression on one
+    # source cannot hide inside the overall average.
+    gens = [r.get("gen", r["task"]) for r in records]
+    by_gen: Dict[str, List[int]] = {}
+    for i, g in enumerate(gens):
+        by_gen.setdefault(g, []).append(i)
+    for g, idx in sorted(by_gen.items()):
+        out[f"greedy/{g}"] = sum(hits[i] for i in idx) / len(idx)
     if n_samples > 0:
         samples = lseval.generate_completions(
             model, tok, [p for p in prompts for _ in range(n_samples)],
@@ -221,4 +229,8 @@ def _pass_at_k_eval(
             chunk = samples[i * n_samples : (i + 1) * n_samples]
             counts.append(sum(lssco.exact_match(c, g, t) for c in chunk))
         out.update(lssco.pass_at_k_over_problems(counts, n_samples, ks))
+        k_max = max(ks)
+        for g, idx in sorted(by_gen.items()):
+            pk = lssco.pass_at_k_over_problems([counts[i] for i in idx], n_samples, [k_max])
+            out[f"pass@{k_max}/{g}"] = pk[f"pass@{k_max}"]
     return out

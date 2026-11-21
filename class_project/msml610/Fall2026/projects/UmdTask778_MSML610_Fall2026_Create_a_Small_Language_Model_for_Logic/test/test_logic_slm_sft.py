@@ -110,6 +110,8 @@ class Test_sft_script:
         hist = json.loads((out / "metrics.json").read_text())["per_epoch"]
         assert [h["epoch"] for h in hist] == [1, 2]
         assert {"pass@1", "pass@4", "greedy_exact_match"} <= set(hist[0])
+        # Per-source validation (one entry per generator).
+        assert {"greedy/a", "greedy/l", "pass@4/a", "pass@4/l"} <= set(hist[0])
         assert m["best_epoch"] in (1, 2)
         assert {"a_test_id/exact_match", "l_test_id/exact_match"} <= set(m)
 
