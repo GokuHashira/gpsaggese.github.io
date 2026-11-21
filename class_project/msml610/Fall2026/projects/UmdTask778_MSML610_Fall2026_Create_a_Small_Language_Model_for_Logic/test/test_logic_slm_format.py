@@ -137,3 +137,15 @@ class Test_normalize:
         assert not lsform.answers_match("52", "51", "math")
         assert not lsform.answers_match(None, "51", "math")
         assert lsform.answers_match("Unknown", "unknown", "logic")
+
+
+class Test_degenerate_answers:
+    def test_no_crash_on_empty_after_stripping(self) -> None:
+        """
+        Answers that become empty after unit / "%" / sign stripping are not
+        numbers and never match (regression: `"" in "+-"` is True, so a bare
+        "%" crashed the SFT validation).
+        """
+        for a in ["%", "-", "+", "$", "-%", "$-", " % ", "dollars", ""]:
+            lsform.normalize_answer(a, "math")
+            assert not lsform.answers_match(a, "5", "math")

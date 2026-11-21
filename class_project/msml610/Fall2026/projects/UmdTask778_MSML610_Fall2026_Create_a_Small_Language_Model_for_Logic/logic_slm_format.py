@@ -117,7 +117,7 @@ def _parse_number(a: str) -> Optional[fractions.Fraction]:
             a = parts[0].strip()
     a = a.rstrip("%").strip()
     sign = ""
-    if a[:1] in "+-":
+    if a and a[0] in "+-":
         sign, a = ("-" if a[0] == "-" else ""), a[1:].strip()
     if a.startswith("$"):
         a = a[1:].strip()
