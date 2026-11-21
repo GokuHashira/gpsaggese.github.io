@@ -30,7 +30,8 @@ cancelled at 53% to save SU for v2.
 
 ## 2. Research Questions
 
-1. **Size:** how do accuracy and multi-step generalization scale from ~125M to 358M to 1.31B?
+1. **Size:** how do accuracy and multi-step generalization scale from ~1M to 1.31B (six sizes),
+   and what is the **minimum size for reliable 2–3-step reasoning** (the assigned idea's Q1)?
 2. **Stages:** how much does each stage (pretraining, SFT, post-training) add at each size?
 3. **Real vs. synthetic data:** do real math datasets improve generalization over synthetic-only
    training (v1 baselines vs. v2)?
@@ -38,6 +39,15 @@ cancelled at 53% to save SU for v2.
    best-of-N, GRPO) better than SFT alone at matched compute?
 5. **Generalization:** longer-than-training problems, held-out templates, real benchmarks
    (GSM8K, SVAMP), and symbolic→English logic transfer.
+6. **Logic → arithmetic transfer** (assigned idea's Q2): does training on formal logic improve
+   arithmetic word problems, or are they independent skills?
+7. **Curriculum:** does an easy → hard ordering beat a fixed mixture at matched size?
+
+The assigned idea (`research/ideas/draft.Create_a_Small_Large_Language_Model_for_Logic.md`)
+asks three questions; they map to Q1 (minimum size), Q6 (logic transfer) and Q4 (checkable
+signal vs. supervised training at the same compute). Its predicted failure mode, "small models
+get individual steps right but lose track of the overall problem state", is what we observed
+(section 5.1) and what fix C targets.
 
 ## 3. Data
 
@@ -136,7 +146,25 @@ Every model is evaluated **after each stage** with the same `evaluate.py`.
 | E4 | v1 (synthetic-only) vs. v2 (real + synthetic) | Q3 |
 | E5 | RFT vs. verifier best-of-N vs. GRPO at matched compute | Q4 |
 | E6 | Generator / verifier size pairings | TinyGSM finding |
-| E7 | Optional: architecture comparison at small size (Llama vs. Qwen2 vs. Phi block) | design choice |
+| E7 | Optional: architecture comparison at ~10M (Qwen2 vs. Llama vs. Phi block) | design choice |
+| E8 | **Size sweep down to ~1M** (assigned idea): ~1M / 10M / 50M, same recipe, pretrain + SFT, accuracy by number of steps | Q1 (minimum size) |
+| E9 | **Curriculum ablation** (easy → hard vs. fixed mixture) at ~10M and ~50M | Q7 |
+| E10 | **Logic-transfer ablation** (with vs. without logic data) at ~10M and ~50M | Q6 |
+| E11 | **Matched-compute control**: plain SFT continued for the GPU time GRPO uses (358M) | Q4 |
+| — | Comparison with the sibling ideas (Kids_Book, Python): literature only (e.g. TinyStories) | assigned idea's research topic |
+
+### 7.1 Small-model sweep (added 2026-11-21, assigned idea)
+- **Architecture: unchanged** (Qwen2-style, same 32k tokenizer, same data), so the size curve
+  isolates size. Head width 64 (32 at ~1M), grouped-query attention, depth/width in the usual
+  range, higher peak LR for smaller models (~1e-3 – 2e-3).
+- **Sizes are non-embedding parameters** (as for the other sizes). With a 32k vocabulary the
+  tied embedding adds ~4M / ~10M / ~18M, so totals are reported too.
+- **Tokens:** ~0.5B (1M), ~1B (10M), ~2B (50M); cheap, and past the compute-optimal point.
+- **Curriculum (E9):** synthetic difficulty (number of steps) and the real-data mix move from
+  easy (GSM8K-style) to hard (MATH-style) over training; same tokens as the fixed mixture.
+- **No-logic (E10):** the logic generators removed from the mixture (shares renormalized);
+  arithmetic test sets compared with the matching E8 model.
+- GPUs: A100 when available (48 SU/h), else H100.
 
 ## 8. Resources
 
@@ -164,6 +192,18 @@ Our user had used ~15.8k SU of the class pool by 2026-11-20.
 | GRPO | ~1.75k (least certain; re-estimated after the small run) |
 | Evaluations after every stage | ~0.9k |
 | **Remaining total** | **~10–11k** → project total ≈ 26–27k SU |
+
+**Assigned-idea experiments (added 2026-11-21):**
+
+| Item | Est. SU |
+|---|---|
+| E8 size sweep: pretraining ~1M / 10M / 50M | ~150–250 |
+| E8 SFT of the three small models | ~100 |
+| E8 evaluations (3 sizes × 2 stages) | ~150 |
+| E9 curriculum (~10M, ~50M) incl. evaluation | ~250 |
+| E10 no-logic (~10M, ~50M) incl. evaluation | ~250 |
+| E11 matched-compute control (358M) | ~400–500 |
+| **Added total** | **~1.3–1.5k** → project total ≈ 27–28k SU |
 
 Class pool on 2026-11-18: 50 kSU limit, **45.2 kSU unused** (shared by the whole class).
 v2 uses ~35% of what is left: feasible, but give the TA a heads-up before the large run.
@@ -211,6 +251,10 @@ and only with the team's explicit approval.
 - [ ] Re-evaluate pretrained models on MATH-500 (1,024 tokens) and ProofWriter depth-5
 - [ ] Evaluate plain-SFT models; analyze; share the analysis with the team; finalize fixes
 - [ ] SFT + fixes: small / medium / large
+- [ ] E8 size sweep (~1M / 10M / 50M): configs, pretraining, SFT, evaluation
+- [ ] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M)
+- [ ] E11 matched-compute control (with GRPO)
+- [ ] Optional E7 architecture comparison at ~10M
 - [ ] Post-training: RFT, verifier best-of-N, GRPO
 - [ ] Ablations, notebooks, README, Docker, report, video
 - [ ] Publish on Hugging Face (after GRPO): model repos + model cards (eval tables, cost, limits), free CPU Space demo; first check course permission and TinyGSM's license
