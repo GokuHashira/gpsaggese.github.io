@@ -137,3 +137,25 @@ class Test_evaluate_jsonl:
         path = tmp_path / "empty.jsonl"
         path.write_text("")
         assert lseval.evaluate_jsonl(None, None, str(path)) == {"n": 0.0}
+
+
+class Test_qwen_models:
+    @pytest.mark.parametrize("size, target", [("q125m", 120e6), ("q0.5b", 358e6), ("q1.5b", 1.31e9)])
+    def test_sizes_match_plan(self, size, target) -> None:
+        n = lsmod.analytic_non_embedding_params(size)
+        assert abs(n - target) / target < 0.03, n
+
+    def test_count_matches_analytic_and_gqa(self) -> None:
+        cfg = lsmod.make_config("qtiny", 300, eos_token_id=0, pad_token_id=1, max_position_embeddings=128)
+        model = lsmod.make_model(cfg)
+        assert cfg.model_type == "qwen2" and cfg.num_key_value_heads < cfg.num_attention_heads
+        p = lsmod.count_params(model)
+        assert p["non_embedding"] == lsmod.analytic_non_embedding_params("qtiny")
+        assert model.lm_head.weight.data_ptr() == model.get_input_embeddings().weight.data_ptr()
+        out = model(input_ids=torch.zeros(2, 5, dtype=torch.long)).logits
+        assert out.shape == (2, 5, 300)
+
+    def test_shapes_equal_real_qwen(self) -> None:
+        # Layer stacks of Qwen2.5-0.5B and Qwen2.5-1.5B (published configs).
+        assert lsmod.QWEN_SIZES["q0.5b"] == (896, 24, 14, 2, 4864)
+        assert lsmod.QWEN_SIZES["q1.5b"] == (1536, 28, 12, 2, 8960)

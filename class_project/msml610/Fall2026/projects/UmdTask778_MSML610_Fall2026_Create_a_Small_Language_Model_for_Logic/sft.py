@@ -21,9 +21,10 @@ import argparse
 import glob
 import json
 import logging
-import sys
 import os
+import random
 import shutil
+import sys
 import time
 from typing import Dict, List
 
@@ -31,7 +32,9 @@ import torch
 import transformers
 
 import logic_slm_data as lsdata
+import logic_slm_decontam as lsdec
 import logic_slm_eval as lseval
+import logic_slm_metrics as lsmet
 import logic_slm_mixture as lsmix
 import logic_slm_sft as lssft
 import logic_slm_tokenizer as lstok
@@ -45,7 +48,16 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     ap.add_argument("--init", required=True, help="pretrained model dir (save_pretrained)")
     ap.add_argument("--corpus", required=True, help="dir from build_corpus.py")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--n-examples", type=int, default=200_000, help="SFT set size")
+    ap.add_argument("--n-examples", type=int, default=200_000,
+                    help="synthetic SFT examples when no real data is used (v1 corpora)")
+    ap.add_argument("--n-synth", type=int, default=50_000,
+                    help="synthetic SFT examples alongside real data (v2 corpora)")
+    ap.add_argument("--real-scale", type=float, default=1.0,
+                    help="fraction of each real source's cap (logic_slm_sft.REAL_SFT); 0 = synthetic only")
+    ap.add_argument("--real-val-per-source", type=int, default=100,
+                    help="held-out real problems per source for per-epoch pass@k")
+    ap.add_argument("--real-eval-dir", default="data/processed/real/eval",
+                    help="real eval sets: real SFT examples overlapping them (13-grams) are dropped")
     ap.add_argument("--epochs", type=int, default=4)
     ap.add_argument("--batch-size", type=int, default=128, help="sequences per step (global)")
     ap.add_argument("--micro-batch", type=int, default=64, help="per GPU")
@@ -112,16 +124,32 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     tok = lstok.load_tokenizer(a.init)
     # Llama only has dropout on the attention probabilities; that is the
     # regularizer used for SFT (--dropout).
-    model = transformers.LlamaForCausalLM.from_pretrained(
+    model = transformers.AutoModelForCausalLM.from_pretrained(
         a.init, attention_dropout=a.dropout, dtype=torch.float32
     ).to(device)
+    timer = lsmet.Timer()
     with open(os.path.join(a.corpus, "manifest.json")) as f:
-        mixture = json.load(f)["mixture"]
+        manifest = json.load(f)
+    mixture = manifest["mixture"]
     held = lsmix.load_held_prompts(a.corpus)
-    total_share = sum(s["share"] for s in mixture.values())
-    pairs = lssft.build_sft_examples(mixture, int(a.n_examples / total_share), a.seed, held)
+    # Synthetic part: generator entries only (stored real sources are pretraining-only).
+    synth = {k: v for k, v in mixture.items() if not lsmix.is_stored(v)}
+    use_real = a.real_scale > 0 and manifest.get("version") == "v2"
+    n_synth = a.n_synth if use_real else a.n_examples
+    synth_share = sum(s["share"] for s in synth.values())
+    pairs = lssft.build_sft_examples(synth, int(n_synth / synth_share), a.seed, held)
+    data_counts: Dict[str, int] = {"synthetic": len(pairs)}
+    real_val: List[dict] = []
+    if use_real:
+        index = lsdec.load_eval_index(a.real_eval_dir)[0] if os.path.isdir(a.real_eval_dir) else None
+        rpairs, real_val, rcounts = lssft.load_real_pairs(
+            lssft.REAL_SFT, a.seed, held, a.real_val_per_source, a.real_scale, index)
+        pairs += rpairs
+        data_counts.update(rcounts)
+        random.Random(a.seed).shuffle(pairs)
     ds = lssft.SFTDataset(pairs, tok, a.max_len)
-    _LOG.info("sft examples: %d (kept %d <= %d tokens)", len(pairs), len(ds), a.max_len)
+    ds_tokens = sum(len(ids) for ids, _ in ds.items)
+    _LOG.info("sft examples: %s (kept %d <= %d tokens, %d tokens)", data_counts, len(ds), a.max_len, ds_tokens)
 
     if a.batch_size % (a.micro_batch * d.world):
         raise ValueError("batch-size must be a multiple of micro-batch * GPUs")
@@ -139,9 +167,11 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     if a.compile:
         train_model = torch.compile(train_model, dynamic=True)
 
-    val_recs = _val_records(a.corpus, a.val_per_gen)
+    val_recs = _val_records(a.corpus, a.val_per_gen) + real_val
     run_info = {**vars(a), "n_train": len(ds), "total_steps": total_steps, "world": d.world,
+                "data_counts": data_counts, "train_tokens_per_epoch": ds_tokens,
                 "gpu": lstrain.gpu_name(), "su_per_gpu_hour": lstrain.su_rate(a.su_per_gpu_hour)}
+    mon = lsmet.GpuMonitor(a.out).start() if d.is_main else None
     wb = tb = None
     if d.is_main:
         wb = lstrain.init_wandb(a.wandb_project, a.wandb_name, a.out, run_info)
@@ -157,6 +187,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     for epoch in range(1, a.epochs + 1):
         g = torch.Generator().manual_seed(a.seed + epoch)
         order = torch.randperm(len(ds), generator=g).tolist()
+        t_epoch = time.time()
         model.train()
         t_log = time.time()
         for s in range(steps_per_epoch):
@@ -189,6 +220,8 @@ def main(argv: List[str] = None) -> Dict[str, float]:
                     tb.add_scalar("sft/lr", lr, step)
                     tb.add_scalar("sft/grad_norm", gnorm, step)
                 t_log = time.time()
+        timer.add("train", time.time() - t_epoch)
+        t_val = time.time()
         if d.is_main:
             model.eval()
             with amp:
@@ -209,6 +242,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
             if not a.no_save:
                 _save(model, tok, os.path.join(a.out, "last"), a.save_dtype)
         d.barrier()
+        timer.add("val", time.time() - t_val)
 
     metrics: Dict[str, float] = {}
     if d.is_main:
@@ -218,8 +252,9 @@ def main(argv: List[str] = None) -> Dict[str, float]:
                    "train_time_s": train_time, "su_used": train_time / 3600 * rate}
         final = model
         if not a.no_save and best_epoch > 0:
-            final = transformers.LlamaForCausalLM.from_pretrained(
+            final = transformers.AutoModelForCausalLM.from_pretrained(
                 os.path.join(a.out, "best")).to(device)
+        t_eval = time.time()
         evals = sorted(glob.glob(os.path.join(a.corpus, "eval", "*.jsonl")))
         for path in evals:
             name = os.path.basename(path)[:-6]
@@ -230,8 +265,22 @@ def main(argv: List[str] = None) -> Dict[str, float]:
                 metrics[f"{name}/{k}"] = v
                 tb.add_scalar(f"eval_{name}/{k}", v, a.epochs)
             _LOG.info("eval %s: %s", name, {k: round(v, 4) for k, v in m.items()})
+        timer.add("eval", time.time() - t_eval)
         with open(os.path.join(a.out, "metrics.json"), "w") as f:
             json.dump({"final": metrics, "per_epoch": history}, f, indent=2)
+        t_train = timer.phases.get("train", 0.0)
+        lsmet.RunLedger(a.ledger).append({
+            "kind": "sft", "name": os.path.basename(os.path.normpath(a.out)), "out": a.out,
+            "init": a.init, "gpu": run_info["gpu"], "world": d.world, "epochs": a.epochs,
+            "data_counts": data_counts, "n_train": len(ds), "tokens_trained": ds_tokens * a.epochs,
+            "tokens_per_s": ds_tokens * a.epochs / t_train if t_train > 0 else 0.0,
+            "best_epoch": best_epoch, "best_select_metric": best, "per_epoch": history,
+            "eval_exact_match": {k.split("/")[0]: v for k, v in metrics.items() if k.endswith("/exact_match")},
+            "git_commit": lsmet.git_commit(os.path.dirname(os.path.abspath(__file__))),
+            **lsmet.slurm_info(),
+            **lsmet.cost_fields(timer.total(), timer.phases, d.world, run_info["su_per_gpu_hour"]),
+            **(mon.stop() if mon else {}),
+        })
         tb.close()
         if wb is not None:
             wb.summary.update(metrics)
