@@ -68,6 +68,35 @@ class Test_dataset:
         assert pairs == lssft.build_sft_examples(_MIX, 300, 1, held)
 
 
+class Test_masked_loss:
+    def test_equals_full_ignore_index_loss(self) -> None:
+        """
+        Scoring only labelled positions gives the same loss as scoring every
+        position with ignore_index (the memory-saving form must not change results).
+        """
+
+        class _Fake(torch.nn.Module):
+            def __init__(self, logits):
+                super().__init__()
+                self.logits = logits
+
+            def forward(self, input_ids, attention_mask):
+                return transformers.modeling_outputs.CausalLMOutput(logits=self.logits)
+
+        torch.manual_seed(0)
+        logits = torch.randn(3, 7, 11)
+        labels = torch.full((3, 7), lssft.IGNORE_INDEX)
+        labels[0, 3:6] = torch.tensor([1, 2, 3])
+        labels[2, 1:7] = torch.tensor([4, 5, 6, 7, 8, 9])
+        batch = {"input_ids": torch.zeros(3, 7, dtype=torch.long), "labels": labels,
+                 "attention_mask": torch.ones(3, 7, dtype=torch.long)}
+        got = lssft.masked_lm_loss(_Fake(logits), batch)
+        ref = torch.nn.functional.cross_entropy(
+            logits[:, :-1].reshape(-1, 11), labels[:, 1:].reshape(-1),
+            ignore_index=lssft.IGNORE_INDEX)
+        assert torch.allclose(got, ref)
+
+
 class Test_sft_script:
     def test_end_to_end(self, setup) -> None:
         root, corpus, pre = setup
@@ -98,6 +127,39 @@ class Test_sft_script:
         assert m["best_epoch"] in (1, 2)
         assert m["best_select_metric"] >= 0
         assert not (out / "best").exists()
+
+
+class Test_resume:
+    def test_resume_continues_history(self, setup) -> None:
+        """
+        `--start-epoch 2` trains only epoch 2 and keeps the earlier history.
+        """
+        root, corpus, pre = setup
+        out = root / "sft_resume"
+        hist = root / "hist.json"
+        hist.write_text(json.dumps([{"epoch": 1, "pass@4": -0.5, "greedy_exact_match": 0.0}]))
+        m = sft.main(["--init", str(pre / "final"), "--corpus", str(corpus), "--out", str(out),
+                      "--n-examples", "128", "--epochs", "2", "--batch-size", "32",
+                      "--micro-batch", "16", "--val-per-gen", "4", "--n-samples", "4",
+                      "--ks", "1", "4", "--select-k", "4", "--eval-limit", "4",
+                      "--max-new-tokens", "24", "--start-epoch", "2",
+                      "--resume-history", str(hist), "--rewarm-steps", "2"])
+        per_epoch = json.loads((out / "metrics.json").read_text())["per_epoch"]
+        assert [h["epoch"] for h in per_epoch] == [1, 2]
+        assert m["best_epoch"] == 2
+        assert (out / "best" / "config.json").exists() and (out / "last" / "config.json").exists()
+
+    def test_unbeaten_best_is_kept(self, setup) -> None:
+        root, corpus, pre = setup
+        hist = root / "hist_hi.json"
+        hist.write_text(json.dumps([{"epoch": 1, "pass@4": 2.0}]))
+        m = sft.main(["--init", str(pre / "final"), "--corpus", str(corpus),
+                      "--out", str(root / "sft_resume_hi"), "--n-examples", "128", "--epochs", "2",
+                      "--batch-size", "32", "--micro-batch", "16", "--val-per-gen", "4",
+                      "--n-samples", "4", "--ks", "1", "4", "--select-k", "4", "--eval-limit", "4",
+                      "--max-new-tokens", "24", "--start-epoch", "2",
+                      "--resume-history", str(hist), "--no-save"])
+        assert m["best_epoch"] == 1 and m["best_select_metric"] == 2.0
 
 
 class Test_save:

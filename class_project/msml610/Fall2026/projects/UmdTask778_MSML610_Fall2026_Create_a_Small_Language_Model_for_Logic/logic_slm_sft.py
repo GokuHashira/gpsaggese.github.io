@@ -149,14 +149,15 @@ class SFTDataset(torch.utils.data.Dataset):
 def masked_lm_loss(model: torch.nn.Module, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
     """
     Mean next-token loss over solution tokens only.
+
+    Only the positions with a label are cast to fp32 and scored, so prompt and
+    padding positions cost no extra memory (same value as scoring every
+    position with `ignore_index`).
     """
     logits = model(input_ids=batch["input_ids"], attention_mask=batch["attention_mask"]).logits
-    shift_logits = logits[:, :-1].float()
     shift_labels = batch["labels"][:, 1:]
-    return torch.nn.functional.cross_entropy(
-        shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1),
-        ignore_index=IGNORE_INDEX,
-    )
+    keep = shift_labels != IGNORE_INDEX
+    return torch.nn.functional.cross_entropy(logits[:, :-1][keep].float(), shift_labels[keep])
 
 
 def pass_at_k_eval(
