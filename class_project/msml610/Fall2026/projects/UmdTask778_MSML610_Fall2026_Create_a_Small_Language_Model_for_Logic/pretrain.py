@@ -40,6 +40,7 @@ import transformers
 
 import logic_slm_data as lsdata
 import logic_slm_eval as lseval
+import logic_slm_metrics as lsmet
 import logic_slm_mixture as lsmix
 import logic_slm_model as lsmod
 import logic_slm_tokenizer as lstok
@@ -132,7 +133,7 @@ def val_loss(model, stream: BlockStream, n_blocks: int, micro: int, device, amp)
 
 def parse_args(argv: List[str] = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--size", required=True, choices=sorted(lsmod.SIZES))
+    ap.add_argument("--size", required=True, choices=lsmod.ALL_SIZES)
     ap.add_argument("--corpus", default="", help="dir from build_corpus.py")
     ap.add_argument("--tokenizer", default="", help="default: <corpus>/tokenizer")
     ap.add_argument("--train-bin", default="", help="fixed token file instead of streaming")
@@ -184,7 +185,7 @@ def _train_dataset(a: argparse.Namespace) -> torch.utils.data.Dataset:
         mixture = json.load(f)["mixture"]
     return lsmix.MixtureBlocks(
         mixture, a.tokenizer, a.seq_len, a.seed,
-        held_prompts=lsmix.load_held_prompts(a.corpus),
+        held_prompts=lsmix.load_held_prompts(a.corpus), corpus_dir=a.corpus,
     )
 
 
@@ -203,6 +204,7 @@ def _per_rank_compile_caches() -> None:
 
 def main(argv: List[str] = None) -> Dict[str, float]:
     a = parse_args(argv)
+    timer = lsmet.Timer()
     _per_rank_compile_caches()
     d = lstrain.setup_dist()
     logging.basicConfig(stream=sys.stdout, 
@@ -245,7 +247,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     eval_only = os.path.exists(os.path.join(final_dir, "config.json"))
     if eval_only:
         # Training already finished (e.g. the job stopped during evaluation).
-        model = transformers.LlamaForCausalLM.from_pretrained(final_dir).to(device)
+        model = transformers.AutoModelForCausalLM.from_pretrained(final_dir).to(device)
         step = total_steps
         _LOG.info("Found %s: skipping training, evaluating only", final_dir)
     elif os.path.exists(ckpt_path):
@@ -290,6 +292,38 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         tb = SummaryWriter(os.path.join(a.out, "tb"))
         with open(os.path.join(a.out, "args.json"), "w") as f:
             json.dump(run_info, f, indent=2)
+    mon = lsmet.GpuMonitor(a.out).start() if d.is_main else None
+    start_step = step
+    fpt = lsmet.flops_per_token(params["non_embedding"], cfg.num_hidden_layers, cfg.hidden_size,
+                                a.seq_len, len(tok))
+
+    def ledger(kind: str, extra: Dict) -> None:
+        """
+        Append this run's metrics to the run ledger (main process only).
+        """
+        if not d.is_main:
+            return
+        run_tokens = (step - start_step) * seqs_per_step * a.seq_len
+        t_train = timer.phases.get("train", 0.0)
+        tps = run_tokens / t_train if t_train > 0 else 0.0
+        rec = {
+            "kind": kind, "name": os.path.basename(os.path.normpath(a.out)), "out": a.out,
+            "size": a.size, "arch": getattr(cfg, "model_type", "llama"),
+            "params_total": params["total"], "params_non_embedding": params["non_embedding"],
+            "layers": cfg.num_hidden_layers, "hidden": cfg.hidden_size, "vocab": len(tok),
+            "seq_len": a.seq_len, "gpu": run_info["gpu"], "world": d.world,
+            "steps_total": total_steps, "step_start": start_step, "step_end": step,
+            "tokens_target": total_steps * seqs_per_step * a.seq_len, "tokens_trained": run_tokens,
+            "tokens_per_s": tps, "flops_per_token": fpt,
+            "mfu": lsmet.mfu(tps, fpt, d.world, run_info["gpu"]),
+            "corpus": a.corpus or a.train_bin, "seed": a.seed, "peak_lr": peak_lr,
+            "batch_tokens": a.batch_tokens, "git_commit": lsmet.git_commit(os.path.dirname(os.path.abspath(__file__))),
+            **lsmet.slurm_info(),
+            **lsmet.cost_fields(timer.total(), timer.phases, d.world, run_info["su_per_gpu_hour"]),
+            **(mon.stop() if mon else {}),
+            **extra,
+        }
+        lsmet.RunLedger(a.ledger).append(rec)
 
     model.train()
     start_step = step
@@ -316,6 +350,11 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         opt.step()
         opt.zero_grad(set_to_none=True)
         step += 1
+        if step == start_step + 1:
+            # First step includes torch.compile and data-loader warm-up.
+            if device.type == "cuda":
+                torch.cuda.synchronize()
+            timer.add("first_step", time.time() - t_start)
         tok_log += seqs_per_step * a.seq_len
         if step % a.log_every == 0 or step == total_steps:
             loss_avg = d.mean(loss_acc)
@@ -354,6 +393,8 @@ def main(argv: List[str] = None) -> Dict[str, float]:
                     with open(marker, "w") as f:
                         f.write(f"stopped at step {step}/{total_steps} before the time limit\n")
                     _LOG.info("Deadline reached: checkpoint at step %d, resubmit to continue", step)
+                    timer.add("train", time.time() - t_start)
+                    ledger("pretrain_partial", {"stopped_reason": "deadline"})
                     tb.close()
                     if wb is not None:
                         wb.finish()
@@ -363,6 +404,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
 
     # Throughput uses only the steps of this job; the SU cost covers all jobs.
     job_time = time.time() - t_start
+    timer.add("train", job_time)
     metrics: Dict[str, float] = {}
     if d.is_main:
         job_tokens = (total_steps - start_step) * seqs_per_step * a.seq_len
@@ -395,6 +437,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
             # Partial metrics so an eval-only rerun can keep the training stats.
             with open(os.path.join(a.out, "metrics.json"), "w") as f:
                 json.dump(metrics, f, indent=2)
+        t_eval = time.time()
         for spec in a.eval_jsonl:
             name, path = spec.split("=", 1)
             m = lseval.evaluate_jsonl(
@@ -405,8 +448,13 @@ def main(argv: List[str] = None) -> Dict[str, float]:
                 metrics[f"{name}/{k}"] = v
                 tb.add_scalar(f"eval_{name}/{k}", v, total_steps)
             _LOG.info("eval %s: %s", name, {k: round(v, 4) for k, v in m.items()})
+        timer.add("eval", time.time() - t_eval)
         with open(os.path.join(a.out, "metrics.json"), "w") as f:
             json.dump(metrics, f, indent=2)
+        ledger("pretrain_eval_only" if eval_only else "pretrain", {
+            "val_loss": metrics["val_loss"],
+            "eval_exact_match": {k.split("/")[0]: v for k, v in metrics.items() if k.endswith("/exact_match")},
+        })
         if os.path.exists(marker):
             os.remove(marker)
         _LOG.info("metrics: %s", json.dumps(metrics, indent=2))
