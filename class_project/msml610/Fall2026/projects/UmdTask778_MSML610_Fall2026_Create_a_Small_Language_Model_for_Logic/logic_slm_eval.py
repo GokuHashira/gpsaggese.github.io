@@ -78,16 +78,22 @@ def evaluate_jsonl(
     :param out_path: optional JSONL file for per-example predictions
     """
     recs = lsdata.read_records(path, limit)
+    if not recs:
+        _LOG.warning("No records in %s: nothing to evaluate", path)
+        return {"n": 0.0}
     task = recs[0]["task"]
     comps = generate_completions(model, tok, [r["prompt"] for r in recs], **gen_kwargs)
     golds = [r["answer"] for r in recs]
-    metrics = lssco.score_completions(comps, golds, task)
+    # L1 / L2 steps are symbolic, so steps that do not parse count as invalid.
+    symbolic = recs[0].get("level") in ("L1", "L2")
+    metrics = lssco.score_completions(comps, golds, task, symbolic=symbolic)
     # Accuracy by difficulty: operations (M1), steps (M2, M3) or proof depth (logic).
     key = next((k for k in ("n_ops", "n_steps", "depth") if k in recs[0]), None)
     if key is not None:
         by: Dict[int, List[bool]] = {}
         for r, c in zip(recs, comps):
-            by.setdefault(r[key], []).append(lssco.exact_match(c, r["answer"], task))
+            if key in r:
+                by.setdefault(r[key], []).append(lssco.exact_match(c, r["answer"], task))
         short = {"n_ops": "ops", "n_steps": "steps", "depth": "depth"}[key]
         for k in sorted(by):
             metrics[f"exact_match@{short}={k}"] = sum(by[k]) / len(by[k])

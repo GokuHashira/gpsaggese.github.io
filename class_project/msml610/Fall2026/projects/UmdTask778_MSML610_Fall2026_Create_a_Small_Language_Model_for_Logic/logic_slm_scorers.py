@@ -51,10 +51,9 @@ def _to_frac(s: str) -> Optional[fractions.Fraction]:
     """
     Parse an integer or fraction; None for a zero denominator (e.g. "685/0").
     """
-    try:
-        return fractions.Fraction(s)
-    except ZeroDivisionError:
+    if "/" in s and int(s.split("/")[1]) == 0:
         return None
+    return fractions.Fraction(s)
 
 
 def check_math_step(step: str) -> Optional[bool]:
@@ -94,19 +93,30 @@ def math_steps_valid(completion: str) -> bool:
     return bool(steps) and all(check_math_step(s) is True for s in steps)
 
 
-def logic_steps_valid(completion: str) -> Optional[bool]:
+def logic_steps_valid(completion: str, symbolic: bool = False) -> Optional[bool]:
     """
     Whether every step of a symbolic logic completion is a valid inference
     (checked with z3).
 
-    :return: None when some step is not symbolic (e.g. English L3 steps), so
-        the metric is only computed where it is defined
+    :param symbolic: the problem is symbolic (L1 / L2), so every step must be
+        a symbolic step and a step that does not parse is invalid; otherwise
+        (e.g. English L3, or level not known) such a step makes the metric
+        undefined
+    :return: None when there are no steps, or when some step is not symbolic
+        and `symbolic` is False, so the metric is only computed where it is
+        defined
     """
     import logic_slm_logic as lslog  # z3 import only when needed
 
     checks = [lslog.check_logic_step(s) for s in lsform.parse_steps(completion)]
-    if not checks or any(c is None for c in checks):
-        # No steps (e.g. empty output) or non-symbolic steps: undefined.
+    if not checks:
+        # No steps (e.g. empty output): undefined.
+        return None
+    if symbolic:
+        # A step that does not parse is a malformed symbolic step.
+        return all(c is True for c in checks)
+    if any(c is None for c in checks):
+        # Non-symbolic steps: undefined.
         return None
     return all(checks)
 
@@ -115,16 +125,22 @@ def score_completions(
     completions: Sequence[str],
     golds: Sequence[str],
     task: str,
+    *,
+    symbolic: bool = False,
 ) -> Dict[str, float]:
     """
     Aggregate metrics over one completion per problem.
 
+    :param symbolic: for logic, the problems are symbolic (L1 / L2); see
+        `logic_steps_valid`
     :return: dict with exact-match accuracy, answer-format rate and, for math,
         step validity and the "correct answer but invalid steps" rate
     """
     if len(completions) != len(golds):
         raise ValueError("completions and golds differ in length")
     n = len(golds)
+    if n == 0:
+        return {"n": 0.0}
     em = [exact_match(c, g, task) for c, g in zip(completions, golds)]
     has_ans = [lsform.parse_answer(c) is not None for c in completions]
     out = {
@@ -137,7 +153,8 @@ def score_completions(
         out["steps_valid"] = sum(valid) / n
         out["correct_invalid_steps"] = sum(e and not v for e, v in zip(em, valid)) / n
     elif task == "logic":
-        checked = [(e, v) for e, v in zip(em, map(logic_steps_valid, completions)) if v is not None]
+        valid = [logic_steps_valid(c, symbolic) for c in completions]
+        checked = [(e, v) for e, v in zip(em, valid) if v is not None]
         if checked:
             out["steps_checked"] = len(checked) / n
             out["steps_valid"] = sum(v for _, v in checked) / len(checked)

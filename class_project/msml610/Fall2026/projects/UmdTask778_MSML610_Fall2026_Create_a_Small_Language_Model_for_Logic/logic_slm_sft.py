@@ -111,9 +111,33 @@ def pass_at_k_eval(
     """
     Sample `n_samples` completions per record and return pass@k (unbiased)
     plus greedy exact match.
+
+    :param seed: seed for the sampling; the global RNG state is restored
+        afterwards, so the evaluation does not reset the training RNG (e.g.
+        the dropout masks of the next epoch)
     """
-    if seed is not None:
-        torch.manual_seed(seed)
+    device = next(model.parameters()).device
+    devices = [device.index or 0] if device.type == "cuda" else []
+    with torch.random.fork_rng(devices=devices, enabled=seed is not None):
+        if seed is not None:
+            torch.manual_seed(seed)
+        return _pass_at_k_eval(
+            model, tok, records, n_samples=n_samples, ks=ks, temperature=temperature,
+            max_new_tokens=max_new_tokens, batch_size=batch_size,
+        )
+
+
+def _pass_at_k_eval(
+    model: transformers.PreTrainedModel,
+    tok: transformers.PreTrainedTokenizerFast,
+    records: List[dict],
+    *,
+    n_samples: int,
+    ks: Sequence[int],
+    temperature: float,
+    max_new_tokens: int,
+    batch_size: int,
+) -> Dict[str, float]:
     prompts = [r["prompt"] for r in records]
     golds = [r["answer"] for r in records]
     tasks = [r["task"] for r in records]

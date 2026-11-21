@@ -14,11 +14,12 @@ import logic_slm_train as lstrain
 
 import argparse
 import dataclasses
+import datetime
 import logging
 import math
 import os
 import uuid
-from typing import Optional
+from typing import Dict, Optional, Tuple
 
 import torch
 import torch.distributed as dist
@@ -27,6 +28,11 @@ _LOG = logging.getLogger(__name__)
 
 # Zaratan SU charge per GPU-hour, matched on the GPU name (first match wins).
 _SU_RATES = (("MIG", 7.0), ("H100", 144.0), ("A100", 48.0))
+
+# Collective timeout. Rank 0 evaluates alone (greedy decoding of the eval sets,
+# per-epoch pass@k) while the other ranks wait in a barrier; the default of
+# 10 minutes would abort long evaluations.
+DIST_TIMEOUT = datetime.timedelta(hours=2)
 
 
 def lr_at(step: int, total: int, warmup: int, peak: float, min_ratio: float = 0.1) -> float:
@@ -141,11 +147,11 @@ def setup_dist() -> Dist:
         local_rank = int(os.environ["LOCAL_RANK"])
         if torch.cuda.is_available():
             torch.cuda.set_device(local_rank)
-            dist.init_process_group("nccl")
+            dist.init_process_group("nccl", timeout=DIST_TIMEOUT)
             device = torch.device("cuda", local_rank)
         else:
             # CPU (gloo) so the multi-process path can be tested on CPU nodes.
-            dist.init_process_group("gloo")
+            dist.init_process_group("gloo", timeout=DIST_TIMEOUT)
             device = torch.device("cpu")
         return Dist(dist.get_rank(), world, local_rank, device)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -157,17 +163,37 @@ def cleanup_dist(d: Dist) -> None:
         dist.destroy_process_group()
 
 
+def bf16_state_dict(model: torch.nn.Module) -> Dict[str, torch.Tensor]:
+    """
+    Return a bf16 copy of the model weights, leaving the model untouched.
+
+    Tensors shared by several keys (tied embeddings) stay shared in the copy,
+    so `save_pretrained` still recognizes them as tied.
+    """
+    copies: Dict[int, torch.Tensor] = {}
+    out: Dict[str, torch.Tensor] = {}
+    for k, v in model.state_dict().items():
+        ptr = v.data_ptr()
+        if ptr not in copies:
+            copies[ptr] = v.detach().to(torch.bfloat16)
+        out[k] = copies[ptr]
+    return out
+
+
 def save_checkpoint(
     path: str, model: torch.nn.Module, opt: Optional[torch.optim.Optimizer], step: int,
-    weights_only: bool,
+    weights_only: bool, train_time_s: float = 0.0,
 ) -> None:
     """
     Save a resume checkpoint (atomically). Weights-only checkpoints store bf16
     weights without optimizer state (~2 bytes/param instead of ~16).
+
+    :param train_time_s: training wall time up to `step`, summed over all jobs
+        of the run, so the SU cost stays correct across resubmissions
     """
-    state = {"step": step}
+    state = {"step": step, "train_time_s": train_time_s}
     if weights_only:
-        state["model"] = {k: v.to(torch.bfloat16) for k, v in model.state_dict().items()}
+        state["model"] = bf16_state_dict(model)
     else:
         state["model"] = model.state_dict()
         state["opt"] = opt.state_dict()
@@ -176,9 +202,13 @@ def save_checkpoint(
     os.replace(tmp, path)
 
 
-def load_checkpoint(path: str, model: torch.nn.Module, opt: torch.optim.Optimizer, device) -> int:
+def load_checkpoint(
+    path: str, model: torch.nn.Module, opt: torch.optim.Optimizer, device
+) -> Tuple[int, float]:
     """
-    Load a checkpoint saved by `save_checkpoint`; return the step.
+    Load a checkpoint saved by `save_checkpoint`.
+
+    :return: step and training wall time so far (0 for older checkpoints)
     """
     ck = torch.load(path, map_location=device)
     model.load_state_dict({k: v.to(torch.float32) for k, v in ck["model"].items()})
@@ -186,7 +216,7 @@ def load_checkpoint(path: str, model: torch.nn.Module, opt: torch.optim.Optimize
         opt.load_state_dict(ck["opt"])
     else:
         _LOG.warning("Weights-only checkpoint: optimizer state restarts from zero")
-    return int(ck["step"])
+    return int(ck["step"]), float(ck.get("train_time_s", 0.0))
 
 
 def add_common_args(ap: argparse.ArgumentParser) -> None:
