@@ -7,15 +7,21 @@
 #   > ./sync_wandb.sh            # all runs under models/
 #   > ./sync_wandb.sh models/e2  # only runs under models/e2
 #
-# Set `PY` to the Python of your environment (default: `python` on the PATH)
-# and, if needed, `PYTHONPATH` to extra package dirs, e.g.
+# `PY` is the Python of your environment and `PYLIBS` an extra package dir
+# that holds wandb; both default to the project's Zaratan setup and can be
+# overridden, e.g.
 #
-#   > PY=/scratch/zt1/project/msml610/user/$USER/envs/slm/bin/python ./sync_wandb.sh
+#   > PY=/path/to/env/bin/python PYLIBS= ./sync_wandb.sh
 #
 # Login nodes cap processes per user, so thread counts are limited to 1.
 set -euo pipefail
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 GOMAXPROCS=1
-PY=${PY:-python}
+PROJ_ROOT=/scratch/zt1/project/msml610/user/$USER
+PY=${PY:-$PROJ_ROOT/envs/slm/bin/python}
+PYLIBS=${PYLIBS-$PROJ_ROOT/pylibs}
+if [ -n "$PYLIBS" ]; then
+    export PYTHONPATH=$PYLIBS${PYTHONPATH:+:$PYTHONPATH}
+fi
 ROOT=${1:-models}
 n=0
 while IFS= read -r run; do
