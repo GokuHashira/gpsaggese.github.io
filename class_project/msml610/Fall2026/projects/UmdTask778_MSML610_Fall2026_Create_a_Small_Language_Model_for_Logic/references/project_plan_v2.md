@@ -104,8 +104,23 @@ Same layer shapes as the Qwen2.5 models, but with our own tokenizer and trained 
 1. **Pretraining** on corpus v2 (section 3.4).
 2. **SFT:** loss on solutions only; real instruction data + TinyGSM + synthetic; pass@k each
    epoch; checkpoint selected by pass@k (Cobbe et al.).
-3. **Post-training:** rejection-sampling fine-tuning (all sizes), verifier + best-of-N (all
-   sizes, including small-generator / large-verifier pairings), GRPO on the medium model.
+3. **SFT + fixes (ablation, decided 2026-11-20):** same recipe from the pretrained models,
+   plus targeted fixes for the failure modes found in the pre-SFT evaluation (section 5.1).
+   Finalized only after analyzing the plain-SFT evaluations of the small and medium models.
+4. **Post-training:** rejection-sampling fine-tuning, verifier + best-of-N (including
+   small-generator / large-verifier pairings) and GRPO, **all on all three sizes**.
+
+### 5.1 Pre-SFT failure analysis and fixes (2026-11-20)
+| Failure (1.31B model, pre-SFT) | Cause | Fix |
+|---|---|---|
+| ProofWriter below the "always unknown" baseline (35% vs 45.5%); 73% of answers "unknown" | Logic training data is symbolic / template English; ProofWriter phrasing never seen | **B:** 60k ProofWriter train problems (depth 0–3) with worked proofs built from `allProofs` (`logic_slm_proofwriter.py`) |
+| ProofWriter eval used the first 2,000 test rows = depth-0 only | Eval set construction | New eval `real_pw-depth5`: depth-5 test config, 350 per proof depth 0–5 (depths 4–5 deeper than any SFT proof) |
+| Extrapolation (5–8 steps) 21–36%, does not improve with size | Operator bookkeeping errors (drops a term, flips a sign); steps only write partial results | **C:** M1 state-tracking steps (`state_steps`): each step rewrites the remaining expression, conventional order; train 1–4 steps, test 5–8 |
+| MATH-500: ~1/3 of misses have no final answer | 144–178 completions per model hit the 512-token limit | **E:** MATH-500 evaluated with 1,024 new tokens (`eval_model.sbatch` part `math`) |
+| Synthetic English logic with held-out templates: 45% | Template brittleness | Covered partly by B; revisit after plain SFT |
+| Optional | Length generalization | **D:** self-improvement curriculum (majority-vote-filtered self-generated longer problems) |
+
+Also: bootstrap confidence intervals and 2–3 sampling seeds for the final models.
 
 ## 6. Evaluation
 Exact-match accuracy, pass@k, accuracy by number of steps, step validity (synthetic sets),
@@ -135,6 +150,20 @@ Every model is evaluated **after each stage** with the same `evaluate.py`.
 | Post-training (RFT + verifier all sizes, GRPO medium) | ~2.5k |
 | Ablations + evaluation | ~1.0k |
 | **v2 total (excluding v1)** | **~16.5k** |
+
+**Re-estimate (2026-11-20), every stage on all three sizes.** Measured so far: pretraining
+~13.3k SU; plain SFT runs at ~1.1 / 1.6 / 3.2 s per step (≈ 3.5 / 5 / 11 GPU-hours).
+Our user had used ~15.8k SU of the class pool by 2026-11-20.
+
+| Remaining (all 3 sizes) | Est. SU |
+|---|---|
+| Plain SFT (rest of the running jobs) | ~2.6k |
+| SFT + fixes (3 epochs; ~1k less with 2) | ~3.0k |
+| RFT | ~1.0k |
+| Verifier + best-of-N | ~0.85k |
+| GRPO | ~1.75k (least certain; re-estimated after the small run) |
+| Evaluations after every stage | ~0.9k |
+| **Remaining total** | **~10–11k** → project total ≈ 26–27k SU |
 
 Class pool on 2026-11-18: 50 kSU limit, **45.2 kSU unused** (shared by the whole class).
 v2 uses ~35% of what is left: feasible, but give the TA a heads-up before the large run.
@@ -175,8 +204,13 @@ and only with the team's explicit approval.
 - [x] Corpus v2 (6.92B tokens, tokenized real sources + streamed synthetic)
 - [x] `evaluate.py` (greedy + pass@k + majority vote + cost) and run ledger `results/runs.jsonl`
 - [x] H100 benchmark: 295k / 144k / 54k tok/s per GPU → pretraining ≈ 11.7k SU
-- [ ] Pretraining: small / medium / large (queued 2026-11-19 behind a CPU smoke test)
-- [ ] SFT: small / medium / large
+- [x] Pretraining: small / medium / large (val loss 1.349 / 1.236 / 1.140; ~13.3k SU)
+- [x] Pre-SFT evaluation of all three sizes; failure analysis (section 5.1)
+- [ ] Plain SFT: small / medium / large (running since 2026-11-20 20:49)
+- [x] Fix code: ProofWriter proofs + depth-5 eval, M1 state-tracking steps, MATH-500 at 1,024 tokens (CPU-tested)
+- [ ] Re-evaluate pretrained models on MATH-500 (1,024 tokens) and ProofWriter depth-5
+- [ ] Evaluate plain-SFT models; analyze; share the analysis with the team; finalize fixes
+- [ ] SFT + fixes: small / medium / large
 - [ ] Post-training: RFT, verifier best-of-N, GRPO
 - [ ] Ablations, notebooks, README, Docker, report, video
 
