@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.0
+#       jupytext_version: 1.19.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -84,6 +84,10 @@ print("data=", data)
 # **Goal**
 # - Look at the data's shape before fitting anything: it looks Gaussian,
 #   but with a couple of outliers
+
+# %%
+import os
+os.environ["CSFY_GIT_ROOT_PATH"] = "/tmp/msml610"
 
 # %%
 az.plot_kde(data, rug=True)

@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.0
+#       jupytext_version: 1.19.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -102,6 +102,12 @@ y_c = (y - y.mean()) / y.std()
 #   before fitting anything
 
 # %%
+import os
+os.environ["CSFY_GIT_ROOT_PATH"] = "/tmp/msml610"
+ut.FIG_DIR = "/tmp/msml610/lectures_source/figures"
+os.makedirs(ut.FIG_DIR, exist_ok=True)
+
+# %%
 # Plot the 0-order data (i.e., the original one).
 plt.scatter(x_c[0], y_c)
 plt.xlabel("x")
@@ -159,6 +165,14 @@ with pm.Model() as model_p:
 # **Implementation**
 # - Extracts posterior means for `alpha`/`beta` from each `idata` via
 #   `az.extract()`, then evaluates each curve over a dense `x` grid
+
+# %%
+import os
+os.environ["CSFY_GIT_ROOT_PATH"] = "/tmp/msml610"
+
+import helpers.htutorial as ut
+ut.FIG_DIR = "/tmp/msml610/lectures_source/figures"
+os.makedirs(ut.FIG_DIR, exist_ok=True)
 
 # %%
 # Sample the x space uniformly with 100 samples.
@@ -435,10 +449,12 @@ with pm.Model() as model_kg:
     # Assign each data point a component via the latent variable "z".
     z = pm.Categorical("z", p=p, shape=len(cs_exp))
     # 2 Gaussians with different mean and same std.
-    means = pm.Normal("means", mu=cs_exp.mean(), sigma=10, shape=K)
+    #means = pm.Normal("means", mu=cs_exp.mean(), sigma=10, shape=K)
+    means = pm.Normal("means", mu=cs_exp["exp"].mean(), sigma=10, shape=K)
     sd = pm.HalfNormal("sd", sigma=10)
     # The distribution is a Gaussian whose mean is a function of z.
-    y = pm.Normal("y", mu=means[z], sigma=sd, observed=cs_exp)
+    #y = pm.Normal("y", mu=means[z], sigma=sd, observed=cs_exp)
+    y = pm.Normal("y", mu=means[z], sigma=sd, observed=cs_exp["exp"].values)
     trace_kg = pm.sample()
 
 # %%
@@ -679,3 +695,5 @@ _ = az.plot_parallel(idata_c)
 
 # %%
 _ = az.plot_parallel(idata_nc)
+
+# %%
