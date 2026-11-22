@@ -151,6 +151,7 @@ Every model is evaluated **after each stage** with the same `evaluate.py`.
 | E9 | **Curriculum ablation** (easy → hard vs. fixed mixture) at ~10M and ~50M | Q7 |
 | E10 | **Logic-transfer ablation** (with vs. without logic data) at ~10M and ~50M | Q6 |
 | E11 | **Matched-compute control**: plain SFT continued for the GPU time GRPO uses (358M) | Q4 |
+| E9b/E10b | **Optional, during GRPO:** curriculum and no-logic at 119M (pretraining only, vs. `pt2_q125m`), only if E9/E10 show an effect at 10M/50M | Q6, Q7 at a third size |
 | — | Comparison with the sibling ideas (Kids_Book, Python): literature only (e.g. TinyStories) | assigned idea's research topic |
 
 ### 7.1 Small-model sweep (added 2026-11-21, assigned idea)
@@ -203,6 +204,7 @@ Our user had used ~15.8k SU of the class pool by 2026-11-20.
 | E9 curriculum (~10M, ~50M) incl. evaluation | ~250 |
 | E10 no-logic (~10M, ~50M) incl. evaluation | ~250 |
 | E11 matched-compute control (358M) | ~400–500 |
+| E9b/E10b at 119M (optional, during GRPO) | ~1.5k |
 | **Added total** | **~1.3–1.5k** → project total ≈ 27–28k SU |
 
 Class pool on 2026-11-18: 50 kSU limit, **45.2 kSU unused** (shared by the whole class).
@@ -254,6 +256,7 @@ and only with the team's explicit approval.
 - [ ] E8 size sweep (~1M / 10M / 50M): configs, pretraining, SFT, evaluation
 - [ ] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M)
 - [ ] E11 matched-compute control (with GRPO)
+- [ ] Optional E9b/E10b at 119M, run in parallel with GRPO if the small-model accuracy shows an effect
 - [ ] Optional E7 architecture comparison at ~10M
 - [ ] Post-training: RFT, verifier best-of-N, GRPO
 - [ ] Ablations, notebooks, README, Docker, report, video
