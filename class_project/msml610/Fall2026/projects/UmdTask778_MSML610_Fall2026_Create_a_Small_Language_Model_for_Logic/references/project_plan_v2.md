@@ -247,15 +247,16 @@ and only with the team's explicit approval.
 - [x] H100 benchmark: 295k / 144k / 54k tok/s per GPU → pretraining ≈ 11.7k SU
 - [x] Pretraining: small / medium / large (val loss 1.349 / 1.236 / 1.140; ~13.3k SU)
 - [x] Pre-SFT evaluation of all three sizes; failure analysis (section 5.1)
-- [ ] Plain SFT: small / medium / large (running since 2026-11-20 20:49)
+- [x] Plain SFT: small / medium / large (3 epochs; best = epoch 3 for all; 358M epoch 3 resumed after a scoring crash)
 - [x] Fix code: ProofWriter proofs + depth-5 eval, M1 state-tracking steps, MATH-500 at 1,024 tokens (CPU-tested)
-- [ ] Re-evaluate pretrained models on MATH-500 (1,024 tokens) and ProofWriter depth-5
-- [ ] Evaluate plain-SFT models; analyze; share the analysis with the team; finalize fixes
-- [ ] SFT + fixes: small / medium / large
-- [ ] E8 size sweep (~1M / 10M / 50M): configs, pretraining, SFT, evaluation
-- [ ] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M)
+- [x] Re-evaluate pretrained models on MATH-500 (1,024 tokens) and ProofWriter depth-5
+- [x] Evaluate plain-SFT models; analyze; share the analysis with the team; finalize fixes (approved 2026-11-21: B, C, 120k synthetic, per-source validation, 3 epochs)
+- [ ] SFT + fixes: small ✅ trained (evaluating) / medium (epoch 3 running) / large (epochs 2–3 running) — resumed after the 2026-11-21 quota crash
+- [ ] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation running, SFT after the SFT-recipe decision
+- [ ] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M): pretraining ✅, evaluation running (small sizes only, by team decision)
 - [ ] E11 matched-compute control (with GRPO)
 - [ ] Optional E7 architecture comparison at ~10M
+- [ ] Storage: class quota is 150 GB shared by the class; raw downloads moved to the team's laptop (restore with rsync); keep only `best/` checkpoints for finished stages; quota guard in job launchers
 - [ ] Post-training: RFT, verifier best-of-N, GRPO
 - [ ] Ablations, notebooks, README, Docker, report, video
 - [ ] Publish on Hugging Face (after GRPO): model repos + model cards (eval tables, cost, limits), free CPU Space demo; first check course permission and TinyGSM's license
