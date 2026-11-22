@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.0
+#       jupytext_version: 1.19.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -165,6 +165,10 @@ pz.Binomial(p=0.5, n=5).plot_interactive(**params)
 # **Implementation** `plot_binomial()`
 # - Plots `stats.binom(n, p).pmf(x)` for every combination of 3 `n` values
 #   and 5 `p` values, one subplot each
+
+# %%
+import os
+os.environ["CSFY_GIT_ROOT_PATH"] = "/tmp/msml610"
 
 # %%
 utils.plot_binomial()
@@ -561,3 +565,7 @@ utils.pick_best_theta(idata1)
 
 # %%
 utils.pick_best_theta(idata2)
+
+# %%
+
+# %%
