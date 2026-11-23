@@ -145,7 +145,7 @@ Every model is evaluated **after each stage** with the same `evaluate.py`.
 | E3 | Extrapolation, held-out templates, real benchmarks, logic transfer | Q5 |
 | E4 | v1 (synthetic-only) vs. v2 (real + synthetic) | Q3 |
 | E5 | RFT vs. verifier best-of-N vs. GRPO at matched compute | Q4 |
-| E6 | Generator / verifier size pairings | TinyGSM finding |
+| E6 | ~~Generator / verifier size pairings~~ (dropped 2026-11-23: no model-based judging) | — |
 | E7 | Optional: architecture comparison at ~10M (Qwen2 vs. Llama vs. Phi block) | design choice |
 | E8 | **Size sweep down to ~1M** (assigned idea): ~1M / 10M / 50M, same recipe, pretrain + SFT, accuracy by number of steps | Q1 (minimum size) |
 | E9 | **Curriculum ablation** (easy → hard vs. fixed mixture) at ~10M and ~50M | Q7 |
@@ -257,7 +257,7 @@ and only with the team's explicit approval.
 - [ ] E11 matched-compute control (with GRPO)
 - [ ] Optional E7 architecture comparison at ~10M
 - [ ] Storage: class quota raised to 250 GB on 2026-11-23 (was 150 GB, shared by the class); raw downloads moved to the team's laptop (restore with rsync); keep only `best/` checkpoints for finished stages; quota guard in job launchers
-- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling + vLLM check → verifier best-of-N → RFT → GRPO; E11 matched-compute control
+- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling + vLLM check → RFT → GRPO; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
 - [ ] Ablations, notebooks, README, Docker, report, video
 - [ ] Publish on Hugging Face (after GRPO): model repos + model cards (eval tables, cost, limits), free CPU Space demo; first check course permission and TinyGSM's license
 - Running story of the project (what failed and how it was fixed): `references/project_log.md`
