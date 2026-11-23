@@ -1,0 +1,17 @@
+{
+ "model": "/tmp/gsakthiv-slurm-24234867/model",
+ "n": 1319,
+ "load_s": 71.1,
+ "greedy_acc": 0.36315390447308565,
+ "greedy_s": 6.7,
+ "greedy_tok_per_s": 25846,
+ "hf_compared": 1319,
+ "hf_same_correctness": 0.976497346474602,
+ "hf_same_final_answer": 0.8521607278241091,
+ "hf_acc": 0.36239575435936316,
+ "sample_s": 31.1,
+ "sample_tok_per_s": 44663,
+ "majority@8": 0.40788476118271416,
+ "pass@1": 0.3031652767247915,
+ "pass@8": 0.5875663381349507
+}
