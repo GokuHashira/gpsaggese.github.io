@@ -37,12 +37,17 @@ import logic_slm_sft as lssft
 def real_pool(
     spec: Dict[str, Tuple[str, int]], seed: int, held: Set[str], skip_val: int, scale: float,
     n_per_source: Dict[str, int], eval_index: Optional[Set[int]] = None,
+    reuse: Optional[Set[str]] = None,
 ) -> List[dict]:
     """
     Real problems not used by SFT: per source, walk the records in the same
     seeded order as `logic_slm_sft.load_real_pairs`, skip the first
     `skip_val + scale * max` usable ones (SFT validation + training), and
     take the next `n_per_source[name]`.
+
+    :param reuse: sources whose problems are taken from the start even though
+        SFT trained on them (e.g. GSM8K train, fully used by SFT); their
+        records are tagged `seen_in_sft=True`
     """
     import logic_slm_decontam as lsdec
 
@@ -52,7 +57,8 @@ def real_pool(
         if want <= 0:
             continue
         pattern, n_max = spec[name]
-        skip = skip_val + int(n_max * scale)
+        seen_in_sft = name in (reuse or ())
+        skip = 0 if seen_in_sft else skip_val + int(n_max * scale)
         paths = sorted(glob.glob(pattern))
         random.Random(lsmix.stable_seed(seed, "sft-real", name)).shuffle(paths)
         seen = got = 0
@@ -68,7 +74,8 @@ def real_pool(
                     if seen <= skip:
                         continue
                     out.append({"prompt": r["prompt"], "answer": r["answer"],
-                                "task": r.get("task", "math"), "gen": name})
+                                "task": r.get("task", "math"), "gen": name,
+                                "seen_in_sft": seen_in_sft})
                     got += 1
                     if got >= want:
                         break
@@ -173,6 +180,7 @@ def summarize(samples: Sequence[dict]) -> Dict[str, float]:
     by: Dict[str, List[dict]] = {}
     for s in samples:
         by.setdefault(s["gen"], []).append(s)
+        by.setdefault("seen_in_sft" if s.get("seen_in_sft") else "unseen", []).append(s)
     res: Dict[str, float] = {}
     for g, ss in sorted(list(by.items()) + [("all", list(samples))]):
         n = len(ss[0]["correct"]) if ss else 0

@@ -148,3 +148,16 @@ class Test_grpo:
         assert m["steps"] == 2 and m["n_problems"] == 8
         ledger = [json.loads(line) for line in open(root / "runs.jsonl")]
         assert ledger[-1]["kind"] == "grpo"
+
+
+class Test_reuse:
+    def test_reuse_takes_sft_records_and_tags_them(self, tmp_path) -> None:
+        _fake_source(tmp_path / "src", 10)
+        spec = {"src": (str(tmp_path / "src" / "*.jsonl.gz"), 30)}
+        # SFT (5 val + 30 train) would leave nothing unseen in 30 records.
+        assert lspost.real_pool(spec, 7, set(), 5, 1.0, {"src": 30}) == []
+        pool = lspost.real_pool(spec, 7, set(), 5, 1.0, {"src": 12}, reuse={"src"})
+        assert len(pool) == 12 and all(p["seen_in_sft"] for p in pool)
+        samples = lspost.score_samples(pool, [["#### 0"]] * len(pool))
+        summ = lspost.summarize(samples)
+        assert summ["seen_in_sft/n"] == 12 and "unseen/n" not in summ

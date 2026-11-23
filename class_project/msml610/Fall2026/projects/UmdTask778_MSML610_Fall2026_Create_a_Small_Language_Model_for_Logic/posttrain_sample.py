@@ -38,8 +38,15 @@ def build_pool(a: argparse.Namespace) -> List[dict]:
 
         eval_index = lsdec.load_eval_index(a.real_eval_dir)[0]
     per = {name: a.per_real for name in lssft.REAL_SFT}
+    reuse = set()
+    for item in (a.reuse or []):
+        name, _, n = item.partition(":")
+        if name not in lssft.REAL_SFT:
+            raise ValueError(f"--reuse: unknown source {name!r}")
+        reuse.add(name)
+        per[name] = int(n) if n else a.per_real
     pool = lspost.real_pool(lssft.REAL_SFT, a.seed, held, a.sft_val_per_source, a.sft_real_scale,
-                            per, eval_index)
+                            per, eval_index, reuse=reuse)
     if a.proofwriter > 0:
         import glob
 
@@ -70,6 +77,9 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     ap.add_argument("--sft-real-scale", type=float, default=1.0)
     ap.add_argument("--sft-proofwriter", type=int, default=60000)
     ap.add_argument("--per-real", type=int, default=3000, help="problems per real source")
+    ap.add_argument("--reuse", nargs="*", default=[],
+                    help="real sources sampled even though SFT trained on them, as name[:count], "
+                         "e.g. gsm8k_train:7469 (tagged seen_in_sft; reported separately)")
     ap.add_argument("--proofwriter", type=int, default=3000)
     ap.add_argument("--synth-unit", type=int, default=30000,
                     help="synthetic problems per unit of share (shares sum to ~0.1)")
