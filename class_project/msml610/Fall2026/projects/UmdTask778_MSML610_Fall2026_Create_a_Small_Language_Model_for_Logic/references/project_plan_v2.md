@@ -251,8 +251,8 @@ and only with the team's explicit approval.
 - [x] Fix code: ProofWriter proofs + depth-5 eval, M1 state-tracking steps, MATH-500 at 1,024 tokens (CPU-tested)
 - [x] Re-evaluate pretrained models on MATH-500 (1,024 tokens) and ProofWriter depth-5
 - [x] Evaluate plain-SFT models; analyze; share the analysis with the team; finalize fixes (approved 2026-11-21: B, C, 120k synthetic, per-source validation, 3 epochs)
-- [ ] SFT + fixes: 119M ✅ trained + evaluated (ProofWriter d5 8.1 → 60.4, arithmetic 5–8 steps 16.6 → 58.8); 358M ✅ and 1.31B ✅ trained (evaluating); resumed after the 2026-11-21 quota crash
-- [ ] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation ✅ (GSM8K 2.1 / 13.4 / 26.8%), SFT + fixes ✅ trained (evaluating)
+- [x] SFT + fixes: all six sizes trained and evaluated (ProofWriter d5 → 51–64%, arithmetic 5–8 steps → up to 73%; GSM8K within noise; SVAMP −7 at 1.31B)
+- [ ] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation ✅ (GSM8K 2.1 / 13.4 / 26.8%), SFT + fixes ✅ trained + evaluated
 - [ ] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M): pretraining ✅, evaluation ✅ (curriculum: no gain; no-logic: math slightly better, no transfer) (small sizes only, by team decision)
 - [ ] E11 matched-compute control (with GRPO)
 - [ ] Optional E7 architecture comparison at ~10M
