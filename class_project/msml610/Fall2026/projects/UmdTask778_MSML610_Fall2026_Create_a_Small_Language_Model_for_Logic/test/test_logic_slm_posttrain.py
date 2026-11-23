@@ -119,3 +119,32 @@ class Test_scripts:
         ledger = [json.loads(line) for line in open(root / "runs.jsonl")]
         counts = [r for r in ledger if r["kind"] == "sft"][-1]["data_counts"]
         assert counts["extra:samples"] == 16
+
+
+class Test_grpo:
+    def test_rewards(self) -> None:
+        import grpo
+
+        comps = ["1 + 2 = 3\n#### 3", "#### 4", "3", "x\n#### 3\n#### 3"]
+        assert grpo.correctness_reward(comps, answer=["3"] * 4, task=["math"] * 4) == [1.0, 0.0, 0.0, 1.0]
+        assert grpo.format_reward(comps) == [1.0, 1.0, 0.0, 0.0]
+        assert grpo.correctness_reward(["p\n#### Yes"], answer=["yes"], task=["logic"]) == [1.0]
+
+    def test_two_steps_on_cpu(self, setup) -> None:
+        import grpo
+
+        root, corpus, pre = setup
+        probs = root / "grpo_problems.jsonl"
+        probs.write_text("".join(json.dumps({"prompt": f"Problem: {i} + 1 = ?\nSolution:\n",
+                                             "answer": str(i + 1), "task": "math", "gen": "a"}) + "\n"
+                                 for i in range(8)))
+        out = root / "grpo"
+        m = grpo.main(["--init", str(pre / "final"), "--out", str(out), "--problems", str(probs),
+                       "--steps", "2", "--num-generations", "2", "--prompts-per-step", "2",
+                       "--micro-batch", "4", "--max-completion-length", "16", "--cpu",
+                       "--save-every", "100", "--ledger", str(root / "runs.jsonl")])
+        assert (out / "final" / "config.json").exists()
+        assert (out / "reward_history.json").exists()
+        assert m["steps"] == 2 and m["n_problems"] == 8
+        ledger = [json.loads(line) for line in open(root / "runs.jsonl")]
+        assert ledger[-1]["kind"] == "grpo"
