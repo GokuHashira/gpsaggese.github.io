@@ -257,7 +257,7 @@ and only with the team's explicit approval.
 - [ ] E11 matched-compute control (with GRPO)
 - [ ] Optional E7 architecture comparison at ~10M
 - [ ] Storage: class quota raised to 250 GB on 2026-11-23 (was 150 GB, shared by the class); raw downloads moved to the team's laptop (restore with rsync); keep only `best/` checkpoints for finished stages; quota guard in job launchers
-- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling + vLLM check → RFT → GRPO; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
+- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling ✅ (5/6, 358M resampling) + vLLM ✅ → RFT training running → GRPO; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
 - [ ] Ablations, notebooks, README, Docker, report, video
 - [ ] Publish on Hugging Face (after GRPO): model repos + model cards (eval tables, cost, limits), free CPU Space demo; first check course permission and TinyGSM's license
 - Running story of the project (what failed and how it was fixed): `references/project_log.md`
