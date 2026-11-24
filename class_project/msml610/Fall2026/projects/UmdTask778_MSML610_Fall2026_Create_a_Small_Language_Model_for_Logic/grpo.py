@@ -114,6 +114,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     ap.add_argument("--prompts-per-step", type=int, default=32, help="distinct problems per optimizer step")
     ap.add_argument("--micro-batch", type=int, default=32, help="completions per device forward pass")
     ap.add_argument("--max-completion-length", type=int, default=512)
+    ap.add_argument("--max-context", type=int, default=2048, help="model context length")
     ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--lr", type=float, default=1e-6)
     ap.add_argument("--beta", type=float, default=0.0, help="KL penalty to the initial model")
@@ -134,14 +135,17 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     from trl import GRPOConfig, GRPOTrainer
 
     t0 = time.time()
-    problems = load_problems(a)[a.pool_offset:]
-    _LOG.info("GRPO problems: %d (offset %d)", len(problems), a.pool_offset)
-    ds = datasets.Dataset.from_list(problems).shuffle(seed=a.seed)
-
     tmp_root = tempfile.mkdtemp(dir=os.environ.get("TMPDIR"))
     init = vllm_ready_copy(a.init, tmp_root) if a.use_vllm else a.init
     tok = transformers.AutoTokenizer.from_pretrained(init)
     tok.padding_side = "left"
+    import logic_slm_posttrain as lspost
+
+    problems, dropped = lspost.filter_by_length(load_problems(a)[a.pool_offset:], tok,
+                                                a.max_context - a.max_completion_length)
+    _LOG.info("GRPO problems: %d (offset %d, %d dropped as too long)", len(problems),
+              a.pool_offset, dropped)
+    ds = datasets.Dataset.from_list(problems).shuffle(seed=a.seed)
     gen_per_step = a.prompts_per_step * a.num_generations
     if gen_per_step % a.micro_batch:
         raise ValueError("prompts-per-step * num-generations must be a multiple of micro-batch")

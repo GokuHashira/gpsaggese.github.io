@@ -123,6 +123,18 @@ def synthetic_pool(mixture: Dict[str, dict], n_per_unit_share: int, seed: int, h
     return out
 
 
+def filter_by_length(problems: Sequence[dict], tok, max_prompt_tokens: int) -> Tuple[List[dict], int]:
+    """
+    Drop problems whose prompt is longer than `max_prompt_tokens` (context
+    length minus the room left for the answer); vLLM refuses longer prompts.
+
+    :return: (kept problems, number dropped)
+    """
+    lens = tok([p["prompt"] for p in problems], add_special_tokens=False)["input_ids"]
+    kept = [p for p, ids in zip(problems, lens) if len(ids) <= max_prompt_tokens]
+    return kept, len(problems) - len(kept)
+
+
 # #############################################################################
 # Sampling
 # #############################################################################

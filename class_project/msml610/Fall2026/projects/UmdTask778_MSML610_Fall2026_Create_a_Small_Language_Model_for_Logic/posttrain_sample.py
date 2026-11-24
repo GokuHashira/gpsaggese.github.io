@@ -93,6 +93,7 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     ap.add_argument("--n-samples", type=int, default=8)
     ap.add_argument("--temperature", type=float, default=0.8)
     ap.add_argument("--max-new-tokens", type=int, default=512)
+    ap.add_argument("--max-context", type=int, default=2048, help="model context length")
     ap.add_argument("--backend", choices=("auto", "vllm", "hf"), default="auto")
     ap.add_argument("--batch-size", type=int, default=128, help="HF backend only")
     ap.add_argument("--rft-max-per-problem", type=int, default=4)
@@ -104,6 +105,13 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     pool = build_pool(a)
     if a.limit:
         pool = pool[: a.limit]
+    import transformers
+
+    tok = transformers.AutoTokenizer.from_pretrained(a.model)
+    pool, dropped = lspost.filter_by_length(pool, tok, a.max_context - a.max_new_tokens)
+    if dropped:
+        _LOG.info("dropped %d problems with prompts longer than %d tokens", dropped,
+                  a.max_context - a.max_new_tokens)
     by: Dict[str, int] = {}
     for p in pool:
         by[p["gen"]] = by.get(p["gen"], 0) + 1

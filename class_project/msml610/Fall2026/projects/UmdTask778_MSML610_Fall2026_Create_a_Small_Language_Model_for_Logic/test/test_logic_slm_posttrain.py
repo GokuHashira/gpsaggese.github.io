@@ -182,3 +182,17 @@ class Test_pool_skip:
         a = {p["prompt"] for p in lspost.synthetic_pool(_MIX, 40, 1, held)}
         b = {p["prompt"] for p in lspost.synthetic_pool(_MIX, 40, 1, held, tag="grpo")}
         assert len(a & b) < 0.3 * len(a)
+
+
+class Test_length_filter:
+    def test_drops_prompts_longer_than_the_budget(self, setup) -> None:
+        _, _, pre = setup
+        import transformers
+
+        tok = transformers.AutoTokenizer.from_pretrained(str(pre / "final"))
+        probs = [{"prompt": "Problem: 1 + 1 = ?\nSolution:\n", "answer": "2", "task": "math", "gen": "a"},
+                 {"prompt": "Problem: " + "1 + " * 400 + "1 = ?\nSolution:\n", "answer": "401",
+                  "task": "math", "gen": "a"}]
+        kept, dropped = lspost.filter_by_length(probs, tok, 100)
+        assert dropped == 1 and kept == probs[:1]
+        assert lspost.filter_by_length(probs, tok, 100000) == (probs, 0)
