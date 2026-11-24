@@ -150,7 +150,7 @@ Every model is evaluated **after each stage** with the same `evaluate.py`.
 | E8 | **Size sweep down to ~1M** (assigned idea): ~1M / 10M / 50M, same recipe, pretrain + SFT, accuracy by number of steps | Q1 (minimum size) |
 | E9 | **Curriculum ablation** (easy → hard vs. fixed mixture) at ~10M and ~50M | Q7 |
 | E10 | **Logic-transfer ablation** (with vs. without logic data) at ~10M and ~50M | Q6 |
-| E11 | **Matched-compute control**: plain SFT continued for the GPU time GRPO uses (358M) | Q4 |
+| E11 | **Matched-compute control** (119M and 358M): from the same RFT checkpoint, plain supervised training for exactly the GPU time GRPO used, then the same evaluation | Q4 / assigned idea's Q3 |
 | — | Comparison with the sibling ideas (Kids_Book, Python): literature only (e.g. TinyStories) | assigned idea's research topic |
 
 ### 7.1 Small-model sweep (added 2026-11-21, assigned idea)
@@ -203,7 +203,7 @@ Our user had used ~15.8k SU of the class pool by 2026-11-20.
 | E8 evaluations (3 sizes × 2 stages) | ~150 |
 | E9 curriculum (~10M, ~50M) incl. evaluation | ~250 |
 | E10 no-logic (~10M, ~50M) incl. evaluation | ~250 |
-| E11 matched-compute control (358M) | ~400–500 |
+| E11 matched-compute control (119M + 358M, decided 2026-11-24) | ~560–700 |
 | **Added total** | **~1.3–1.5k** → project total ≈ 27–28k SU |
 
 Class pool on 2026-11-18: 50 kSU limit, **45.2 kSU unused** (shared by the whole class).
@@ -254,10 +254,10 @@ and only with the team's explicit approval.
 - [x] SFT + fixes: all six sizes trained and evaluated (ProofWriter d5 → 51–64%, arithmetic 5–8 steps → up to 73%; GSM8K within noise; SVAMP −7 at 1.31B)
 - [ ] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation ✅ (GSM8K 2.1 / 13.4 / 26.8%), SFT + fixes ✅ trained + evaluated
 - [ ] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M): pretraining ✅, evaluation ✅ (curriculum: no gain; no-logic: math slightly better, no transfer) (small sizes only, by team decision)
-- [ ] E11 matched-compute control (with GRPO)
+- [ ] E11 matched-compute control at 119M and 358M (after each one's GRPO run, matching its measured GPU time)
 - [ ] Optional E7 architecture comparison at ~10M
 - [ ] Storage: class quota raised to 250 GB on 2026-11-23 (was 150 GB, shared by the class); raw downloads moved to the team's laptop (restore with rsync); keep only `best/` checkpoints for finished stages; quota guard in job launchers
-- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling ✅ (5/6, 358M resampling) + vLLM ✅ → RFT training running → GRPO; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
+- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling ✅ + vLLM ✅ → RFT ✅ (all six trained, evaluated) → GRPO (all six, from RFT; timing test running) + E11 at 119M and 358M; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
 - [ ] Ablations, notebooks, README, Docker, report, video
 - [ ] Publish on Hugging Face (after GRPO): model repos + model cards (eval tables, cost, limits), free CPU Space demo; first check course permission and TinyGSM's license
 - Running story of the project (what failed and how it was fixed): `references/project_log.md`
