@@ -37,7 +37,7 @@ import logic_slm_sft as lssft
 def real_pool(
     spec: Dict[str, Tuple[str, int]], seed: int, held: Set[str], skip_val: int, scale: float,
     n_per_source: Dict[str, int], eval_index: Optional[Set[int]] = None,
-    reuse: Optional[Set[str]] = None,
+    reuse: Optional[Set[str]] = None, extra_skip: int = 0,
 ) -> List[dict]:
     """
     Real problems not used by SFT: per source, walk the records in the same
@@ -48,6 +48,8 @@ def real_pool(
     :param reuse: sources whose problems are taken from the start even though
         SFT trained on them (e.g. GSM8K train, fully used by SFT); their
         records are tagged `seen_in_sft=True`
+    :param extra_skip: further records to skip per (non-reused) source, e.g.
+        the ones an earlier post-training stage already sampled
     """
     import logic_slm_decontam as lsdec
 
@@ -58,7 +60,7 @@ def real_pool(
             continue
         pattern, n_max = spec[name]
         seen_in_sft = name in (reuse or ())
-        skip = 0 if seen_in_sft else skip_val + int(n_max * scale)
+        skip = 0 if seen_in_sft else skip_val + int(n_max * scale) + extra_skip
         paths = sorted(glob.glob(pattern))
         random.Random(lsmix.stable_seed(seed, "sft-real", name)).shuffle(paths)
         seen = got = 0
@@ -99,7 +101,7 @@ def proofwriter_pool(raw_dir: str, n: int, skip: int, seed: int, exclude_theorie
 
 
 def synthetic_pool(mixture: Dict[str, dict], n_per_unit_share: int, seed: int, held: Set[str],
-                   overrides: Optional[Dict[str, dict]] = None) -> List[dict]:
+                   overrides: Optional[Dict[str, dict]] = None, tag: str = "posttrain") -> List[dict]:
     """
     New synthetic problems (different seed from SFT) with their gold answers.
     """
@@ -110,7 +112,7 @@ def synthetic_pool(mixture: Dict[str, dict], n_per_unit_share: int, seed: int, h
     for name in sorted(synth):
         n = max(1, int(synth[name]["share"] * n_per_unit_share))
         got = 0
-        for ex in lsmix.generate(synth, name, 3 * n, lsmix.stable_seed(seed, "posttrain", name)):
+        for ex in lsmix.generate(synth, name, 3 * n, lsmix.stable_seed(seed, tag, name)):
             prompt = lsform.render_prompt(ex)
             if prompt in held:
                 continue

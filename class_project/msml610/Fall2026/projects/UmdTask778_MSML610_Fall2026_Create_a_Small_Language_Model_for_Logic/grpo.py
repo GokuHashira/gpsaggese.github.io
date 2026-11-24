@@ -84,7 +84,8 @@ def load_problems(a: argparse.Namespace) -> List[dict]:
             corpus=a.corpus, raw_dir=a.raw_dir, real_eval_dir=a.real_eval_dir, seed=a.seed,
             sft_val_per_source=100, sft_real_scale=1.0, sft_proofwriter=60000,
             per_real=a.per_real, proofwriter=a.proofwriter, synth_unit=a.synth_unit,
-            synth_override=a.synth_override, reuse=a.reuse)
+            synth_override=a.synth_override, reuse=a.reuse, pool_skip=a.pool_skip,
+            synth_tag=a.synth_tag)
         rows = posttrain_sample.build_pool(ns)
     return [{"prompt": r["prompt"], "answer": r["answer"], "task": r["task"], "gen": r["gen"]} for r in rows]
 
@@ -103,6 +104,9 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     ap.add_argument("--synth-unit", type=int, default=30000)
     ap.add_argument("--synth-override", default='{"m1": {"state_steps": true}}')
     ap.add_argument("--reuse", nargs="*", default=[], help="see posttrain_sample.py --reuse")
+    ap.add_argument("--pool-skip", type=int, default=0,
+                    help="skip records an earlier stage used (RFT sampled 3,000 per source)")
+    ap.add_argument("--synth-tag", default="grpo", help="seed tag for new synthetic problems")
     ap.add_argument("--pool-offset", type=int, default=0,
                     help="skip this many pool problems (e.g. the ones RFT sampled)")
     ap.add_argument("--steps", type=int, default=500)

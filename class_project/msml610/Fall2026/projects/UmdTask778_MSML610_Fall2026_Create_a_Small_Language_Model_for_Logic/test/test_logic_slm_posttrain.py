@@ -161,3 +161,24 @@ class Test_reuse:
         samples = lspost.score_samples(pool, [["#### 0"]] * len(pool))
         summ = lspost.summarize(samples)
         assert summ["seen_in_sft/n"] == 12 and "unseen/n" not in summ
+
+
+class Test_pool_skip:
+    def test_next_stage_gets_disjoint_problems(self, tmp_path) -> None:
+        _fake_source(tmp_path / "src", 40)
+        spec = {"src": (str(tmp_path / "src" / "*.jsonl.gz"), 30)}
+        rft = lspost.real_pool(spec, 7, set(), 5, 1.0, {"src": 20})
+        grpo = lspost.real_pool(spec, 7, set(), 5, 1.0, {"src": 20}, extra_skip=20)
+        assert len(rft) == 20 and len(grpo) == 20
+        assert not {p["prompt"] for p in rft} & {p["prompt"] for p in grpo}
+        # Reused sources ignore the extra skip (all their problems are already seen).
+        again = lspost.real_pool(spec, 7, set(), 5, 1.0, {"src": 10}, reuse={"src"}, extra_skip=20)
+        assert [p["prompt"] for p in again] == [p["prompt"] for p in lspost.real_pool(
+            spec, 7, set(), 5, 1.0, {"src": 10}, reuse={"src"})]
+
+    def test_synthetic_tag_changes_problems(self, setup) -> None:
+        _, corpus, _ = setup
+        held = lspost.lsmix.load_held_prompts(str(corpus))
+        a = {p["prompt"] for p in lspost.synthetic_pool(_MIX, 40, 1, held)}
+        b = {p["prompt"] for p in lspost.synthetic_pool(_MIX, 40, 1, held, tag="grpo")}
+        assert len(a & b) < 0.3 * len(a)
