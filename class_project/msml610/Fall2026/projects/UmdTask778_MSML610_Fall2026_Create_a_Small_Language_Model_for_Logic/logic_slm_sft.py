@@ -149,14 +149,15 @@ class SFTDataset(torch.utils.data.Dataset):
 def masked_lm_loss(model: torch.nn.Module, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
     """
     Mean next-token loss over solution tokens only.
+
+    Only the positions with a label are cast to fp32 and scored, so prompt and
+    padding positions cost no extra memory (same value as scoring every
+    position with `ignore_index`).
     """
     logits = model(input_ids=batch["input_ids"], attention_mask=batch["attention_mask"]).logits
-    shift_logits = logits[:, :-1].float()
     shift_labels = batch["labels"][:, 1:]
-    return torch.nn.functional.cross_entropy(
-        shift_logits.reshape(-1, shift_logits.size(-1)), shift_labels.reshape(-1),
-        ignore_index=IGNORE_INDEX,
-    )
+    keep = shift_labels != IGNORE_INDEX
+    return torch.nn.functional.cross_entropy(logits[:, :-1][keep].float(), shift_labels[keep])
 
 
 def pass_at_k_eval(
@@ -207,8 +208,16 @@ def _pass_at_k_eval(
     greedy = lseval.generate_completions(
         model, tok, prompts, max_new_tokens=max_new_tokens, batch_size=batch_size
     )
-    out = {"greedy_exact_match": sum(
-        lssco.exact_match(c, g, t) for c, g, t in zip(greedy, golds, tasks)) / len(records)}
+    hits = [lssco.exact_match(c, g, t) for c, g, t in zip(greedy, golds, tasks)]
+    out = {"greedy_exact_match": sum(hits) / len(records)}
+    # Per-source breakdown (generator / real source), so a regression on one
+    # source cannot hide inside the overall average.
+    gens = [r.get("gen", r["task"]) for r in records]
+    by_gen: Dict[str, List[int]] = {}
+    for i, g in enumerate(gens):
+        by_gen.setdefault(g, []).append(i)
+    for g, idx in sorted(by_gen.items()):
+        out[f"greedy/{g}"] = sum(hits[i] for i in idx) / len(idx)
     if n_samples > 0:
         samples = lseval.generate_completions(
             model, tok, [p for p in prompts for _ in range(n_samples)],
@@ -220,4 +229,8 @@ def _pass_at_k_eval(
             chunk = samples[i * n_samples : (i + 1) * n_samples]
             counts.append(sum(lssco.exact_match(c, g, t) for c in chunk))
         out.update(lssco.pass_at_k_over_problems(counts, n_samples, ks))
+        k_max = max(ks)
+        for g, idx in sorted(by_gen.items()):
+            pk = lssco.pass_at_k_over_problems([counts[i] for i in idx], n_samples, [k_max])
+            out[f"pass@{k_max}/{g}"] = pk[f"pass@{k_max}"]
     return out

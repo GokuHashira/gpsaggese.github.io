@@ -113,3 +113,39 @@ class Test_dataset:
             lsmam1.generate_example(random.Random(0), 0)
         with pytest.raises(ValueError):
             lsmam1.generate_example(random.Random(0), 2, max_digits=3, max_value=50)
+
+
+class Test_state_steps:
+    def test_same_problem_and_answer(self) -> None:
+        """
+        State-tracking solutions keep the problem, answer and step count.
+        """
+        plain = _examples(1000)
+        state = _examples(1000, state_steps=True)
+        for a, b in zip(plain, state):
+            assert (a.problem, a.answer, len(a.steps)) == (b.problem, b.answer, len(b.steps))
+
+    def test_every_rewrite_keeps_the_value(self) -> None:
+        """
+        Each step is a correct operation, the rewritten expression evaluates to
+        the answer and the last step yields the answer.
+        """
+        for ex in _examples(1000, state_steps=True):
+            for i, s in enumerate(ex.steps):
+                head, _, rest = s.partition(", so ")
+                m = _STEP_RE.match(head)
+                assert m, s
+                assert _exact_eval(f"{m[1]} {m[2]} {m[3]}") == int(m[4]), s
+                if i < len(ex.steps) - 1:
+                    assert rest and _exact_eval(rest) == int(ex.answer), s
+                else:
+                    assert not rest and m[4] == ex.answer, s
+
+    def test_conventional_order(self) -> None:
+        ex = lsmam1.generate_example(random.Random(1), 6, state_steps=True)
+        assert ex.problem == "67 + 93 + 6 + 921 * 9 + 5 - 0 = ?"
+        assert ex.steps[:3] == [
+            "67 + 93 = 160, so 160 + 6 + 921 * 9 + 5 - 0",
+            "160 + 6 = 166, so 166 + 921 * 9 + 5 - 0",
+            "921 * 9 = 8289, so 166 + 8289 + 5 - 0",
+        ]

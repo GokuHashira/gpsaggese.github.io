@@ -19,3 +19,12 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .ipynb_checkpoints/
+
+# Internal project log (the team story): local only, never committed.
+references/project_log.md
+
+# Evaluation outputs: only the summaries (eval_metrics.json) are versioned.
+results/**/pred_*.jsonl
+results/**/gpu_trace.csv
+results/**/*.partial.json
+results/runs.jsonl

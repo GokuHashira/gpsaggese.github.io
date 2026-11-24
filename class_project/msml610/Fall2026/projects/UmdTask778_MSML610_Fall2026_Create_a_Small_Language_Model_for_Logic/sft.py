@@ -58,6 +58,14 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
                     help="held-out real problems per source for per-epoch pass@k")
     ap.add_argument("--real-eval-dir", default="data/processed/real/eval",
                     help="real eval sets: real SFT examples overlapping them (13-grams) are dropped")
+    ap.add_argument("--synth-override", default="",
+                    help='JSON {generator: {train kwarg: value}} applied to the synthetic SFT '
+                         'generators, e.g. \'{"m1": {"state_steps": true}}\'')
+    ap.add_argument("--proofwriter-n", type=int, default=0,
+                    help="ProofWriter train examples with worked proofs (0 = none)")
+    ap.add_argument("--proofwriter-val", type=int, default=100,
+                    help="held-out ProofWriter train problems for per-epoch pass@k")
+    ap.add_argument("--raw-dir", default="data/raw", help="raw downloads (ProofWriter parquet)")
     ap.add_argument("--epochs", type=int, default=4)
     ap.add_argument("--batch-size", type=int, default=128, help="sequences per step (global)")
     ap.add_argument("--micro-batch", type=int, default=64, help="per GPU")
@@ -76,6 +84,15 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     ap.add_argument("--temperature", type=float, default=0.7)
     ap.add_argument("--eval-limit", type=int, default=500)
     ap.add_argument("--max-new-tokens", type=int, default=192)
+    ap.add_argument("--start-epoch", type=int, default=1,
+                    help="resume: first epoch to train (--init holds the weights after the "
+                         "previous epoch; data order and LR schedule continue as in the full run; "
+                         "the optimizer state is not saved, so AdamW starts fresh)")
+    ap.add_argument("--resume-history", default="",
+                    help="resume: JSON list of the per-epoch validation records already done "
+                         "(sets the best metric / epoch that later epochs must beat)")
+    ap.add_argument("--rewarm-steps", type=int, default=100,
+                    help="resume: linear LR ramp over this many steps (fresh AdamW moments)")
     ap.add_argument("--compile", action="store_true")
     lstrain.add_common_args(ap)
     return ap.parse_args(argv)
@@ -134,6 +151,10 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     held = lsmix.load_held_prompts(a.corpus)
     # Synthetic part: generator entries only (stored real sources are pretraining-only).
     synth = {k: v for k, v in mixture.items() if not lsmix.is_stored(v)}
+    for name, kw in (json.loads(a.synth_override) if a.synth_override else {}).items():
+        if name not in synth:
+            raise ValueError(f"--synth-override: unknown generator {name!r}")
+        synth[name] = {**synth[name], "train": {**synth[name]["train"], **kw}}
     use_real = a.real_scale > 0 and manifest.get("version") == "v2"
     n_synth = a.n_synth if use_real else a.n_examples
     synth_share = sum(s["share"] for s in synth.values())
@@ -146,6 +167,19 @@ def main(argv: List[str] = None) -> Dict[str, float]:
             lssft.REAL_SFT, a.seed, held, a.real_val_per_source, a.real_scale, index)
         pairs += rpairs
         data_counts.update(rcounts)
+    if a.proofwriter_n > 0:
+        import logic_slm_proofwriter as lspw
+
+        excl = set()
+        for path in glob.glob(os.path.join(a.corpus, "eval", "real_*proofwriter*.jsonl")) + \
+                glob.glob(os.path.join(a.corpus, "eval", "real_pw-*.jsonl")):
+            excl |= lspw.eval_theories(lsdata.read_records(path))
+        ppairs, pval, pcounts = lspw.load_sft_pairs(a.raw_dir, a.proofwriter_n, a.proofwriter_val,
+                                                    a.seed, excl)
+        pairs += ppairs
+        real_val += pval
+        data_counts.update(pcounts)
+    if use_real or a.proofwriter_n > 0:
         random.Random(a.seed).shuffle(pairs)
     ds = lssft.SFTDataset(pairs, tok, a.max_len)
     ds_tokens = sum(len(ids) for ids, _ in ds.items)
@@ -183,8 +217,21 @@ def main(argv: List[str] = None) -> Dict[str, float]:
 
     step, best, best_epoch = 0, -1.0, -1
     history = []
+    if a.start_epoch > 1:
+        step = (a.start_epoch - 1) * steps_per_epoch
+        if a.resume_history:
+            with open(a.resume_history) as f:
+                history = json.load(f)
+            key = f"pass@{a.select_k}"
+            for h in history:
+                v = h.get(key, h.get("greedy_exact_match", -1.0))
+                if v > best:
+                    best, best_epoch = v, h["epoch"]
+        _LOG.info("resuming at epoch %d (step %d), best so far %.4f at epoch %d",
+                  a.start_epoch, step, best, best_epoch)
+    resume_step = step
     t_start = time.time()
-    for epoch in range(1, a.epochs + 1):
+    for epoch in range(a.start_epoch, a.epochs + 1):
         g = torch.Generator().manual_seed(a.seed + epoch)
         order = torch.randperm(len(ds), generator=g).tolist()
         t_epoch = time.time()
@@ -192,6 +239,8 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         t_log = time.time()
         for s in range(steps_per_epoch):
             lr = lstrain.lr_at(step, total_steps, warmup, a.lr)
+            if a.start_epoch > 1 and step - resume_step < a.rewarm_steps:
+                lr *= (step - resume_step + 1) / a.rewarm_steps
             for grp in opt.param_groups:
                 grp["lr"] = lr
             loss_acc = 0.0
@@ -223,6 +272,10 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         timer.add("train", time.time() - t_epoch)
         t_val = time.time()
         if d.is_main:
+            # Save the epoch before evaluating it, so a crash in the
+            # evaluation can never lose the training of the epoch.
+            if not a.no_save:
+                _save(model, tok, os.path.join(a.out, "last"), a.save_dtype)
             model.eval()
             with amp:
                 ev = lssft.pass_at_k_eval(
@@ -239,8 +292,6 @@ def main(argv: List[str] = None) -> Dict[str, float]:
                 best, best_epoch = ev[key], epoch
                 if not a.no_save:
                     _save(model, tok, os.path.join(a.out, "best"), a.save_dtype)
-            if not a.no_save:
-                _save(model, tok, os.path.join(a.out, "last"), a.save_dtype)
         d.barrier()
         timer.add("val", time.time() - t_val)
 

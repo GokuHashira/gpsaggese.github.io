@@ -7,7 +7,10 @@ swaps its operands when needed, division is only kept when exact, and
 products / sums above `max_value` are replaced by a smaller operation.
 
 The solution evaluates the tree bottom-up, left to right, one operation per
-step (`a op b = c`), as specified in `references/format_v1.md`.
+step (`a op b = c`), as specified in `references/format_v1.md`. With
+`state_steps=True` every step except the last also rewrites the remaining
+expression (`15 * 69 = 1035, so 1 * 1035 + 674 - 3 + 6`), so the model never
+has to remember which operations are still pending.
 
 Import as:
 
@@ -15,6 +18,7 @@ import logic_slm_math_m1 as lsmam1
 """
 
 import argparse
+import copy
 import dataclasses
 import json
 import random
@@ -129,6 +133,78 @@ def _steps(node: _Node, out: List[str]) -> None:
     out.append(f"{node.left.value} {node.op} {node.right.value} = {node.value}")
 
 
+def _parse(text: str) -> _Node:
+    """
+    Parse a rendered expression into the conventional tree (brackets, then
+    `*` `/`, then `+` `-`, each left to right), with node values.
+
+    :raises ValueError: if a value would be negative or a division inexact
+    """
+    toks = text.replace("(", " ( ").replace(")", " ) ").split()
+    pos = 0
+
+    def apply(op: str, left: _Node, right: _Node) -> _Node:
+        a, b = left.value, right.value
+        if op == "-" and a < b or op == "/" and (b == 0 or a % b):
+            raise ValueError("not a valid left-to-right evaluation")
+        value = {"+": a + b, "-": a - b, "*": a * b, "/": a // max(b, 1)}[op]
+        return _Node(value=value, op=op, left=left, right=right)
+
+    def atom() -> _Node:
+        nonlocal pos
+        tok = toks[pos]
+        pos += 1
+        if tok == "(":
+            node = expr()
+            pos += 1  # ")"
+            return node
+        return _Node(value=int(tok))
+
+    def term() -> _Node:
+        nonlocal pos
+        node = atom()
+        while pos < len(toks) and toks[pos] in ("*", "/"):
+            op = toks[pos]
+            pos += 1
+            node = apply(op, node, atom())
+        return node
+
+    def expr() -> _Node:
+        nonlocal pos
+        node = term()
+        while pos < len(toks) and toks[pos] in ("+", "-"):
+            op = toks[pos]
+            pos += 1
+            node = apply(op, node, term())
+        return node
+
+    return expr()
+
+
+def _state_steps(root: _Node) -> List[str]:
+    """
+    Steps in the same order as `_steps`, each followed by the expression left
+    after replacing the evaluated operation with its value.
+    """
+    order: List[_Node] = []
+
+    def visit(node: _Node) -> None:
+        if node.is_leaf:
+            return
+        visit(node.left)
+        visit(node.right)
+        order.append(node)
+
+    visit(root)
+    out = []
+    for i, node in enumerate(order):
+        step = f"{node.left.value} {node.op} {node.right.value} = {node.value}"
+        # Collapse the node into a leaf (the tree is a private copy).
+        node.op, node.left, node.right = None, None, None
+        out.append(step if i == len(order) - 1 else f"{step}, so {_render(root)}")
+    return out
+
+
 def _depth(node: _Node) -> int:
     if node.is_leaf:
         return 0
@@ -142,6 +218,7 @@ def generate_example(
     max_digits: int = 3,
     ops: Tuple[str, ...] = OPS,
     max_value: int = 10_000,
+    state_steps: bool = False,
 ) -> lsform.Example:
     """
     Generate one M1 example.
@@ -151,6 +228,7 @@ def generate_example(
     :param max_digits: maximum digits of each leaf number
     :param ops: operators to sample from
     :param max_value: bound on every intermediate value
+    :param state_steps: also rewrite the remaining expression after each step
     :return: math example with one step per operation
     """
     if n_ops < 1:
@@ -160,8 +238,20 @@ def generate_example(
     root = _build_tree(rng, n_ops, max_digits, tuple(ops))
     answer = _fix_and_eval(root, rng, max_value, 10**max_digits - 1)
     expr = _render(root)
+    depth = _depth(root)
     steps: List[str] = []
-    _steps(root, steps)
+    if state_steps:
+        # Evaluate in the conventional order of the rendered expression when
+        # it stays valid (non-negative, exact division); else in tree order.
+        try:
+            tree = _parse(expr)
+        except ValueError:
+            tree = copy.deepcopy(root)
+        if tree.value != answer:
+            tree = copy.deepcopy(root)
+        steps = _state_steps(tree)
+    else:
+        _steps(root, steps)
     return lsform.Example(
         task="math",
         problem=f"{expr} = ?",
@@ -170,7 +260,7 @@ def generate_example(
         meta={
             "level": "M1",
             "n_ops": n_ops,
-            "depth": _depth(root),
+            "depth": depth,
             "max_digits": max_digits,
             "has_brackets": "(" in expr,
         },
@@ -186,6 +276,7 @@ def generate_dataset(
     ops: Tuple[str, ...] = OPS,
     max_value: int = 10_000,
     exclude: Optional[set] = None,
+    state_steps: bool = False,
 ) -> Iterator[lsform.Example]:
     """
     Yield `n` unique M1 examples with `n_ops` uniform in `n_ops_range`.
@@ -206,6 +297,7 @@ def generate_dataset(
             max_digits=max_digits,
             ops=ops,
             max_value=max_value,
+            state_steps=state_steps,
         )
         if ex.problem in seen:
             continue

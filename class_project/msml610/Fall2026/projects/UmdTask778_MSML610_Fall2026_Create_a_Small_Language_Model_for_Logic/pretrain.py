@@ -162,6 +162,11 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
                     help="save a checkpoint and stop (marker INCOMPLETE) after this time")
     ap.add_argument("--rewarm-steps", type=int, default=50,
                     help="LR ramp after resuming from a weights-only checkpoint")
+    ap.add_argument("--drop-sources", default="",
+                    help="comma-separated mixture entries to remove (e.g. l1,l2,l3 for the "
+                         "no-logic ablation E10); the other shares are renormalized")
+    ap.add_argument("--curriculum", action="store_true",
+                    help="easy-to-hard curriculum over the training tokens (experiment E9)")
     lstrain.add_common_args(ap)
     a = ap.parse_args(argv)
     if a.corpus:
@@ -183,9 +188,15 @@ def _train_dataset(a: argparse.Namespace) -> torch.utils.data.Dataset:
         return BlockStream(lsdata.load_bin(a.train_bin), a.seq_len, a.seed)
     with open(os.path.join(a.corpus, "manifest.json")) as f:
         mixture = json.load(f)["mixture"]
+    drop = {s for s in a.drop_sources.split(",") if s}
+    unknown = drop - set(mixture)
+    if unknown:
+        raise ValueError(f"--drop-sources: unknown entries {sorted(unknown)}")
+    mixture = {k: v for k, v in mixture.items() if k not in drop}
     return lsmix.MixtureBlocks(
         mixture, a.tokenizer, a.seq_len, a.seed,
         held_prompts=lsmix.load_held_prompts(a.corpus), corpus_dir=a.corpus,
+        curriculum_blocks=int(a.tokens // a.seq_len) if a.curriculum else 0,
     )
 
 

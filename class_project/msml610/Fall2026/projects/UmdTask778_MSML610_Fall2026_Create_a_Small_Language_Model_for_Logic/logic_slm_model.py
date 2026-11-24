@@ -34,6 +34,11 @@ SIZES: Dict[str, Tuple[int, int, int, int]] = {
 # Qwen2.5-style: name -> (hidden, layers, query heads, key/value heads, intermediate)
 QWEN_SIZES: Dict[str, Tuple[int, int, int, int, int]] = {
     "qtiny": (64, 2, 4, 2, 192),
+    # Size sweep of the assigned idea (non-embedding params; the tied 32k embedding adds
+    # ~4.2M / ~10.5M / ~18.9M): ~1.0M, ~10.0M, ~50.4M.
+    "q1m": (128, 5, 4, 2, 384),
+    "q10m": (320, 8, 5, 1, 1040),
+    "q50m": (576, 13, 9, 3, 1728),
     "q125m": (768, 18, 12, 4, 2176),  # FFN widened from 2048 to offset GQA's smaller attention (~119M)
     "q0.5b": (896, 24, 14, 2, 4864),
     "q1.5b": (1536, 28, 12, 2, 8960),
@@ -41,6 +46,7 @@ QWEN_SIZES: Dict[str, Tuple[int, int, int, int, int]] = {
 PEAK_LR = {
     "tiny": 1e-3, "25m": 1e-3, "125m": 6e-4, "1b": 3e-4,
     "qtiny": 1e-3, "q125m": 6e-4, "q0.5b": 4e-4, "q1.5b": 2.5e-4,
+    "q1m": 2e-3, "q10m": 1.5e-3, "q50m": 1e-3,
 }
 ALL_SIZES = sorted(SIZES) + sorted(QWEN_SIZES)
 

@@ -271,3 +271,53 @@ class Test_interrupt_and_resume:
         with caplog.at_level("INFO", logger="pretrain"):
             pretrain.main(args + ["--rewarm-steps", "2"])
         assert any("re-warming LR" in r.message for r in caplog.records)
+
+
+def _n_ops(text: str) -> list:
+    """
+    Number of operators of every M1 problem in a decoded block.
+    """
+    import re
+
+    out = []
+    for m in re.finditer(r"Problem: ([0-9+\-*/() ]+) = \?", text):
+        out.append(len(re.findall(r" [-+*/] ", m.group(1))))
+    return out
+
+
+class Test_curriculum:
+    def test_spec_ramps_ranges(self) -> None:
+        spec = _MIX["b"]
+        assert lsmix.curriculum_spec(spec, 0.0)["train"]["n_ops_range"] == [3, 3]
+        assert lsmix.curriculum_spec(spec, 0.7)["train"]["n_ops_range"] == [3, 4]
+        assert lsmix.curriculum_spec(spec, 1.0)["train"]["n_ops_range"] == [3, 4]
+        assert spec["train"]["n_ops_range"] == [3, 4]  # input not modified
+
+    def test_multipliers_keep_average_shares(self) -> None:
+        ps = [i / 1000 for i in range(1001)]
+        for name in ("gsm8k_train", "finemath", "m1"):
+            avg = sum(lsmix.curriculum_multiplier(name, p) for p in ps) / len(ps)
+            assert abs(avg - 1.0) < 1e-9, name
+        assert lsmix.curriculum_multiplier("gsm8k_train", 0.0) > lsmix.curriculum_multiplier("finemath", 0.0)
+        assert lsmix.curriculum_multiplier("gsm8k_train", 1.0) < lsmix.curriculum_multiplier("finemath", 1.0)
+
+    def test_blocks_go_from_easy_to_hard(self, corpus) -> None:
+        tok_dir = str(corpus / "tokenizer")
+        tok = lsmix.lstok.load_tokenizer(tok_dir)
+        ds = lsmix.MixtureBlocks(_MIX, tok_dir, 128, 0, curriculum_blocks=1000)
+        early = [n for j in range(20) for n in _n_ops(tok.decode(ds[j].tolist()))]
+        late = [n for j in range(900, 940) for n in _n_ops(tok.decode(ds[j].tolist()))]
+        assert early and set(early) <= {1, 3}
+        assert {2, 4} & set(late)
+        again = lsmix.MixtureBlocks(_MIX, tok_dir, 128, 0, curriculum_blocks=1000)
+        assert torch.equal(ds[17], again[17])
+
+    def test_pretrain_curriculum_and_drop_sources(self, corpus, tmp_path) -> None:
+        out = tmp_path / "cur"
+        pretrain.main(["--corpus", str(corpus), "--out", str(out), "--curriculum",
+                       "--drop-sources", "b", "--ledger", str(tmp_path / "runs.jsonl"), *_PT_ARGS])
+        assert (out / "final" / "config.json").exists()
+        with pytest.raises(ValueError):
+            pretrain.main(["--corpus", str(corpus), "--out", str(tmp_path / "bad"),
+                           "--drop-sources", "nope", "--ledger", str(tmp_path / "runs.jsonl"),
+                           *_PT_ARGS])

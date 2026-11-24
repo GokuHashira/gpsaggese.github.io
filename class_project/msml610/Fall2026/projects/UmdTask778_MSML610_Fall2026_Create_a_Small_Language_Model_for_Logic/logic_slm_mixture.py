@@ -171,6 +171,37 @@ def is_stored(spec: dict) -> bool:
     return "stored" in spec
 
 
+# Curriculum (experiment E9): real sources ordered from easy (grade-school word problems)
+# to hard (competition-style and general math text). Multipliers 1.5 - p and 0.5 + p
+# average to 1 over training, so the overall token shares stay those of the mixture.
+CURRICULUM_EASY = ("gsm8k_train", "orcamath", "tinygsm", "metamathqa")
+CURRICULUM_HARD = ("openmathinstruct2", "finemath")
+CURRICULUM_RAMP = 0.7  # synthetic difficulty reaches its maximum at 70% of training
+
+
+def curriculum_spec(spec: dict, progress: float) -> dict:
+    """
+    Generator spec at training progress `progress` in [0, 1]: every `*_range`
+    [lo, hi] in its train kwargs is capped at lo + (hi - lo) * min(1, progress / RAMP).
+    """
+    train = dict(spec.get("train", {}))
+    frac = min(1.0, max(0.0, progress) / CURRICULUM_RAMP)
+    for k, v in list(train.items()):
+        if k.endswith("_range") and isinstance(v, (list, tuple)) and len(v) == 2:
+            lo, hi = int(v[0]), int(v[1])
+            train[k] = [lo, lo + int(round((hi - lo) * frac))]
+    return {**spec, "train": train}
+
+
+def curriculum_multiplier(name: str, progress: float) -> float:
+    p = min(1.0, max(0.0, progress))
+    if name in CURRICULUM_EASY:
+        return 1.5 - p
+    if name in CURRICULUM_HARD:
+        return 0.5 + p
+    return 1.0
+
+
 class MixtureBlocks(torch.utils.data.Dataset):
     """
     Block `j` -> LongTensor of `seq_len + 1` tokens, built deterministically
@@ -191,8 +222,15 @@ class MixtureBlocks(torch.utils.data.Dataset):
         held_prompts: Optional[Set[str]] = None,
         n_blocks: int = 10**12,
         corpus_dir: str = "",
+        curriculum_blocks: int = 0,
     ) -> None:
+        """
+        :param curriculum_blocks: if > 0, easy-to-hard curriculum over this many
+            blocks (the training length): progress = block / curriculum_blocks
+            (see `curriculum_spec` and `curriculum_multiplier`)
+        """
         self.mixture = mixture
+        self.curriculum_blocks = curriculum_blocks
         self.names = sorted(mixture)
         shares = np.array([mixture[n]["share"] for n in self.names], dtype=float)
         if (shares <= 0).any():
@@ -236,20 +274,32 @@ class MixtureBlocks(torch.utils.data.Dataset):
         w = self._token_shares / np.array(mean_len)
         self._weights = list(w / w.sum())
 
+    def _block_plan(self, block: int) -> Tuple[Dict[str, dict], List[float]]:
+        """
+        Mixture and per-document weights for one block (fixed unless curriculum).
+        """
+        if self.curriculum_blocks <= 0:
+            return self.mixture, self._weights
+        p = min(1.0, block / self.curriculum_blocks)
+        mix = {n: (s if is_stored(s) else curriculum_spec(s, p)) for n, s in self.mixture.items()}
+        w = np.array(self._weights) * np.array([curriculum_multiplier(n, p) for n in self.names])
+        return mix, list(w / w.sum())
+
     def _docs(self, block: int, rng: random.Random) -> Iterator[Tuple[str, object]]:
         """
         Yield ("tokens", np.ndarray) for stored sources and ("text", str) for generators.
         """
         iters: Dict[str, Iterator[lsform.Example]] = {}
+        mixture, weights = self._block_plan(block)
         while True:
-            name = rng.choices(self.names, weights=self._weights)[0]
+            name = rng.choices(self.names, weights=weights)[0]
             if name in self._stored:
                 src = self._stored[name]
                 yield "tokens", src.doc(rng.randrange(src.holdout, src.n_docs))
                 continue
             if name not in iters:
                 iters[name] = iter(
-                    generate(self.mixture, name, 10**9, stable_seed(self.seed, "block", block, name))
+                    generate(mixture, name, 10**9, stable_seed(self.seed, "block", block, name))
                 )
             ex = next(iters[name])
             prompt = lsform.render_prompt(ex)
