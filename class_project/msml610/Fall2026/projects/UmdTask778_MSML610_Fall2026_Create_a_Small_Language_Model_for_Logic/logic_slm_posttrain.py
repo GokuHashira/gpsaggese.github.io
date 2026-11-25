@@ -77,7 +77,7 @@ def real_pool(
                         continue
                     out.append({"prompt": r["prompt"], "answer": r["answer"],
                                 "task": r.get("task", "math"), "gen": name,
-                                "seen_in_sft": seen_in_sft})
+                                "seen_in_sft": seen_in_sft, "solution": r["solution"]})
                     got += 1
                     if got >= want:
                         break
@@ -96,7 +96,8 @@ def proofwriter_pool(raw_dir: str, n: int, skip: int, seed: int, exclude_theorie
     out = []
     for prompt, solution in pairs[skip:skip + n]:
         answer = solution.rsplit("####", 1)[-1].strip()
-        out.append({"prompt": prompt, "answer": answer, "task": "logic", "gen": "proofwriter"})
+        out.append({"prompt": prompt, "answer": answer, "task": "logic", "gen": "proofwriter",
+                    "solution": solution})
     return out
 
 
@@ -116,7 +117,8 @@ def synthetic_pool(mixture: Dict[str, dict], n_per_unit_share: int, seed: int, h
             prompt = lsform.render_prompt(ex)
             if prompt in held:
                 continue
-            out.append({"prompt": prompt, "answer": ex.answer, "task": ex.task, "gen": name})
+            out.append({"prompt": prompt, "answer": ex.answer, "task": ex.task, "gen": name,
+                        "solution": lsform.render_solution(ex)})
             got += 1
             if got == n:
                 break
