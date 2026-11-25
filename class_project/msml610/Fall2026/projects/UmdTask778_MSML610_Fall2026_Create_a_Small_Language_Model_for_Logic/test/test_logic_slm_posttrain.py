@@ -196,3 +196,15 @@ class Test_length_filter:
         kept, dropped = lspost.filter_by_length(probs, tok, 100)
         assert dropped == 1 and kept == probs[:1]
         assert lspost.filter_by_length(probs, tok, 100000) == (probs, 0)
+
+
+class Test_e11_pairs:
+    def test_pool_records_carry_gold_solutions(self, tmp_path, setup) -> None:
+        _fake_source(tmp_path / "src", 10)
+        spec = {"src": (str(tmp_path / "src" / "*.jsonl.gz"), 5)}
+        pool = lspost.real_pool(spec, 7, set(), 2, 1.0, {"src": 5})
+        assert pool and all(p["solution"].endswith(f"#### {p['answer']}") for p in pool)
+        _, corpus, _ = setup
+        held = lspost.lsmix.load_held_prompts(str(corpus))
+        synth = lspost.synthetic_pool(_MIX, 20, 1, held, tag="grpo")
+        assert all("####" in p["solution"] for p in synth)
