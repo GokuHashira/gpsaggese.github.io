@@ -74,6 +74,44 @@ def vllm_ready_copy(model_dir: str, tmp_root: str) -> str:
     return dst
 
 
+IS_RATIO_KEY = "sampling/importance_sampling_ratio/mean"
+
+
+def sampler_mismatch(logs: Dict[str, float], step: int, min_ratio: float, check_step: int) -> bool:
+    """
+    True if the sampler (vLLM) and the trainer disagree about the sampled answers.
+
+    TRL logs the mean importance-sampling ratio between the trainer's and the
+    sampler's log-probabilities; it is ~1 when both score the answers the same
+    way. A low value means the policy-gradient signal is scaled down and
+    distorted (e.g. dropout active in the trainer but not in the sampler, which
+    made six GRPO runs learn nothing on 2026-11-24).
+    """
+    return step >= check_step and IS_RATIO_KEY in logs and float(logs[IS_RATIO_KEY]) < min_ratio
+
+
+def make_mismatch_guard(min_ratio: float, check_step: int):
+    """
+    Trainer callback that stops the run at the first log line showing a
+    sampler / trainer mismatch (see `sampler_mismatch`).
+    """
+    import transformers
+
+    class _Guard(transformers.TrainerCallback):
+        tripped = None
+
+        def on_log(self, args, state, control, logs=None, **kwargs):
+            if logs and self.tripped is None and sampler_mismatch(logs, state.global_step,
+                                                                  min_ratio, check_step):
+                self.tripped = float(logs[IS_RATIO_KEY])
+                _LOG.error("STOPPING: importance-sampling ratio %.3f < %.2f at step %d: the trainer "
+                           "and the sampler score answers differently", self.tripped, min_ratio,
+                           state.global_step)
+                control.should_training_stop = True
+
+    return _Guard()
+
+
 def load_problems(a: argparse.Namespace) -> List[dict]:
     if a.problems:
         rows = [json.loads(line) for line in open(a.problems)]
@@ -122,6 +160,10 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     ap.add_argument("--use-vllm", action="store_true")
     ap.add_argument("--vllm-memory", type=float, default=0.3)
     ap.add_argument("--save-every", type=int, default=100)
+    ap.add_argument("--min-is-ratio", type=float, default=0.7,
+                    help="stop the run if TRL's mean importance-sampling ratio is below this "
+                         "(sampler / trainer mismatch); only logged with --use-vllm")
+    ap.add_argument("--is-check-step", type=int, default=10)
     ap.add_argument("--cpu", action="store_true", help="CPU test mode (no bf16)")
     ap.add_argument("--wandb-project", default="")
     ap.add_argument("--ledger", default="results/runs.jsonl")
@@ -179,10 +221,16 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     if a.wandb_project:
         os.environ.setdefault("WANDB_PROJECT", a.wandb_project)
         os.environ.setdefault("WANDB_MODE", "offline")
+    # No dropout in GRPO: the SFT / RFT checkpoints carry attention_dropout=0.1 (SFT's regularizer),
+    # but the answers are sampled without dropout (vLLM, eval mode), so the trainer must score them
+    # without dropout too; otherwise its log-probabilities disagree with the sampler's.
     model = transformers.AutoModelForCausalLM.from_pretrained(
-        init, dtype=torch.float32 if a.cpu else torch.bfloat16)
+        init, attention_dropout=0.0, dtype=torch.float32 if a.cpu else torch.bfloat16)
+    if getattr(model.config, "attention_dropout", 0.0) != 0.0:
+        raise ValueError("GRPO needs attention_dropout=0")
+    guard = make_mismatch_guard(a.min_is_ratio, a.is_check_step)
     trainer = GRPOTrainer(model=model, reward_funcs=[correctness_reward, format_reward], args=cfg,
-                          train_dataset=ds, processing_class=tok)
+                          train_dataset=ds, processing_class=tok, callbacks=[guard])
     mon = lsmet.GpuMonitor(a.out).start()
     t_train = time.time()
     trainer.train()
@@ -201,6 +249,9 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         "reward_start": mean(first, "reward"), "reward_end": mean(last, "reward"),
         "correct_start": mean(first, "rewards/correctness_reward/mean"),
         "correct_end": mean(last, "rewards/correctness_reward/mean"),
+        "is_ratio_start": mean(first, IS_RATIO_KEY), "is_ratio_end": mean(last, IS_RATIO_KEY),
+        "steps_done": trainer.state.global_step,
+        "aborted_is_ratio": guard.tripped,
     }
     with open(os.path.join(a.out, "metrics.json"), "w") as f:
         json.dump(metrics, f, indent=2)
@@ -213,6 +264,9 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     })
     shutil.rmtree(tmp_root, ignore_errors=True)
     _LOG.info("GRPO done: %s", {k: round(v, 4) if isinstance(v, float) else v for k, v in metrics.items()})
+    if guard.tripped is not None:
+        # Non-zero exit: the job fails, so jobs chained with afterok (evaluation) do not start.
+        raise SystemExit(2)
     return metrics
 
 

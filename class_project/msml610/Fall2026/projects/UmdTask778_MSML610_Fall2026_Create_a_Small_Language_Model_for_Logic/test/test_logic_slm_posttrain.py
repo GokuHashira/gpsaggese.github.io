@@ -208,3 +208,54 @@ class Test_e11_pairs:
         held = lspost.lsmix.load_held_prompts(str(corpus))
         synth = lspost.synthetic_pool(_MIX, 20, 1, held, tag="grpo")
         assert all("####" in p["solution"] for p in synth)
+
+
+class Test_grpo_dropout_and_guard:
+    def test_mismatch_rule(self) -> None:
+        import grpo
+
+        key = grpo.IS_RATIO_KEY
+        assert grpo.sampler_mismatch({key: 0.27}, 10, 0.7, 10)
+        assert not grpo.sampler_mismatch({key: 0.98}, 10, 0.7, 10)
+        assert not grpo.sampler_mismatch({key: 0.27}, 5, 0.7, 10)  # too early to judge
+        assert not grpo.sampler_mismatch({"loss": 0.1}, 50, 0.7, 10)  # no vLLM: key not logged
+
+    def test_guard_stops_training(self) -> None:
+        import types
+
+        import grpo
+
+        guard = grpo.make_mismatch_guard(0.7, 10)
+        control = types.SimpleNamespace(should_training_stop=False)
+        guard.on_log(None, types.SimpleNamespace(global_step=10), control, logs={grpo.IS_RATIO_KEY: 0.99})
+        assert guard.tripped is None and not control.should_training_stop
+        guard.on_log(None, types.SimpleNamespace(global_step=15), control, logs={grpo.IS_RATIO_KEY: 0.27})
+        assert guard.tripped == 0.27 and control.should_training_stop
+
+    def test_trains_without_the_checkpoint_dropout(self, setup) -> None:
+        """
+        SFT / RFT checkpoints carry attention_dropout=0.1; GRPO must run with 0
+        (the sampler has no dropout), whatever the checkpoint config says.
+        """
+        import shutil
+
+        import grpo
+
+        root, corpus, pre = setup
+        init = root / "with_dropout"
+        shutil.copytree(pre / "final", init)
+        cfg = json.loads((init / "config.json").read_text())
+        cfg["attention_dropout"] = 0.1
+        (init / "config.json").write_text(json.dumps(cfg))
+        probs = root / "grpo_problems2.jsonl"
+        probs.write_text("".join(json.dumps({"prompt": f"Problem: {i} + 2 = ?\nSolution:\n",
+                                             "answer": str(i + 2), "task": "math", "gen": "a"}) + "\n"
+                                 for i in range(8)))
+        out = root / "grpo_nodrop"
+        m = grpo.main(["--init", str(init), "--out", str(out), "--problems", str(probs),
+                       "--steps", "2", "--num-generations", "2", "--prompts-per-step", "2",
+                       "--micro-batch", "4", "--max-completion-length", "16", "--cpu",
+                       "--ledger", str(root / "runs.jsonl")])
+        assert m["aborted_is_ratio"] is None and m["steps_done"] == 2
+        final_cfg = json.loads((out / "final" / "config.json").read_text())
+        assert final_cfg["attention_dropout"] == 0.0
