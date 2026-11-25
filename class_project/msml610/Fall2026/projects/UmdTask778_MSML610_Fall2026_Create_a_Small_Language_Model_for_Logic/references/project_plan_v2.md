@@ -145,7 +145,7 @@ Every model is evaluated **after each stage** with the same `evaluate.py`.
 | E3 | Extrapolation, held-out templates, real benchmarks, logic transfer | Q5 |
 | E4 | v1 (synthetic-only) vs. v2 (real + synthetic) | Q3 |
 | E5 | RFT vs. verifier best-of-N vs. GRPO at matched compute | Q4 |
-| E6 | Generator / verifier size pairings | TinyGSM finding |
+| E6 | ~~Generator / verifier size pairings~~ (dropped 2026-11-23: no model-based judging) | — |
 | E7 | Optional: architecture comparison at ~10M (Qwen2 vs. Llama vs. Phi block) | design choice |
 | E8 | **Size sweep down to ~1M** (assigned idea): ~1M / 10M / 50M, same recipe, pretrain + SFT, accuracy by number of steps | Q1 (minimum size) |
 | E9 | **Curriculum ablation** (easy → hard vs. fixed mixture) at ~10M and ~50M | Q7 |
@@ -251,13 +251,13 @@ and only with the team's explicit approval.
 - [x] Fix code: ProofWriter proofs + depth-5 eval, M1 state-tracking steps, MATH-500 at 1,024 tokens (CPU-tested)
 - [x] Re-evaluate pretrained models on MATH-500 (1,024 tokens) and ProofWriter depth-5
 - [x] Evaluate plain-SFT models; analyze; share the analysis with the team; finalize fixes (approved 2026-11-21: B, C, 120k synthetic, per-source validation, 3 epochs)
-- [ ] SFT + fixes: small ✅ trained + evaluated (ProofWriter d5 8.1 → 60.4, arithmetic 5–8 steps 16.6 → 58.8) / medium (epoch 3 running) / large (epochs 2–3 running) — resumed after the 2026-11-21 quota crash
-- [ ] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation ✅ (GSM8K 2.1 / 13.4 / 26.8%), SFT + fixes running (2026-11-22)
+- [x] SFT + fixes: all six sizes trained and evaluated (ProofWriter d5 → 51–64%, arithmetic 5–8 steps → up to 73%; GSM8K within noise; SVAMP −7 at 1.31B)
+- [ ] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation ✅ (GSM8K 2.1 / 13.4 / 26.8%), SFT + fixes ✅ trained + evaluated
 - [ ] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M): pretraining ✅, evaluation ✅ (curriculum: no gain; no-logic: math slightly better, no transfer) (small sizes only, by team decision)
 - [ ] E11 matched-compute control (with GRPO)
 - [ ] Optional E7 architecture comparison at ~10M
-- [ ] Storage: class quota is 150 GB shared by the class; raw downloads moved to the team's laptop (restore with rsync); keep only `best/` checkpoints for finished stages; quota guard in job launchers
-- [ ] Post-training: RFT, verifier best-of-N, GRPO
+- [ ] Storage: class quota raised to 250 GB on 2026-11-23 (was 150 GB, shared by the class); raw downloads moved to the team's laptop (restore with rsync); keep only `best/` checkpoints for finished stages; quota guard in job launchers
+- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling ✅ (5/6, 358M resampling) + vLLM ✅ → RFT training running → GRPO; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
 - [ ] Ablations, notebooks, README, Docker, report, video
 - [ ] Publish on Hugging Face (after GRPO): model repos + model cards (eval tables, cost, limits), free CPU Space demo; first check course permission and TinyGSM's license
 - Running story of the project (what failed and how it was fixed): `references/project_log.md`

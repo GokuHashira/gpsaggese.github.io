@@ -66,6 +66,9 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
     ap.add_argument("--proofwriter-val", type=int, default=100,
                     help="held-out ProofWriter train problems for per-epoch pass@k")
     ap.add_argument("--raw-dir", default="data/raw", help="raw downloads (ProofWriter parquet)")
+    ap.add_argument("--extra-pairs", nargs="*", default=[],
+                    help="JSONL files of {prompt, solution} added to the training data "
+                         "(e.g. rejection-sampling fine-tuning pairs from posttrain_sample.py)")
     ap.add_argument("--epochs", type=int, default=4)
     ap.add_argument("--batch-size", type=int, default=128, help="sequences per step (global)")
     ap.add_argument("--micro-batch", type=int, default=64, help="per GPU")
@@ -179,7 +182,11 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         pairs += ppairs
         real_val += pval
         data_counts.update(pcounts)
-    if use_real or a.proofwriter_n > 0:
+    for path in a.extra_pairs:
+        extra = [(r["prompt"], r["solution"]) for r in lsdata.read_records(path)]
+        pairs += extra
+        data_counts[f"extra:{os.path.basename(os.path.dirname(path)) or path}"] = len(extra)
+    if use_real or a.proofwriter_n > 0 or a.extra_pairs:
         random.Random(a.seed).shuffle(pairs)
     ds = lssft.SFTDataset(pairs, tok, a.max_len)
     ds_tokens = sum(len(ids) for ids, _ in ds.items)

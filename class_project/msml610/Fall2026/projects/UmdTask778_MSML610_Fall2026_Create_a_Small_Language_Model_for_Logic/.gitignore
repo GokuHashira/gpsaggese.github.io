@@ -28,3 +28,7 @@ results/**/pred_*.jsonl
 results/**/gpu_trace.csv
 results/**/*.partial.json
 results/runs.jsonl
+
+# Post-training samples and RFT pairs are large: only summary.json is versioned.
+results/posttrain/**/samples.jsonl
+results/posttrain/**/rft_pairs.jsonl
