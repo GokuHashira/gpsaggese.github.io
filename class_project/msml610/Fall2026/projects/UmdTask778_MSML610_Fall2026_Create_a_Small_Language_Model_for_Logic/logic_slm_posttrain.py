@@ -37,7 +37,7 @@ import logic_slm_sft as lssft
 def real_pool(
     spec: Dict[str, Tuple[str, int]], seed: int, held: Set[str], skip_val: int, scale: float,
     n_per_source: Dict[str, int], eval_index: Optional[Set[int]] = None,
-    reuse: Optional[Set[str]] = None,
+    reuse: Optional[Set[str]] = None, extra_skip: int = 0,
 ) -> List[dict]:
     """
     Real problems not used by SFT: per source, walk the records in the same
@@ -48,6 +48,8 @@ def real_pool(
     :param reuse: sources whose problems are taken from the start even though
         SFT trained on them (e.g. GSM8K train, fully used by SFT); their
         records are tagged `seen_in_sft=True`
+    :param extra_skip: further records to skip per (non-reused) source, e.g.
+        the ones an earlier post-training stage already sampled
     """
     import logic_slm_decontam as lsdec
 
@@ -58,7 +60,7 @@ def real_pool(
             continue
         pattern, n_max = spec[name]
         seen_in_sft = name in (reuse or ())
-        skip = 0 if seen_in_sft else skip_val + int(n_max * scale)
+        skip = 0 if seen_in_sft else skip_val + int(n_max * scale) + extra_skip
         paths = sorted(glob.glob(pattern))
         random.Random(lsmix.stable_seed(seed, "sft-real", name)).shuffle(paths)
         seen = got = 0
@@ -75,7 +77,7 @@ def real_pool(
                         continue
                     out.append({"prompt": r["prompt"], "answer": r["answer"],
                                 "task": r.get("task", "math"), "gen": name,
-                                "seen_in_sft": seen_in_sft})
+                                "seen_in_sft": seen_in_sft, "solution": r["solution"]})
                     got += 1
                     if got >= want:
                         break
@@ -94,12 +96,13 @@ def proofwriter_pool(raw_dir: str, n: int, skip: int, seed: int, exclude_theorie
     out = []
     for prompt, solution in pairs[skip:skip + n]:
         answer = solution.rsplit("####", 1)[-1].strip()
-        out.append({"prompt": prompt, "answer": answer, "task": "logic", "gen": "proofwriter"})
+        out.append({"prompt": prompt, "answer": answer, "task": "logic", "gen": "proofwriter",
+                    "solution": solution})
     return out
 
 
 def synthetic_pool(mixture: Dict[str, dict], n_per_unit_share: int, seed: int, held: Set[str],
-                   overrides: Optional[Dict[str, dict]] = None) -> List[dict]:
+                   overrides: Optional[Dict[str, dict]] = None, tag: str = "posttrain") -> List[dict]:
     """
     New synthetic problems (different seed from SFT) with their gold answers.
     """
@@ -110,15 +113,28 @@ def synthetic_pool(mixture: Dict[str, dict], n_per_unit_share: int, seed: int, h
     for name in sorted(synth):
         n = max(1, int(synth[name]["share"] * n_per_unit_share))
         got = 0
-        for ex in lsmix.generate(synth, name, 3 * n, lsmix.stable_seed(seed, "posttrain", name)):
+        for ex in lsmix.generate(synth, name, 3 * n, lsmix.stable_seed(seed, tag, name)):
             prompt = lsform.render_prompt(ex)
             if prompt in held:
                 continue
-            out.append({"prompt": prompt, "answer": ex.answer, "task": ex.task, "gen": name})
+            out.append({"prompt": prompt, "answer": ex.answer, "task": ex.task, "gen": name,
+                        "solution": lsform.render_solution(ex)})
             got += 1
             if got == n:
                 break
     return out
+
+
+def filter_by_length(problems: Sequence[dict], tok, max_prompt_tokens: int) -> Tuple[List[dict], int]:
+    """
+    Drop problems whose prompt is longer than `max_prompt_tokens` (context
+    length minus the room left for the answer); vLLM refuses longer prompts.
+
+    :return: (kept problems, number dropped)
+    """
+    lens = tok([p["prompt"] for p in problems], add_special_tokens=False)["input_ids"]
+    kept = [p for p, ids in zip(problems, lens) if len(ids) <= max_prompt_tokens]
+    return kept, len(problems) - len(kept)
 
 
 # #############################################################################

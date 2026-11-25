@@ -164,6 +164,25 @@ class Test_resume:
         assert m["best_epoch"] == 1 and m["best_select_metric"] == 2.0
 
 
+class Test_max_steps:
+    def test_stops_after_max_steps(self, setup) -> None:
+        """
+        --max-steps shortens the run: training stops at that step and the final
+        (partial) epoch is still validated and saved.
+        """
+        root, corpus, pre = setup
+        out = root / "sft_maxsteps"
+        sft.main(["--init", str(pre / "final"), "--corpus", str(corpus), "--out", str(out),
+                  "--n-examples", "256", "--epochs", "3", "--max-steps", "5",
+                  "--batch-size", "32", "--micro-batch", "16", "--val-per-gen", "4",
+                  "--n-samples", "4", "--ks", "1", "4", "--select-k", "4", "--eval-limit", "2",
+                  "--max-new-tokens", "16", "--log-every", "1"])
+        hist = json.loads((out / "metrics.json").read_text())["per_epoch"]
+        args = json.loads((out / "args.json").read_text())
+        assert args["total_steps"] == 5 and [h["epoch"] for h in hist] == [1]
+        assert (out / "last" / "config.json").exists()
+
+
 class Test_save:
     def test_bf16_save_keeps_training_weights(self, setup) -> None:
         """

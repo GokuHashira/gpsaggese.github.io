@@ -70,6 +70,10 @@ def parse_args(argv: List[str] = None) -> argparse.Namespace:
                     help="JSONL files of {prompt, solution} added to the training data "
                          "(e.g. rejection-sampling fine-tuning pairs from posttrain_sample.py)")
     ap.add_argument("--epochs", type=int, default=4)
+    ap.add_argument("--max-steps", type=int, default=0,
+                    help="stop after this many optimizer steps (0 = all epochs); the LR schedule "
+                         "and the last validation follow the shortened run (e.g. the matched-compute "
+                         "control E11)")
     ap.add_argument("--batch-size", type=int, default=128, help="sequences per step (global)")
     ap.add_argument("--micro-batch", type=int, default=64, help="per GPU")
     ap.add_argument("--max-len", type=int, default=1024)
@@ -199,6 +203,9 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     if steps_per_epoch < 1:
         raise ValueError(f"Only {len(ds)} SFT examples for batch size {a.batch_size}")
     total_steps = steps_per_epoch * a.epochs
+    if a.max_steps > 0:
+        total_steps = min(total_steps, a.max_steps)
+        a.epochs = -(-total_steps // steps_per_epoch)  # epochs needed to cover total_steps
     warmup = max(1, int(a.warmup_frac * total_steps))
     opt = lstrain.make_optimizer(model, a.lr, a.weight_decay)
     train_model = model
@@ -245,6 +252,8 @@ def main(argv: List[str] = None) -> Dict[str, float]:
         model.train()
         t_log = time.time()
         for s in range(steps_per_epoch):
+            if step >= total_steps:
+                break
             lr = lstrain.lr_at(step, total_steps, warmup, a.lr)
             if a.start_epoch > 1 and step - resume_step < a.rewarm_steps:
                 lr *= (step - resume_step + 1) / a.rewarm_steps

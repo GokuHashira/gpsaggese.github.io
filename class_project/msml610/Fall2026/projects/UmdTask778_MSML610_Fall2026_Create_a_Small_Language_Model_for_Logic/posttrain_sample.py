@@ -46,7 +46,8 @@ def build_pool(a: argparse.Namespace) -> List[dict]:
         reuse.add(name)
         per[name] = int(n) if n else a.per_real
     pool = lspost.real_pool(lssft.REAL_SFT, a.seed, held, a.sft_val_per_source, a.sft_real_scale,
-                            per, eval_index, reuse=reuse)
+                            per, eval_index, reuse=reuse,
+                            extra_skip=getattr(a, "pool_skip", 0))
     if a.proofwriter > 0:
         import glob
 
@@ -57,11 +58,13 @@ def build_pool(a: argparse.Namespace) -> List[dict]:
         for path in glob.glob(os.path.join(a.corpus, "eval", "real_*proofwriter*.jsonl")) + \
                 glob.glob(os.path.join(a.corpus, "eval", "real_pw-*.jsonl")):
             excl |= lspw.eval_theories(lsdata.read_records(path))
-        pool += lspost.proofwriter_pool(a.raw_dir, a.proofwriter, a.sft_proofwriter + 100,
+        pool += lspost.proofwriter_pool(a.raw_dir, a.proofwriter,
+                                        a.sft_proofwriter + 100 + getattr(a, "pool_skip", 0),
                                         a.seed, excl)
     if a.synth_unit > 0:
         overrides = json.loads(a.synth_override) if a.synth_override else None
-        pool += lspost.synthetic_pool(mixture, a.synth_unit, a.seed, held, overrides)
+        pool += lspost.synthetic_pool(mixture, a.synth_unit, a.seed, held, overrides,
+                                      tag=getattr(a, "synth_tag", "posttrain"))
     return pool
 
 
@@ -84,9 +87,13 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     ap.add_argument("--synth-unit", type=int, default=30000,
                     help="synthetic problems per unit of share (shares sum to ~0.1)")
     ap.add_argument("--synth-override", default='{"m1": {"state_steps": true}}')
+    ap.add_argument("--pool-skip", type=int, default=0,
+                    help="skip this many more records per source (problems an earlier stage used)")
+    ap.add_argument("--synth-tag", default="posttrain", help="seed tag for new synthetic problems")
     ap.add_argument("--n-samples", type=int, default=8)
     ap.add_argument("--temperature", type=float, default=0.8)
     ap.add_argument("--max-new-tokens", type=int, default=512)
+    ap.add_argument("--max-context", type=int, default=2048, help="model context length")
     ap.add_argument("--backend", choices=("auto", "vllm", "hf"), default="auto")
     ap.add_argument("--batch-size", type=int, default=128, help="HF backend only")
     ap.add_argument("--rft-max-per-problem", type=int, default=4)
@@ -98,6 +105,13 @@ def main(argv: List[str] = None) -> Dict[str, float]:
     pool = build_pool(a)
     if a.limit:
         pool = pool[: a.limit]
+    import transformers
+
+    tok = transformers.AutoTokenizer.from_pretrained(a.model)
+    pool, dropped = lspost.filter_by_length(pool, tok, a.max_context - a.max_new_tokens)
+    if dropped:
+        _LOG.info("dropped %d problems with prompts longer than %d tokens", dropped,
+                  a.max_context - a.max_new_tokens)
     by: Dict[str, int] = {}
     for p in pool:
         by[p["gen"]] = by.get(p["gen"], 0) + 1
