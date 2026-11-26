@@ -151,6 +151,7 @@ Every model is evaluated **after each stage** with the same `evaluate.py`.
 | E9 | **Curriculum ablation** (easy → hard vs. fixed mixture) at ~10M and ~50M | Q7 |
 | E10 | **Logic-transfer ablation** (with vs. without logic data) at ~10M and ~50M | Q6 |
 | E11 | **Matched-compute control** (119M and 358M): from the same RFT checkpoint, plain supervised training for exactly the GPU time GRPO used, then the same evaluation | Q4 / assigned idea's Q3 |
+| E12 | **Open-model baselines** (added 2026-11-26): SmolLM2-135M / 360M / 1.7B and Qwen2.5-0.5B / 1.5B on GSM8K, SVAMP and ProofWriter depth-5 with our scorer, few-shot in our format (8 math, 6 logic examples), greedy. Reference points only: never judges, never training data | context for Q1 / Q2 |
 | — | Comparison with the sibling ideas (Kids_Book, Python): literature only (e.g. TinyStories) | assigned idea's research topic |
 
 ### 7.1 Small-model sweep (added 2026-11-21, assigned idea)
@@ -252,14 +253,20 @@ and only with the team's explicit approval.
 - [x] Re-evaluate pretrained models on MATH-500 (1,024 tokens) and ProofWriter depth-5
 - [x] Evaluate plain-SFT models; analyze; share the analysis with the team; finalize fixes (approved 2026-11-21: B, C, 120k synthetic, per-source validation, 3 epochs)
 - [x] SFT + fixes: all six sizes trained and evaluated (ProofWriter d5 → 51–64%, arithmetic 5–8 steps → up to 73%; GSM8K within noise; SVAMP −7 at 1.31B)
-- [ ] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation ✅ (GSM8K 2.1 / 13.4 / 26.8%), SFT + fixes ✅ trained + evaluated
-- [ ] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M): pretraining ✅, evaluation ✅ (curriculum: no gain; no-logic: math slightly better, no transfer) (small sizes only, by team decision)
+- [x] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation ✅ (GSM8K 2.1 / 13.4 / 26.8%), SFT + fixes ✅ trained + evaluated
+- [x] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M): pretraining ✅, evaluation ✅ (curriculum: no gain; no-logic: math slightly better, no transfer) (small sizes only, by team decision)
 - [x] E11 matched-compute control at 119M and 358M (done 2026-11-25; the control got ~20% more GPU time than GRPO). GSM8K RFT / E11 / GRPO: 35.4 / 27.2 / 38.4 (119M), 41.4 / 34.0 / 42.3 (358M): GRPO beats supervised training on the same problems by 8–11 points, but the control fell below its starting point (about 21 passes over 25k problems), so GRPO's gain over RFT (+3.0 / +0.9) is the conservative figure
-- [ ] Optional E7 architecture comparison at ~10M
+- [ ] Optional E7 architecture comparison at ~10M (not planned; only if time is left)
 - [ ] Storage: class quota raised to 250 GB on 2026-11-23 (was 150 GB, shared by the class); raw downloads moved to the team's laptop (restore with rsync); keep only `best/` checkpoints for finished stages; quota guard in job launchers
-- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling ✅ + vLLM ✅ → RFT ✅ (all six trained + evaluated: small gains, mostly ProofWriter / SVAMP / majority vote) → GRPO ✅ (all six, from RFT, trained + evaluated 2026-11-25: first stage after pretraining that raises GSM8K, RFT → GRPO 2.2 → 2.9 / 12.4 → 17.3 / 25.8 → 27.4 / 35.4 → 38.4 / 41.4 → 42.3 / 45.9 → 46.3; ProofWriter up at 5 of 6 sizes; 5–8-step arithmetic −5 to −7 points at 10M / 50M / 119M) + E11 at 119M and 358M ✅; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
-- [ ] Ablations, notebooks, README, Docker, report, video
-- [ ] Publish on Hugging Face (after GRPO): model repos + model cards (eval tables, cost, limits), free CPU Space demo; first check course permission and TinyGSM's license
+- [x] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling ✅ + vLLM ✅ → RFT ✅ (all six trained + evaluated: small gains, mostly ProofWriter / SVAMP / majority vote) → GRPO ✅ (all six, from RFT, trained + evaluated 2026-11-25: first stage after pretraining that raises GSM8K, RFT → GRPO 2.2 → 2.9 / 12.4 → 17.3 / 25.8 → 27.4 / 35.4 → 38.4 / 41.4 → 42.3 / 45.9 → 46.3; ProofWriter up at 5 of 6 sizes; 5–8-step arithmetic −5 to −7 points at 10M / 50M / 119M) + E11 at 119M and 358M ✅; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
+- [x] Confidence intervals (`confidence_intervals.py`, `results/analysis/confidence.md`): 95% bootstrap per size and stage, paired differences between stages. Outside the noise: SFT + fixes on ProofWriter (+45 to +62 at every size); GRPO − RFT on GSM8K at 10M (+4.8) and 119M (+3.0); GRPO − E11 on GSM8K (+11.1 at 119M, +8.3 at 358M)
+- [ ] E12 open-model baselines (models downloaded, unit tests pass, smoke test then one H100 job, ~200 SU)
+- [ ] Remaining runs after E12 (all small): v1 models (25M, 125M) on the current test sets for E4; optionally 2–3 sampling seeds for the pass@k / majority numbers; release-folder check; accuracy of the quantized phone files
+- [ ] Analysis and figures: generalization report (E3), v1 vs. v2 (E4), accuracy by size and stage, cost per stage, failure examples
+- [ ] Notebooks, utils, Docker (Basil); README, report, video
+- [ ] Publish on Hugging Face (Gokul): GRPO checkpoint of each of the six sizes, model cards (eval tables, cost, limits); repositories private first; check course permission and the training-data licenses before going public
+- [ ] Phone demo (Basil): GGUF conversion, tokenizer check, 4-bit accuracy, offline demo in the presentation (`references/mobile_deployment_plan.md`). This is the live demo; a hosted GPU demo is not planned
+- Decisions 2026-11-26: calculator-tool experiment not run (it would change the question from "the model alone" to "model + tool"); open-model baselines added (E12)
 - Running story of the project (what failed and how it was fixed): `references/project_log.md`
 
 ## 10. Risks

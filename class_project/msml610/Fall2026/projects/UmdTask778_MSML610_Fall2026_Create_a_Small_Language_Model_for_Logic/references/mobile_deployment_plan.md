@@ -1,6 +1,6 @@
 # Running Our Small Math Models on a Phone
 
-As of 2026-11-24. A plan, not started yet.
+As of 2026-11-26. Owner: Basil. Not started yet. This is the project's live demo (no hosted GPU demo is planned).
 
 ## 1. Goal
 
@@ -27,9 +27,11 @@ approximate for current phones and must be measured.
 | 358M | ~387M | ~775 MB | ~250 MB | ~50 tokens/s | about 2 s | 41.3% |
 | 1.31B | ~1.36B | ~2.7 GB | ~0.8 GB | 15–30 tokens/s | 3–7 s | 46.4% |
 
-The accuracy column is from the cluster evaluation (greedy, 16-bit); it is updated with the shipped
-stage. Which checkpoint to ship is open: the best post-training stage (SFT + fixes, RFT or GRPO) once
-results are in. All six go through the same conversion, so the size sweep can be shown side by side.
+The accuracy column is from the cluster evaluation of the SFT + fixes models (greedy, 16-bit). The
+checkpoint to ship is the GRPO model of each size (GSM8K 2.9 / 17.3 / 27.4 / 38.4 / 42.3 / 46.3% for
+1M ... 1.31B; for the 1M model the folder is `models/grpo2_q1m_lr2e-5/final`, for the others
+`models/grpo2_<size>/final`). All six go through the same conversion, so the size sweep can be shown
+side by side.
 
 ## 3. Runtime options
 
@@ -61,7 +63,7 @@ No cloud, server or container is involved in any option: the model runs on the p
 
 ## 5. Steps
 
-1. Pick the checkpoint (best post-training stage); convert all six sizes (358M first, as the main demo;
+1. Use the GRPO checkpoints (section 2); convert all six sizes (358M first, as the main demo;
    1M–119M are small and quick; 1.31B checked for memory on the chosen phone).
 2. Build llama.cpp on a login or CPU node (CPU only, no GPU needed).
 3. Convert the Hugging Face checkpoint to GGUF (`convert_hf_to_gguf.py`), 16-bit.
@@ -87,7 +89,7 @@ No cloud, server or container is involved in any option: the model runs on the p
 
 ## 7. Timeline, effort and cost
 
-- After GRPO results (the shipped checkpoint depends on them).
+- GRPO results are in (2026-11-25), so the conversion can start.
 - Effort: about half a day for the GGUF route (steps 1–9), plus 1–2 days for MLC LLM if wanted.
 - Compute: CPU only on the cluster (conversion, quantization, accuracy checks): a few SU.
 - Storage: ~5–6 GB of GGUF files on the cluster (six sizes, 16-bit + 8-bit + 4-bit); ~1.2 GB on the
