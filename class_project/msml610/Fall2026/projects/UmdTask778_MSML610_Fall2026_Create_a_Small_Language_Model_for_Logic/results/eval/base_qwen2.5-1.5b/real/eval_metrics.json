@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "kind": "baseline_eval",
+    "name": "base_qwen2.5-1.5b",
+    "stage": "baseline",
+    "model": "models/baselines/Qwen2.5-1.5B",
+    "params_total": 1543714304,
+    "few_shot": {
+      "math": 8,
+      "logic": 6
+    },
+    "decoding": "greedy"
+  },
+  "per_set": {
+    "real_gsm8k-test": {
+      "n": 1319.0,
+      "exact_match": 0.621683093252464,
+      "has_answer": 0.9939347990902199,
+      "greedy_time_s": 162.51230478286743,
+      "max_prompt_tokens": 1220.0
+    },
+    "real_svamp": {
+      "n": 300.0,
+      "exact_match": 0.7233333333333334,
+      "has_answer": 1.0,
+      "greedy_time_s": 16.750452041625977,
+      "max_prompt_tokens": 1107.0
+    }
+  }
+}

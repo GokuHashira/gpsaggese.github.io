@@ -1,0 +1,23 @@
+{
+  "summary": {
+    "kind": "baseline_eval",
+    "name": "base_qwen2.5-1.5b",
+    "stage": "baseline",
+    "model": "models/baselines/Qwen2.5-1.5B",
+    "params_total": 1543714304,
+    "few_shot": {
+      "math": 8,
+      "logic": 6
+    },
+    "decoding": "greedy"
+  },
+  "per_set": {
+    "real_pw-depth5": {
+      "n": 2100.0,
+      "exact_match": 0.45904761904761904,
+      "has_answer": 0.9285714285714286,
+      "greedy_time_s": 365.87499046325684,
+      "max_prompt_tokens": 1067.0
+    }
+  }
+}
