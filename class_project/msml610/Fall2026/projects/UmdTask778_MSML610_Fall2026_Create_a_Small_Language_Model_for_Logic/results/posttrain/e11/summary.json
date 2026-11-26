@@ -1,0 +1,37 @@
+{
+  "description": "E11, matched-compute control for GRPO: from the same RFT checkpoint, plain supervised training on the problems GRPO used, with the datasets' own solutions (25,466 pairs, 5 passes per epoch), for about the GPU time GRPO used. Checkpoint = best validation pass@8.",
+  "runs": {
+    "119M": {
+      "init": "rft_q125m",
+      "name": "e11_q125m",
+      "lr": 5e-05,
+      "max_steps": 4220,
+      "train_time_s": 4481.9,
+      "grpo_train_time_s": 3672.9,
+      "best_epoch": 2,
+      "val_pass@8_per_epoch": [
+        0.8358,
+        0.8483,
+        0.8308,
+        0.8458,
+        0.8392
+      ]
+    },
+    "358M": {
+      "init": "rft_q0.5b",
+      "name": "e11_q0.5b",
+      "lr": 2.5e-05,
+      "max_steps": 4185,
+      "train_time_s": 6546.4,
+      "grpo_train_time_s": 5440.4,
+      "best_epoch": 2,
+      "val_pass@8_per_epoch": [
+        0.875,
+        0.8808,
+        0.8783,
+        0.8808,
+        0.8725
+      ]
+    }
+  }
+}
