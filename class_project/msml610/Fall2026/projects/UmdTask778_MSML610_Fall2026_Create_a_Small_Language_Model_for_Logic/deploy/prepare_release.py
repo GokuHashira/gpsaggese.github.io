@@ -27,6 +27,7 @@ import model_card  # noqa: E402
 
 CTX = 2048
 _DROP_TOKENIZER_KEYS = ("is_local", "local_files_only")
+_SKIP_FILES = ("training_args.bin",)
 
 
 def copy_model(src: str, out: str) -> None:
@@ -35,7 +36,8 @@ def copy_model(src: str, out: str) -> None:
     os.makedirs(out)
     for name in os.listdir(src):
         path = os.path.join(src, name)
-        if os.path.isfile(path):
+        # training_args.bin (written by the GRPO trainer) is a pickle with local paths: never released.
+        if os.path.isfile(path) and name not in _SKIP_FILES:
             shutil.copy2(path, os.path.join(out, name))
 
 
@@ -77,20 +79,22 @@ def main(argv: Optional[List[str]] = None) -> Dict[str, str]:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--model", required=True, help="checkpoint dir (save_pretrained)")
     ap.add_argument("--out", required=True, help="release folder to create")
-    ap.add_argument("--size", required=True, help="q125m | q0.5b | q1.5b")
+    ap.add_argument("--size", required=True, help="q1m | q10m | q50m | q125m | q0.5b | q1.5b")
     ap.add_argument("--stage", required=True, help="pretrain | sft | sft-fixes | rft | grpo ...")
     ap.add_argument("--eval-run", default="", help="results/eval/<run> with this model's evaluation")
     ap.add_argument("--license", required=True, help="model license id for the card (team decision)")
     ap.add_argument("--repo-id", default="", help="final Hub id, used in the card's code example")
     ap.add_argument("--max-new-tokens", type=int, default=512)
     ap.add_argument("--no-smoke", action="store_true")
+    ap.add_argument("--family", action="store_true",
+                    help="title the card with the family display name and list the sibling models")
     a = ap.parse_args(argv)
     copy_model(a.model, a.out)
     clean_tokenizer_config(a.out)
     set_generation_defaults(a.out, a.max_new_tokens)
     card = model_card.build_card(size=a.size, stage=a.stage, eval_run=a.eval_run,
                                  license_id=a.license, repo_id=a.repo_id or os.path.basename(a.out),
-                                 model_dir=a.out)
+                                 model_dir=a.out, family=a.family)
     with open(os.path.join(a.out, "README.md"), "w") as f:
         f.write(card)
     result = {"out": a.out}
