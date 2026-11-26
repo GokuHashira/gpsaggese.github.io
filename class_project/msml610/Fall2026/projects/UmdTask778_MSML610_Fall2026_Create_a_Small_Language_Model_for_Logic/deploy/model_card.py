@@ -131,6 +131,63 @@ def lineage_cost_table(size: str, stage: str, path: str = "results/analysis/trai
     return "\n".join(rows)
 
 
+# Open baselines evaluated with our scorer: (results/eval run, display name, parameters).
+BASELINES = [
+    ("base_smollm2-135m", "SmolLM2-135M", "135M"),
+    ("base_smollm2-360m", "SmolLM2-360M", "360M"),
+    ("base_qwen2.5-0.5b", "Qwen2.5-0.5B", "0.5B"),
+    ("base_smollm2-1.7b", "SmolLM2-1.7B", "1.7B"),
+    ("base_qwen2.5-1.5b", "Qwen2.5-1.5B", "1.5B"),
+]
+# Evaluation run of each released model (the valid 1M GRPO run is the lower-learning-rate rerun).
+RELEASE_RUNS = {"q1m": "grpo2_q1m_lr2e-5", "q10m": "grpo2_q10m", "q50m": "grpo2_q50m",
+                "q125m": "grpo2_q125m", "q0.5b": "grpo2_q0.5b", "q1.5b": "grpo2_q1.5b"}
+_CMP_SETS = [("real_gsm8k-test", "GSM8K"), ("real_svamp", "SVAMP"), ("real_pw-depth5", "ProofWriter depth-5")]
+
+
+def comparison_table(current: str = "", root: str = "results/eval") -> str:
+    """
+    Greedy accuracy of the released family and of the open baselines on the three real benchmarks.
+
+    Returns "" when no baseline result is available.
+    """
+    rows = ["| Model | Parameters | " + " | ".join(n for _, n in _CMP_SETS) + " |", "|---|---|" + "---|" * len(_CMP_SETS)]
+    found = 0
+    for run, name, params in BASELINES:
+        ev = load_eval(run, root)
+        if not ev:
+            continue
+        found += 1
+        rows.append(f"| {name} | {params} | " + " | ".join(_pct((ev.get(k) or {}).get("exact_match")) for k, _ in _CMP_SETS) + " |")
+    if not found:
+        return ""
+    for size, (_, name) in FAMILY.items():
+        ev = load_eval(RELEASE_RUNS[size], root)
+        if not ev:
+            continue
+        label = f"**{name}**" + (" (this model)" if size == current else "")
+        rows.append(f"| {label} | {SIZES[size][0]} | " + " | ".join(_pct((ev.get(k) or {}).get("exact_match")) for k, _ in _CMP_SETS) + " |")
+    return "\n".join(rows)
+
+
+def seed_spread(size: str, root: str = "results/seeds") -> str:
+    """
+    One sentence with the spread of the sampled GSM8K metrics over seeds ("" if not measured).
+    """
+    path = os.path.join(root, RELEASE_RUNS.get(size, ""), "seed_metrics.json")
+    if not os.path.exists(path):
+        return ""
+    with open(path) as f:
+        d = json.load(f)
+    g = d["sets"].get("real_gsm8k-test", {}).get("over_seeds")
+    if not g:
+        return ""
+    n = d["n_samples"]
+    parts = [f"{k} {100 * g[k]['mean']:.1f} ± {100 * g[k]['std']:.1f}" for k in ("pass@1", f"majority@{n}", f"pass@{n}") if k in g]
+    return (f"Sampled metrics vary little with the random seed: on GSM8K over {len(d['seeds'])} seeds, "
+            + ", ".join(parts) + " (mean ± standard deviation).")
+
+
 def _pct(v: Optional[float]) -> str:
     return "–" if v is None else f"{100 * v:.1f}"
 
@@ -168,6 +225,19 @@ def build_card(*, size: str, stage: str, eval_run: str, license_id: str, repo_id
     params, shape, tokens = SIZES[size]
     title = repo_id
     family_section = ""
+    cmp_table = comparison_table(size)
+    comparison = "" if not cmp_table else f"""
+## Comparison with open models
+
+Greedy accuracy (%), all measured with this project's scorer. The open models were given a few
+worked examples in our answer format (8 for math, 6 for logic); ours are used as trained.
+
+{cmp_table}
+
+ProofWriter favors our models: they were fine-tuned on its training split, the open models only saw
+the 6 examples.
+"""
+    spread = seed_spread(size)
     if family:
         title = f"{FAMILY[size][1]} ({params} parameters)"
         user = repo_id.split("/")[0]
@@ -241,6 +311,8 @@ Greedy decoding; Majority@8 and Pass@8 use 8 samples at temperature 0.7.
 
 {eval_table(ev)}
 
+{spread}
+{comparison}
 ## Training cost
 
 Trained on the University of Maryland Zaratan cluster (NVIDIA H100 80GB).

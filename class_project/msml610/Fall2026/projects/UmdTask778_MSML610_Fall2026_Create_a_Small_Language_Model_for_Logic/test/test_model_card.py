@@ -57,3 +57,34 @@ class Test_family:
 
     def test_family_covers_every_size(self) -> None:
         assert set(model_card.FAMILY) == set(model_card.SIZES)
+
+
+class Test_comparison_and_seeds:
+    def _eval(self, root, run, sub, per_set) -> None:
+        d = root / run / sub
+        os.makedirs(d, exist_ok=True)
+        with open(d / "eval_metrics.json", "w") as f:
+            json.dump({"per_set": per_set}, f)
+
+    def test_comparison_table_lists_baselines_then_family(self, tmp_path) -> None:
+        self._eval(tmp_path, "base_qwen2.5-0.5b", "real", {"real_gsm8k-test": {"exact_match": 0.346}})
+        self._eval(tmp_path, "grpo2_q125m", "real", {"real_gsm8k-test": {"exact_match": 0.384}})
+        act = model_card.comparison_table("q125m", str(tmp_path))
+        rows = act.split("\n")
+        assert rows[2] == "| Qwen2.5-0.5B | 0.5B | 34.6 | – | – |"
+        assert rows[3] == "| **Logi-Robin** (this model) | ~119M | 38.4 | – | – |"
+
+    def test_no_baselines_no_table(self, tmp_path) -> None:
+        self._eval(tmp_path, "grpo2_q125m", "real", {"real_gsm8k-test": {"exact_match": 0.384}})
+        assert model_card.comparison_table("q125m", str(tmp_path)) == ""
+
+    def test_seed_spread_sentence(self, tmp_path) -> None:
+        d = tmp_path / "grpo2_q125m"
+        os.makedirs(d)
+        stat = lambda m, s: {"mean": m, "std": s}  # noqa: E731
+        with open(d / "seed_metrics.json", "w") as f:
+            json.dump({"n_samples": 8, "seeds": [0, 1, 2], "sets": {"real_gsm8k-test": {"over_seeds": {
+                "pass@1": stat(0.365, 0.002), "majority@8": stat(0.429, 0.001), "pass@8": stat(0.613, 0.0)}}}}, f)
+        act = model_card.seed_spread("q125m", str(tmp_path))
+        assert "over 3 seeds, pass@1 36.5 ± 0.2, majority@8 42.9 ± 0.1, pass@8 61.3 ± 0.0" in act
+        assert model_card.seed_spread("q10m", str(tmp_path)) == ""
