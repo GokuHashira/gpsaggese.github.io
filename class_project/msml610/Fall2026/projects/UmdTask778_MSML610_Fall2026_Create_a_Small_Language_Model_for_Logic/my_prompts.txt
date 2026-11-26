@@ -1,0 +1,14 @@
+# One problem per line. Edit this file, then run:  sbatch slurm/ask.sbatch
+# Word problems (GSM8K style)
+A baker makes 24 muffins every morning. She sells 15 of them for $3 each and gives the rest to a shelter. How much money does she make in 5 days?
+Tom has 3 boxes with 12 pencils each. He gives 7 pencils to his sister. How many pencils does he have left?
+A train travels 60 miles per hour for 2.5 hours and then 40 miles per hour for 1.5 hours. How far does it travel in total?
+# Arithmetic expressions
+(45 + 27) * 3 - 18 = ?
+812 - 96 / 4 + 7 * 13 - 250 + 64 = ?
+# Equations
+Find x if 3*x + 7 = 31.
+# Logic (facts and rules, then a question)
+Premises: The cat is small. The cat chases the mouse. If someone is small then they are quick. If someone is quick and they chase the mouse then they are happy. | Question: The cat is happy?
+Premises: If it rains, then the ground is wet. If the ground is wet, then the game is cancelled. It rains. | Question: Is it true that the game is cancelled?
+Premises: p -> q. q -> r. ~r. | Question: p?

@@ -254,10 +254,10 @@ and only with the team's explicit approval.
 - [x] SFT + fixes: all six sizes trained and evaluated (ProofWriter d5 → 51–64%, arithmetic 5–8 steps → up to 73%; GSM8K within noise; SVAMP −7 at 1.31B)
 - [ ] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation ✅ (GSM8K 2.1 / 13.4 / 26.8%), SFT + fixes ✅ trained + evaluated
 - [ ] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M): pretraining ✅, evaluation ✅ (curriculum: no gain; no-logic: math slightly better, no transfer) (small sizes only, by team decision)
-- [ ] E11 matched-compute control at 119M and 358M (after each one's GRPO run, matching its measured GPU time)
+- [ ] E11 matched-compute control at 119M and 358M (running since 2026-11-25: 4,220 / 4,185 supervised steps to match GRPO's 3,673 s / 5,440 s of training)
 - [ ] Optional E7 architecture comparison at ~10M
 - [ ] Storage: class quota raised to 250 GB on 2026-11-23 (was 150 GB, shared by the class); raw downloads moved to the team's laptop (restore with rsync); keep only `best/` checkpoints for finished stages; quota guard in job launchers
-- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling ✅ + vLLM ✅ → RFT ✅ (all six trained + evaluated: small gains, mostly ProofWriter / SVAMP / majority vote) → GRPO (all six, from RFT; timing test running) + E11 at 119M and 358M; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
+- [ ] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling ✅ + vLLM ✅ → RFT ✅ (all six trained + evaluated: small gains, mostly ProofWriter / SVAMP / majority vote) → GRPO ✅ (all six, from RFT, trained + evaluated 2026-11-25: first stage after pretraining that raises GSM8K, RFT → GRPO 2.2 → 2.9 / 12.4 → 17.3 / 25.8 → 27.4 / 35.4 → 38.4 / 41.4 → 42.3 / 45.9 → 46.3; ProofWriter up at 5 of 6 sizes; 5–8-step arithmetic −5 to −7 points at 10M / 50M / 119M) + E11 at 119M and 358M (running); E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
 - [ ] Ablations, notebooks, README, Docker, report, video
 - [ ] Publish on Hugging Face (after GRPO): model repos + model cards (eval tables, cost, limits), free CPU Space demo; first check course permission and TinyGSM's license
 - Running story of the project (what failed and how it was fixed): `references/project_log.md`
