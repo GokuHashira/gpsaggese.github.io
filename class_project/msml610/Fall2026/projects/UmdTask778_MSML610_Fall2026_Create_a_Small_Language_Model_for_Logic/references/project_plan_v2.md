@@ -146,7 +146,7 @@ Every model is evaluated **after each stage** with the same `evaluate.py`.
 | E4 | v1 (synthetic-only) vs. v2 (real + synthetic) | Q3 |
 | E5 | RFT vs. verifier best-of-N vs. GRPO at matched compute | Q4 |
 | E6 | ~~Generator / verifier size pairings~~ (dropped 2026-11-23: no model-based judging) | — |
-| E7 | Optional: architecture comparison at ~10M (Qwen2 vs. Llama vs. Phi block) | design choice |
+| E7 | ~~Optional: architecture comparison at ~10M (Qwen2 vs. Llama vs. Phi block)~~ (dropped 2026-11-26: out of scope) | — |
 | E8 | **Size sweep down to ~1M** (assigned idea): ~1M / 10M / 50M, same recipe, pretrain + SFT, accuracy by number of steps | Q1 (minimum size) |
 | E9 | **Curriculum ablation** (easy → hard vs. fixed mixture) at ~10M and ~50M | Q7 |
 | E10 | **Logic-transfer ablation** (with vs. without logic data) at ~10M and ~50M | Q6 |
@@ -256,7 +256,7 @@ and only with the team's explicit approval.
 - [x] E8 size sweep (~1M / 10M / 50M): configs ✅, pretraining ✅ (val loss 2.434 / 1.815 / 1.514), evaluation ✅ (GSM8K 2.1 / 13.4 / 26.8%), SFT + fixes ✅ trained + evaluated
 - [x] E9 curriculum ablation, E10 no-logic ablation (~10M, ~50M): pretraining ✅, evaluation ✅ (curriculum: no gain; no-logic: math slightly better, no transfer) (small sizes only, by team decision)
 - [x] E11 matched-compute control at 119M and 358M (done 2026-11-25; the control got ~20% more GPU time than GRPO). GSM8K RFT / E11 / GRPO: 35.4 / 27.2 / 38.4 (119M), 41.4 / 34.0 / 42.3 (358M): GRPO beats supervised training on the same problems by 8–11 points, but the control fell below its starting point (about 21 passes over 25k problems), so GRPO's gain over RFT (+3.0 / +0.9) is the conservative figure
-- [ ] Optional E7 architecture comparison at ~10M (not planned; only if time is left)
+- [x] ~~Optional E7 architecture comparison at ~10M~~ (dropped 2026-11-26: out of scope; all models use the Qwen2-style block)
 - [ ] Storage: class quota raised to 250 GB on 2026-11-23 (was 150 GB, shared by the class); raw downloads moved to the team's laptop (restore with rsync); keep only `best/` checkpoints for finished stages; quota guard in job launchers
 - [x] Post-training (approved 2026-11-23, on SFT + fixes, all sizes): sampling ✅ + vLLM ✅ → RFT ✅ (all six trained + evaluated: small gains, mostly ProofWriter / SVAMP / majority vote) → GRPO ✅ (all six, from RFT, trained + evaluated 2026-11-25: first stage after pretraining that raises GSM8K, RFT → GRPO 2.2 → 2.9 / 12.4 → 17.3 / 25.8 → 27.4 / 35.4 → 38.4 / 41.4 → 42.3 / 45.9 → 46.3; ProofWriter up at 5 of 6 sizes; 5–8-step arithmetic −5 to −7 points at 10M / 50M / 119M) + E11 at 119M and 358M ✅; E11 matched-compute control (verifier + best-of-N and E6 dropped 2026-11-23: grounded methods only)
 - [x] Confidence intervals (`confidence_intervals.py`, `results/analysis/confidence.md`): 95% bootstrap per size and stage, paired differences between stages. Outside the noise: SFT + fixes on ProofWriter (+45 to +62 at every size); GRPO − RFT on GSM8K at 10M (+4.8) and 119M (+3.0); GRPO − E11 on GSM8K (+11.1 at 119M, +8.3 at 358M)
