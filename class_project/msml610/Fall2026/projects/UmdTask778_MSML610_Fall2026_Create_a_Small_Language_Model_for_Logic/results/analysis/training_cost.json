@@ -1,0 +1,161 @@
+{
+  "description": "Compute of the training lineage of each released model (pretraining -> SFT + fixes -> RFT -> GRPO), from the scheduler's accounting (elapsed time x billing; H100 = 144 SU per GPU-hour). SFT + fixes includes interrupted runs whose saved epochs were resumed. Evaluations, sampling, tests and discarded runs are not included.",
+  "models": {
+    "1M": {
+      "pretrain": {
+        "su": 57.0,
+        "gpu_hours": 0.4,
+        "jobs": 1
+      },
+      "sft_fixes": {
+        "su": 129.5,
+        "gpu_hours": 0.9,
+        "jobs": 1
+      },
+      "rft": {
+        "su": 63.7,
+        "gpu_hours": 0.44,
+        "jobs": 1
+      },
+      "grpo": {
+        "su": 73.8,
+        "gpu_hours": 0.51,
+        "jobs": 1
+      },
+      "total": {
+        "su": 324.0,
+        "gpu_hours": 2.25
+      }
+    },
+    "10M": {
+      "pretrain": {
+        "su": 89.8,
+        "gpu_hours": 0.62,
+        "jobs": 1
+      },
+      "sft_fixes": {
+        "su": 213.5,
+        "gpu_hours": 1.48,
+        "jobs": 1
+      },
+      "rft": {
+        "su": 76.9,
+        "gpu_hours": 0.53,
+        "jobs": 1
+      },
+      "grpo": {
+        "su": 77.8,
+        "gpu_hours": 0.54,
+        "jobs": 1
+      },
+      "total": {
+        "su": 458.0,
+        "gpu_hours": 3.17
+      }
+    },
+    "50M": {
+      "pretrain": {
+        "su": 217.9,
+        "gpu_hours": 1.51,
+        "jobs": 1
+      },
+      "sft_fixes": {
+        "su": 422.0,
+        "gpu_hours": 2.93,
+        "jobs": 1
+      },
+      "rft": {
+        "su": 119.0,
+        "gpu_hours": 0.83,
+        "jobs": 1
+      },
+      "grpo": {
+        "su": 114.7,
+        "gpu_hours": 0.8,
+        "jobs": 1
+      },
+      "total": {
+        "su": 873.6,
+        "gpu_hours": 6.07
+      }
+    },
+    "119M": {
+      "pretrain": {
+        "su": 734.2,
+        "gpu_hours": 5.1,
+        "jobs": 1
+      },
+      "sft_fixes": {
+        "su": 625.0,
+        "gpu_hours": 4.34,
+        "jobs": 1
+      },
+      "rft": {
+        "su": 153.6,
+        "gpu_hours": 1.07,
+        "jobs": 1
+      },
+      "grpo": {
+        "su": 156.2,
+        "gpu_hours": 1.08,
+        "jobs": 1
+      },
+      "total": {
+        "su": 1669.0,
+        "gpu_hours": 11.59
+      }
+    },
+    "358M": {
+      "pretrain": {
+        "su": 2467.4,
+        "gpu_hours": 17.14,
+        "jobs": 1
+      },
+      "sft_fixes": {
+        "su": 959.8,
+        "gpu_hours": 6.67,
+        "jobs": 3
+      },
+      "rft": {
+        "su": 215.2,
+        "gpu_hours": 1.49,
+        "jobs": 1
+      },
+      "grpo": {
+        "su": 227.2,
+        "gpu_hours": 1.58,
+        "jobs": 1
+      },
+      "total": {
+        "su": 3869.6,
+        "gpu_hours": 26.88
+      }
+    },
+    "1.31B": {
+      "pretrain": {
+        "su": 10200.5,
+        "gpu_hours": 70.84,
+        "jobs": 1
+      },
+      "sft_fixes": {
+        "su": 1766.0,
+        "gpu_hours": 12.26,
+        "jobs": 3
+      },
+      "rft": {
+        "su": 379.0,
+        "gpu_hours": 2.63,
+        "jobs": 1
+      },
+      "grpo": {
+        "su": 413.8,
+        "gpu_hours": 2.87,
+        "jobs": 1
+      },
+      "total": {
+        "su": 12759.3,
+        "gpu_hours": 88.6
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "kind": "baseline_eval",
+    "name": "base_smollm2-1.7b",
+    "stage": "baseline",
+    "model": "models/baselines/SmolLM2-1.7B",
+    "params_total": 1711376384,
+    "few_shot": {
+      "math": 8,
+      "logic": 6
+    },
+    "decoding": "greedy"
+  },
+  "per_set": {
+    "real_gsm8k-test": {
+      "n": 1319.0,
+      "exact_match": 0.2714177407126611,
+      "has_answer": 0.8976497346474602,
+      "greedy_time_s": 245.9622151851654,
+      "max_prompt_tokens": 1279.0
+    },
+    "real_svamp": {
+      "n": 300.0,
+      "exact_match": 0.48333333333333334,
+      "has_answer": 0.9966666666666667,
+      "greedy_time_s": 21.11897373199463,
+      "max_prompt_tokens": 1166.0
+    }
+  }
+}

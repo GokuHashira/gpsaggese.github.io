@@ -1,0 +1,1222 @@
+{
+  "accuracy": {
+    "GSM8K": {
+      "1M": {
+        "pretrained": {
+          "n": 1319,
+          "acc": 2.12,
+          "lo": 1.36,
+          "hi": 2.96
+        },
+        "sft_fixes": {
+          "n": 1319,
+          "acc": 1.9,
+          "lo": 1.21,
+          "hi": 2.65
+        },
+        "rft": {
+          "n": 1319,
+          "acc": 2.2,
+          "lo": 1.44,
+          "hi": 3.03
+        },
+        "grpo": {
+          "n": 1319,
+          "acc": 2.88,
+          "lo": 1.97,
+          "hi": 3.79
+        }
+      },
+      "10M": {
+        "pretrained": {
+          "n": 1319,
+          "acc": 13.42,
+          "lo": 11.6,
+          "hi": 15.31
+        },
+        "sft_fixes": {
+          "n": 1319,
+          "acc": 10.99,
+          "lo": 9.33,
+          "hi": 12.74
+        },
+        "rft": {
+          "n": 1319,
+          "acc": 12.43,
+          "lo": 10.69,
+          "hi": 14.25
+        },
+        "grpo": {
+          "n": 1319,
+          "acc": 17.29,
+          "lo": 15.31,
+          "hi": 19.33
+        }
+      },
+      "50M": {
+        "pretrained": {
+          "n": 1319,
+          "acc": 26.84,
+          "lo": 24.41,
+          "hi": 29.19
+        },
+        "sft_fixes": {
+          "n": 1319,
+          "acc": 24.94,
+          "lo": 22.59,
+          "hi": 27.29
+        },
+        "rft": {
+          "n": 1319,
+          "acc": 25.78,
+          "lo": 23.43,
+          "hi": 28.13
+        },
+        "grpo": {
+          "n": 1319,
+          "acc": 27.37,
+          "lo": 25.02,
+          "hi": 29.8
+        }
+      },
+      "119M": {
+        "pretrained": {
+          "n": 1319,
+          "acc": 36.47,
+          "lo": 33.97,
+          "hi": 39.04
+        },
+        "sft_fixes": {
+          "n": 1319,
+          "acc": 36.24,
+          "lo": 33.66,
+          "hi": 38.82
+        },
+        "rft": {
+          "n": 1319,
+          "acc": 35.41,
+          "lo": 32.9,
+          "hi": 37.98
+        },
+        "grpo": {
+          "n": 1319,
+          "acc": 38.36,
+          "lo": 35.78,
+          "hi": 40.94
+        },
+        "e11": {
+          "n": 1319,
+          "acc": 27.22,
+          "lo": 24.87,
+          "hi": 29.64
+        }
+      },
+      "358M": {
+        "pretrained": {
+          "n": 1319,
+          "acc": 42.99,
+          "lo": 40.33,
+          "hi": 45.72
+        },
+        "sft_fixes": {
+          "n": 1319,
+          "acc": 41.32,
+          "lo": 38.67,
+          "hi": 43.97
+        },
+        "rft": {
+          "n": 1319,
+          "acc": 41.39,
+          "lo": 38.82,
+          "hi": 44.05
+        },
+        "grpo": {
+          "n": 1319,
+          "acc": 42.3,
+          "lo": 39.65,
+          "hi": 45.03
+        },
+        "e11": {
+          "n": 1319,
+          "acc": 34.04,
+          "lo": 31.46,
+          "hi": 36.62
+        }
+      },
+      "1.31B": {
+        "pretrained": {
+          "n": 1319,
+          "acc": 47.46,
+          "lo": 44.81,
+          "hi": 50.19
+        },
+        "sft_fixes": {
+          "n": 1319,
+          "acc": 46.4,
+          "lo": 43.75,
+          "hi": 49.13
+        },
+        "rft": {
+          "n": 1319,
+          "acc": 45.87,
+          "lo": 43.21,
+          "hi": 48.52
+        },
+        "grpo": {
+          "n": 1319,
+          "acc": 46.32,
+          "lo": 43.59,
+          "hi": 48.98
+        }
+      }
+    },
+    "SVAMP": {
+      "1M": {
+        "pretrained": {
+          "n": 300,
+          "acc": 8.67,
+          "lo": 5.67,
+          "hi": 12.0
+        },
+        "sft_fixes": {
+          "n": 300,
+          "acc": 8.0,
+          "lo": 5.0,
+          "hi": 11.33
+        },
+        "rft": {
+          "n": 300,
+          "acc": 6.0,
+          "lo": 3.33,
+          "hi": 8.67
+        },
+        "grpo": {
+          "n": 300,
+          "acc": 7.67,
+          "lo": 4.67,
+          "hi": 10.67
+        }
+      },
+      "10M": {
+        "pretrained": {
+          "n": 300,
+          "acc": 23.33,
+          "lo": 18.67,
+          "hi": 28.33
+        },
+        "sft_fixes": {
+          "n": 300,
+          "acc": 22.33,
+          "lo": 17.67,
+          "hi": 27.0
+        },
+        "rft": {
+          "n": 300,
+          "acc": 24.0,
+          "lo": 19.33,
+          "hi": 29.0
+        },
+        "grpo": {
+          "n": 300,
+          "acc": 30.33,
+          "lo": 25.0,
+          "hi": 35.67
+        }
+      },
+      "50M": {
+        "pretrained": {
+          "n": 300,
+          "acc": 35.33,
+          "lo": 30.0,
+          "hi": 41.0
+        },
+        "sft_fixes": {
+          "n": 300,
+          "acc": 39.0,
+          "lo": 33.33,
+          "hi": 44.67
+        },
+        "rft": {
+          "n": 300,
+          "acc": 42.0,
+          "lo": 36.33,
+          "hi": 47.67
+        },
+        "grpo": {
+          "n": 300,
+          "acc": 35.33,
+          "lo": 30.0,
+          "hi": 41.0
+        }
+      },
+      "119M": {
+        "pretrained": {
+          "n": 300,
+          "acc": 45.33,
+          "lo": 39.67,
+          "hi": 51.0
+        },
+        "sft_fixes": {
+          "n": 300,
+          "acc": 48.0,
+          "lo": 42.33,
+          "hi": 53.67
+        },
+        "rft": {
+          "n": 300,
+          "acc": 45.33,
+          "lo": 39.67,
+          "hi": 51.0
+        },
+        "grpo": {
+          "n": 300,
+          "acc": 48.33,
+          "lo": 42.67,
+          "hi": 54.0
+        },
+        "e11": {
+          "n": 300,
+          "acc": 36.33,
+          "lo": 31.0,
+          "hi": 42.0
+        }
+      },
+      "358M": {
+        "pretrained": {
+          "n": 300,
+          "acc": 58.0,
+          "lo": 52.33,
+          "hi": 63.33
+        },
+        "sft_fixes": {
+          "n": 300,
+          "acc": 53.67,
+          "lo": 48.0,
+          "hi": 59.33
+        },
+        "rft": {
+          "n": 300,
+          "acc": 56.67,
+          "lo": 51.0,
+          "hi": 62.33
+        },
+        "grpo": {
+          "n": 300,
+          "acc": 57.0,
+          "lo": 51.33,
+          "hi": 62.34
+        },
+        "e11": {
+          "n": 300,
+          "acc": 51.67,
+          "lo": 46.0,
+          "hi": 57.33
+        }
+      },
+      "1.31B": {
+        "pretrained": {
+          "n": 300,
+          "acc": 59.33,
+          "lo": 53.67,
+          "hi": 64.67
+        },
+        "sft_fixes": {
+          "n": 300,
+          "acc": 56.33,
+          "lo": 50.67,
+          "hi": 62.0
+        },
+        "rft": {
+          "n": 300,
+          "acc": 58.0,
+          "lo": 52.33,
+          "hi": 63.67
+        },
+        "grpo": {
+          "n": 300,
+          "acc": 57.33,
+          "lo": 51.67,
+          "hi": 63.0
+        }
+      }
+    },
+    "MATH-500": {
+      "1M": {
+        "pretrained": {
+          "n": 500,
+          "acc": 0.2,
+          "lo": 0.0,
+          "hi": 0.6
+        },
+        "sft_fixes": {
+          "n": 500,
+          "acc": 0.4,
+          "lo": 0.0,
+          "hi": 1.0
+        },
+        "rft": {
+          "n": 500,
+          "acc": 0.6,
+          "lo": 0.0,
+          "hi": 1.4
+        },
+        "grpo": {
+          "n": 500,
+          "acc": 2.6,
+          "lo": 1.2,
+          "hi": 4.0
+        }
+      },
+      "10M": {
+        "pretrained": {
+          "n": 500,
+          "acc": 0.8,
+          "lo": 0.2,
+          "hi": 1.6
+        },
+        "sft_fixes": {
+          "n": 500,
+          "acc": 1.2,
+          "lo": 0.4,
+          "hi": 2.2
+        },
+        "rft": {
+          "n": 500,
+          "acc": 2.8,
+          "lo": 1.4,
+          "hi": 4.4
+        },
+        "grpo": {
+          "n": 500,
+          "acc": 3.2,
+          "lo": 1.8,
+          "hi": 4.8
+        }
+      },
+      "50M": {
+        "pretrained": {
+          "n": 500,
+          "acc": 5.8,
+          "lo": 3.8,
+          "hi": 8.0
+        },
+        "sft_fixes": {
+          "n": 500,
+          "acc": 6.0,
+          "lo": 4.0,
+          "hi": 8.2
+        },
+        "rft": {
+          "n": 500,
+          "acc": 8.0,
+          "lo": 5.8,
+          "hi": 10.4
+        },
+        "grpo": {
+          "n": 500,
+          "acc": 5.8,
+          "lo": 3.8,
+          "hi": 8.0
+        }
+      },
+      "119M": {
+        "pretrained": {
+          "n": 500,
+          "acc": 7.8,
+          "lo": 5.6,
+          "hi": 10.2
+        },
+        "sft_fixes": {
+          "n": 500,
+          "acc": 12.0,
+          "lo": 9.2,
+          "hi": 14.8
+        },
+        "rft": {
+          "n": 500,
+          "acc": 11.2,
+          "lo": 8.6,
+          "hi": 14.0
+        },
+        "grpo": {
+          "n": 500,
+          "acc": 10.0,
+          "lo": 7.4,
+          "hi": 12.6
+        },
+        "e11": {
+          "n": 500,
+          "acc": 9.4,
+          "lo": 6.8,
+          "hi": 12.0
+        }
+      },
+      "358M": {
+        "pretrained": {
+          "n": 500,
+          "acc": 16.0,
+          "lo": 12.8,
+          "hi": 19.2
+        },
+        "sft_fixes": {
+          "n": 500,
+          "acc": 17.8,
+          "lo": 14.6,
+          "hi": 21.2
+        },
+        "rft": {
+          "n": 500,
+          "acc": 17.4,
+          "lo": 14.2,
+          "hi": 20.6
+        },
+        "grpo": {
+          "n": 500,
+          "acc": 17.8,
+          "lo": 14.6,
+          "hi": 21.0
+        },
+        "e11": {
+          "n": 500,
+          "acc": 15.2,
+          "lo": 12.0,
+          "hi": 18.4
+        }
+      },
+      "1.31B": {
+        "pretrained": {
+          "n": 500,
+          "acc": 23.0,
+          "lo": 19.4,
+          "hi": 26.8
+        },
+        "sft_fixes": {
+          "n": 500,
+          "acc": 20.0,
+          "lo": 16.6,
+          "hi": 23.6
+        },
+        "rft": {
+          "n": 500,
+          "acc": 21.8,
+          "lo": 18.4,
+          "hi": 25.4
+        },
+        "grpo": {
+          "n": 500,
+          "acc": 20.0,
+          "lo": 16.6,
+          "hi": 23.6
+        }
+      }
+    },
+    "ProofWriter-d5": {
+      "1M": {
+        "pretrained": {
+          "n": 2100,
+          "acc": 6.14,
+          "lo": 5.14,
+          "hi": 7.19
+        },
+        "sft_fixes": {
+          "n": 2100,
+          "acc": 51.33,
+          "lo": 49.14,
+          "hi": 53.52
+        },
+        "rft": {
+          "n": 2100,
+          "acc": 51.43,
+          "lo": 49.29,
+          "hi": 53.57
+        },
+        "grpo": {
+          "n": 2100,
+          "acc": 57.52,
+          "lo": 55.43,
+          "hi": 59.57
+        }
+      },
+      "10M": {
+        "pretrained": {
+          "n": 2100,
+          "acc": 2.67,
+          "lo": 2.0,
+          "hi": 3.38
+        },
+        "sft_fixes": {
+          "n": 2100,
+          "acc": 55.52,
+          "lo": 53.38,
+          "hi": 57.62
+        },
+        "rft": {
+          "n": 2100,
+          "acc": 58.33,
+          "lo": 56.19,
+          "hi": 60.43
+        },
+        "grpo": {
+          "n": 2100,
+          "acc": 57.95,
+          "lo": 55.81,
+          "hi": 60.1
+        }
+      },
+      "50M": {
+        "pretrained": {
+          "n": 2100,
+          "acc": 0.43,
+          "lo": 0.19,
+          "hi": 0.71
+        },
+        "sft_fixes": {
+          "n": 2100,
+          "acc": 57.33,
+          "lo": 55.19,
+          "hi": 59.38
+        },
+        "rft": {
+          "n": 2100,
+          "acc": 60.29,
+          "lo": 58.24,
+          "hi": 62.38
+        },
+        "grpo": {
+          "n": 2100,
+          "acc": 62.0,
+          "lo": 59.9,
+          "hi": 64.05
+        }
+      },
+      "119M": {
+        "pretrained": {
+          "n": 2100,
+          "acc": 4.52,
+          "lo": 3.67,
+          "hi": 5.43
+        },
+        "sft_fixes": {
+          "n": 2100,
+          "acc": 60.43,
+          "lo": 58.29,
+          "hi": 62.52
+        },
+        "rft": {
+          "n": 2100,
+          "acc": 61.71,
+          "lo": 59.67,
+          "hi": 63.76
+        },
+        "grpo": {
+          "n": 2100,
+          "acc": 68.29,
+          "lo": 66.29,
+          "hi": 70.24
+        },
+        "e11": {
+          "n": 2100,
+          "acc": 58.14,
+          "lo": 56.05,
+          "hi": 60.24
+        }
+      },
+      "358M": {
+        "pretrained": {
+          "n": 2100,
+          "acc": 1.95,
+          "lo": 1.38,
+          "hi": 2.57
+        },
+        "sft_fixes": {
+          "n": 2100,
+          "acc": 64.24,
+          "lo": 62.19,
+          "hi": 66.33
+        },
+        "rft": {
+          "n": 2100,
+          "acc": 66.52,
+          "lo": 64.52,
+          "hi": 68.52
+        },
+        "grpo": {
+          "n": 2100,
+          "acc": 67.52,
+          "lo": 65.57,
+          "hi": 69.48
+        },
+        "e11": {
+          "n": 2100,
+          "acc": 62.62,
+          "lo": 60.52,
+          "hi": 64.71
+        }
+      },
+      "1.31B": {
+        "pretrained": {
+          "n": 2100,
+          "acc": 13.0,
+          "lo": 11.57,
+          "hi": 14.48
+        },
+        "sft_fixes": {
+          "n": 2100,
+          "acc": 63.52,
+          "lo": 61.43,
+          "hi": 65.52
+        },
+        "rft": {
+          "n": 2100,
+          "acc": 64.38,
+          "lo": 62.33,
+          "hi": 66.38
+        },
+        "grpo": {
+          "n": 2100,
+          "acc": 66.0,
+          "lo": 63.95,
+          "hi": 68.0
+        }
+      }
+    }
+  },
+  "paired_difference": {
+    "GSM8K": {
+      "1M": {
+        "sft_fixes-pretrained": {
+          "diff": -0.23,
+          "lo": -1.21,
+          "hi": 0.76,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 0.3,
+          "lo": -0.68,
+          "hi": 1.29,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 0.68,
+          "lo": -0.45,
+          "hi": 1.82,
+          "significant": false
+        }
+      },
+      "10M": {
+        "sft_fixes-pretrained": {
+          "diff": -2.43,
+          "lo": -4.32,
+          "hi": -0.53,
+          "significant": true
+        },
+        "rft-sft_fixes": {
+          "diff": 1.44,
+          "lo": -0.23,
+          "hi": 3.11,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 4.85,
+          "lo": 2.88,
+          "hi": 6.9,
+          "significant": true
+        }
+      },
+      "50M": {
+        "sft_fixes-pretrained": {
+          "diff": -1.9,
+          "lo": -4.17,
+          "hi": 0.45,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 0.83,
+          "lo": -1.06,
+          "hi": 2.73,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 1.59,
+          "lo": -0.53,
+          "hi": 3.71,
+          "significant": false
+        }
+      },
+      "119M": {
+        "sft_fixes-pretrained": {
+          "diff": -0.23,
+          "lo": -2.65,
+          "hi": 2.2,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": -0.83,
+          "lo": -2.88,
+          "hi": 1.21,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 2.96,
+          "lo": 0.68,
+          "hi": 5.23,
+          "significant": true
+        },
+        "grpo-e11": {
+          "diff": 11.14,
+          "lo": 8.64,
+          "hi": 13.57,
+          "significant": true
+        }
+      },
+      "358M": {
+        "sft_fixes-pretrained": {
+          "diff": -1.67,
+          "lo": -4.09,
+          "hi": 0.76,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 0.08,
+          "lo": -1.97,
+          "hi": 2.12,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 0.91,
+          "lo": -0.83,
+          "hi": 2.65,
+          "significant": false
+        },
+        "grpo-e11": {
+          "diff": 8.26,
+          "lo": 5.91,
+          "hi": 10.77,
+          "significant": true
+        }
+      },
+      "1.31B": {
+        "sft_fixes-pretrained": {
+          "diff": -1.06,
+          "lo": -3.49,
+          "hi": 1.36,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": -0.53,
+          "lo": -2.58,
+          "hi": 1.52,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 0.45,
+          "lo": -0.91,
+          "hi": 1.82,
+          "significant": false
+        }
+      }
+    },
+    "SVAMP": {
+      "1M": {
+        "sft_fixes-pretrained": {
+          "diff": -0.67,
+          "lo": -4.67,
+          "hi": 3.33,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": -2.0,
+          "lo": -4.67,
+          "hi": 0.67,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 1.67,
+          "lo": -1.67,
+          "hi": 5.0,
+          "significant": false
+        }
+      },
+      "10M": {
+        "sft_fixes-pretrained": {
+          "diff": -1.0,
+          "lo": -6.0,
+          "hi": 4.0,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 1.67,
+          "lo": -2.67,
+          "hi": 6.0,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 6.33,
+          "lo": 0.67,
+          "hi": 12.0,
+          "significant": true
+        }
+      },
+      "50M": {
+        "sft_fixes-pretrained": {
+          "diff": 3.67,
+          "lo": -2.33,
+          "hi": 9.33,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 3.0,
+          "lo": -1.67,
+          "hi": 7.67,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": -6.67,
+          "lo": -12.0,
+          "hi": -1.33,
+          "significant": true
+        }
+      },
+      "119M": {
+        "sft_fixes-pretrained": {
+          "diff": 2.67,
+          "lo": -3.0,
+          "hi": 8.33,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": -2.67,
+          "lo": -7.33,
+          "hi": 2.0,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 3.0,
+          "lo": -1.33,
+          "hi": 7.33,
+          "significant": false
+        },
+        "grpo-e11": {
+          "diff": 12.0,
+          "lo": 7.0,
+          "hi": 17.0,
+          "significant": true
+        }
+      },
+      "358M": {
+        "sft_fixes-pretrained": {
+          "diff": -4.33,
+          "lo": -10.0,
+          "hi": 1.33,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 3.0,
+          "lo": -1.67,
+          "hi": 7.67,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 0.33,
+          "lo": -3.33,
+          "hi": 4.0,
+          "significant": false
+        },
+        "grpo-e11": {
+          "diff": 5.33,
+          "lo": 0.33,
+          "hi": 10.33,
+          "significant": true
+        }
+      },
+      "1.31B": {
+        "sft_fixes-pretrained": {
+          "diff": -3.0,
+          "lo": -8.67,
+          "hi": 2.67,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 1.67,
+          "lo": -3.0,
+          "hi": 6.33,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": -0.67,
+          "lo": -4.0,
+          "hi": 2.33,
+          "significant": false
+        }
+      }
+    },
+    "MATH-500": {
+      "1M": {
+        "sft_fixes-pretrained": {
+          "diff": 0.2,
+          "lo": -0.4,
+          "hi": 1.0,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 0.2,
+          "lo": -0.4,
+          "hi": 1.0,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 2.0,
+          "lo": 0.6,
+          "hi": 3.6,
+          "significant": true
+        }
+      },
+      "10M": {
+        "sft_fixes-pretrained": {
+          "diff": 0.4,
+          "lo": -0.8,
+          "hi": 1.6,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 1.6,
+          "lo": 0.2,
+          "hi": 3.2,
+          "significant": true
+        },
+        "grpo-rft": {
+          "diff": 0.4,
+          "lo": -1.4,
+          "hi": 2.2,
+          "significant": false
+        }
+      },
+      "50M": {
+        "sft_fixes-pretrained": {
+          "diff": 0.2,
+          "lo": -2.2,
+          "hi": 2.8,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 2.0,
+          "lo": -0.4,
+          "hi": 4.6,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": -2.2,
+          "lo": -4.6,
+          "hi": 0.2,
+          "significant": false
+        }
+      },
+      "119M": {
+        "sft_fixes-pretrained": {
+          "diff": 4.2,
+          "lo": 1.2,
+          "hi": 7.2,
+          "significant": true
+        },
+        "rft-sft_fixes": {
+          "diff": -0.8,
+          "lo": -3.4,
+          "hi": 1.8,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": -1.2,
+          "lo": -3.8,
+          "hi": 1.4,
+          "significant": false
+        },
+        "grpo-e11": {
+          "diff": 0.6,
+          "lo": -2.2,
+          "hi": 3.4,
+          "significant": false
+        }
+      },
+      "358M": {
+        "sft_fixes-pretrained": {
+          "diff": 1.8,
+          "lo": -1.8,
+          "hi": 5.4,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": -0.4,
+          "lo": -3.8,
+          "hi": 3.0,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 0.4,
+          "lo": -2.2,
+          "hi": 3.0,
+          "significant": false
+        },
+        "grpo-e11": {
+          "diff": 2.6,
+          "lo": -0.6,
+          "hi": 6.0,
+          "significant": false
+        }
+      },
+      "1.31B": {
+        "sft_fixes-pretrained": {
+          "diff": -3.0,
+          "lo": -6.6,
+          "hi": 0.6,
+          "significant": false
+        },
+        "rft-sft_fixes": {
+          "diff": 1.8,
+          "lo": -1.4,
+          "hi": 5.0,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": -1.8,
+          "lo": -4.8,
+          "hi": 1.2,
+          "significant": false
+        }
+      }
+    },
+    "ProofWriter-d5": {
+      "1M": {
+        "sft_fixes-pretrained": {
+          "diff": 45.19,
+          "lo": 42.71,
+          "hi": 47.67,
+          "significant": true
+        },
+        "rft-sft_fixes": {
+          "diff": 0.1,
+          "lo": -1.9,
+          "hi": 2.1,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 6.1,
+          "lo": 4.1,
+          "hi": 8.1,
+          "significant": true
+        }
+      },
+      "10M": {
+        "sft_fixes-pretrained": {
+          "diff": 52.86,
+          "lo": 50.62,
+          "hi": 55.0,
+          "significant": true
+        },
+        "rft-sft_fixes": {
+          "diff": 2.81,
+          "lo": 1.0,
+          "hi": 4.67,
+          "significant": true
+        },
+        "grpo-rft": {
+          "diff": -0.38,
+          "lo": -2.67,
+          "hi": 1.95,
+          "significant": false
+        }
+      },
+      "50M": {
+        "sft_fixes-pretrained": {
+          "diff": 56.9,
+          "lo": 54.76,
+          "hi": 59.0,
+          "significant": true
+        },
+        "rft-sft_fixes": {
+          "diff": 2.95,
+          "lo": 1.43,
+          "hi": 4.57,
+          "significant": true
+        },
+        "grpo-rft": {
+          "diff": 1.71,
+          "lo": -0.14,
+          "hi": 3.62,
+          "significant": false
+        }
+      },
+      "119M": {
+        "sft_fixes-pretrained": {
+          "diff": 55.9,
+          "lo": 53.62,
+          "hi": 58.14,
+          "significant": true
+        },
+        "rft-sft_fixes": {
+          "diff": 1.29,
+          "lo": -0.38,
+          "hi": 2.95,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 6.57,
+          "lo": 4.86,
+          "hi": 8.29,
+          "significant": true
+        },
+        "grpo-e11": {
+          "diff": 10.14,
+          "lo": 8.0,
+          "hi": 12.29,
+          "significant": true
+        }
+      },
+      "358M": {
+        "sft_fixes-pretrained": {
+          "diff": 62.29,
+          "lo": 60.19,
+          "hi": 64.43,
+          "significant": true
+        },
+        "rft-sft_fixes": {
+          "diff": 2.29,
+          "lo": 0.67,
+          "hi": 3.9,
+          "significant": true
+        },
+        "grpo-rft": {
+          "diff": 1.0,
+          "lo": -0.19,
+          "hi": 2.14,
+          "significant": false
+        },
+        "grpo-e11": {
+          "diff": 4.9,
+          "lo": 2.9,
+          "hi": 6.95,
+          "significant": true
+        }
+      },
+      "1.31B": {
+        "sft_fixes-pretrained": {
+          "diff": 50.52,
+          "lo": 48.29,
+          "hi": 52.81,
+          "significant": true
+        },
+        "rft-sft_fixes": {
+          "diff": 0.86,
+          "lo": -0.81,
+          "hi": 2.52,
+          "significant": false
+        },
+        "grpo-rft": {
+          "diff": 1.62,
+          "lo": 0.48,
+          "hi": 2.72,
+          "significant": true
+        }
+      }
+    }
+  }
+}

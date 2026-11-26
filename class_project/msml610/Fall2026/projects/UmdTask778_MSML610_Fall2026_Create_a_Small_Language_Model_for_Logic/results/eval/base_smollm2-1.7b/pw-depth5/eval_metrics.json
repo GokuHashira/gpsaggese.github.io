@@ -1,0 +1,23 @@
+{
+  "summary": {
+    "kind": "baseline_eval",
+    "name": "base_smollm2-1.7b",
+    "stage": "baseline",
+    "model": "models/baselines/SmolLM2-1.7B",
+    "params_total": 1711376384,
+    "few_shot": {
+      "math": 8,
+      "logic": 6
+    },
+    "decoding": "greedy"
+  },
+  "per_set": {
+    "real_pw-depth5": {
+      "n": 2100.0,
+      "exact_match": 0.22380952380952382,
+      "has_answer": 0.670952380952381,
+      "greedy_time_s": 399.9487478733063,
+      "max_prompt_tokens": 1105.0
+    }
+  }
+}

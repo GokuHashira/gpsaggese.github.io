@@ -16,6 +16,9 @@ import os
 from typing import Dict, List, Optional
 
 SIZES = {
+    "q1m": ("~1M", "128 hidden, 5 layers, 4 heads (2 KV), FFN 384", "0.5B"),
+    "q10m": ("~10M", "320 hidden, 8 layers, 5 heads (1 KV), FFN 1,040", "1B"),
+    "q50m": ("~50M", "576 hidden, 13 layers, 9 heads (3 KV), FFN 1,728", "2B"),
     "q125m": ("~119M", "768 hidden, 18 layers, 12 heads (4 KV), FFN 2,176", "5B"),
     "q0.5b": ("~358M", "896 hidden, 24 layers, 14 heads (2 KV), FFN 4,864 (Qwen2.5-0.5B shape)", "8B"),
     "q1.5b": ("~1.31B", "1,536 hidden, 28 layers, 12 heads (2 KV), FFN 8,960 (Qwen2.5-1.5B shape)", "12B"),
@@ -25,8 +28,36 @@ STAGES = {
     "sft": "pretrained, then supervised fine-tuning (SFT)",
     "sft-fixes": "pretrained, then SFT with targeted fixes (ProofWriter proofs, state-tracking arithmetic)",
     "rft": "SFT, then rejection-sampling fine-tuning (RFT)",
-    "grpo": "SFT, then GRPO reinforcement learning",
+    "grpo": ("pretrained, then SFT with targeted fixes, then rejection-sampling fine-tuning (RFT), "
+             "then GRPO reinforcement learning with exact-match rewards"),
 }
+# Size key -> label used in results/analysis/training_cost.json.
+SIZE_LABELS = {"q1m": "1M", "q10m": "10M", "q50m": "50M", "q125m": "119M", "q0.5b": "358M", "q1.5b": "1.31B"}
+# Stages of the released lineage, in training order: (key in the cost file, display name).
+LINEAGE = [("pretrain", "Pretraining"), ("sft_fixes", "SFT + fixes"), ("rft", "RFT"), ("grpo", "GRPO")]
+LINEAGE_UPTO = {"pretrain": 1, "sft-fixes": 2, "rft": 3, "grpo": 4}
+# Released model family "Logi" (for logic): size key -> (repository name, display name). The second
+# part of each name is a nickname after the Straw Hat crew of the manga One Piece (a fan reference;
+# the project is not affiliated with it).
+FAMILY = {
+    "q1m": ("logi-chopper-1M", "Logi-Chopper"),
+    "q10m": ("logi-nami-10M", "Logi-Nami"),
+    "q50m": ("logi-sanji-50M", "Logi-Sanji"),
+    "q125m": ("logi-robin-119M", "Logi-Robin"),
+    "q0.5b": ("logi-zoro-358M", "Logi-Zoro"),
+    "q1.5b": ("logi-luffy-1.3B", "Logi-Luffy"),
+}
+
+
+def family_table(user: str, current: str = "") -> str:
+    """
+    Table of the six released models with their Hub ids; the current one is marked.
+    """
+    rows = ["| Model | Parameters | Hub id |", "|---|---|---|"]
+    for size, (repo, name) in FAMILY.items():
+        mark = " (this model)" if size == current else ""
+        rows.append(f"| {name}{mark} | {SIZES[size][0]} | `{user}/{repo}` |")
+    return "\n".join(rows)
 # Eval set -> display name (in table order).
 SETS = [
     ("real_gsm8k-test", "GSM8K (1,319)"),
@@ -40,7 +71,7 @@ SETS = [
 ]
 DATA = [
     ("FineMath-4+", "HuggingFaceTB/finemath", "ODC-By 1.0"),
-    ("TinyGSM", "TinyGSM/TinyGSM", "see dataset card"),
+    ("TinyGSM", "TinyGSM/TinyGSM", "MIT"),
     ("OpenMathInstruct-2", "nvidia/OpenMathInstruct-2", "CC-BY-4.0"),
     ("MetaMathQA", "meta-math/MetaMathQA", "MIT"),
     ("Orca-Math", "microsoft/orca-math-word-problems-200k", "MIT"),
@@ -74,6 +105,89 @@ def ledger_costs(size: str, path: str = "results/runs.jsonl") -> List[dict]:
     return list(runs.values())
 
 
+def lineage_cost_table(size: str, stage: str, path: str = "results/analysis/training_cost.json") -> str:
+    """
+    Cost of the training stages that led to this checkpoint, from the scheduler's accounting.
+
+    Returns "" when the cost file or the stage is not available (the caller falls back to the ledger).
+    """
+    label = SIZE_LABELS.get(size)
+    if not os.path.exists(path) or stage not in LINEAGE_UPTO or label is None:
+        return ""
+    with open(path) as f:
+        costs = json.load(f)["models"].get(label)
+    if not costs:
+        return ""
+    rows = ["| Stage | GPU-hours (H100) | Zaratan SU |", "|---|---|---|"]
+    tot_h = tot_su = 0.0
+    for key, name in LINEAGE[: LINEAGE_UPTO[stage]]:
+        c = costs.get(key)
+        if not c:
+            return ""
+        rows.append(f"| {name} | {c['gpu_hours']:.1f} | {c['su']:,.0f} |")
+        tot_h += c["gpu_hours"]
+        tot_su += c["su"]
+    rows.append(f"| **Total** | **{tot_h:.1f}** | **{tot_su:,.0f}** |")
+    return "\n".join(rows)
+
+
+# Open baselines evaluated with our scorer: (results/eval run, display name, parameters).
+BASELINES = [
+    ("base_smollm2-135m", "SmolLM2-135M", "135M"),
+    ("base_smollm2-360m", "SmolLM2-360M", "360M"),
+    ("base_qwen2.5-0.5b", "Qwen2.5-0.5B", "0.5B"),
+    ("base_smollm2-1.7b", "SmolLM2-1.7B", "1.7B"),
+    ("base_qwen2.5-1.5b", "Qwen2.5-1.5B", "1.5B"),
+]
+# Evaluation run of each released model (the valid 1M GRPO run is the lower-learning-rate rerun).
+RELEASE_RUNS = {"q1m": "grpo2_q1m_lr2e-5", "q10m": "grpo2_q10m", "q50m": "grpo2_q50m",
+                "q125m": "grpo2_q125m", "q0.5b": "grpo2_q0.5b", "q1.5b": "grpo2_q1.5b"}
+_CMP_SETS = [("real_gsm8k-test", "GSM8K"), ("real_svamp", "SVAMP"), ("real_pw-depth5", "ProofWriter depth-5")]
+
+
+def comparison_table(current: str = "", root: str = "results/eval") -> str:
+    """
+    Greedy accuracy of the released family and of the open baselines on the three real benchmarks.
+
+    Returns "" when no baseline result is available.
+    """
+    rows = ["| Model | Parameters | " + " | ".join(n for _, n in _CMP_SETS) + " |", "|---|---|" + "---|" * len(_CMP_SETS)]
+    found = 0
+    for run, name, params in BASELINES:
+        ev = load_eval(run, root)
+        if not ev:
+            continue
+        found += 1
+        rows.append(f"| {name} | {params} | " + " | ".join(_pct((ev.get(k) or {}).get("exact_match")) for k, _ in _CMP_SETS) + " |")
+    if not found:
+        return ""
+    for size, (_, name) in FAMILY.items():
+        ev = load_eval(RELEASE_RUNS[size], root)
+        if not ev:
+            continue
+        label = f"**{name}**" + (" (this model)" if size == current else "")
+        rows.append(f"| {label} | {SIZES[size][0]} | " + " | ".join(_pct((ev.get(k) or {}).get("exact_match")) for k, _ in _CMP_SETS) + " |")
+    return "\n".join(rows)
+
+
+def seed_spread(size: str, root: str = "results/seeds") -> str:
+    """
+    One sentence with the spread of the sampled GSM8K metrics over seeds ("" if not measured).
+    """
+    path = os.path.join(root, RELEASE_RUNS.get(size, ""), "seed_metrics.json")
+    if not os.path.exists(path):
+        return ""
+    with open(path) as f:
+        d = json.load(f)
+    g = d["sets"].get("real_gsm8k-test", {}).get("over_seeds")
+    if not g:
+        return ""
+    n = d["n_samples"]
+    parts = [f"{k} {100 * g[k]['mean']:.1f} ± {100 * g[k]['std']:.1f}" for k in ("pass@1", f"majority@{n}", f"pass@{n}") if k in g]
+    return (f"Sampled metrics vary little with the random seed: on GSM8K over {len(d['seeds'])} seeds, "
+            + ", ".join(parts) + " (mean ± standard deviation).")
+
+
 def _pct(v: Optional[float]) -> str:
     return "–" if v is None else f"{100 * v:.1f}"
 
@@ -104,10 +218,40 @@ def cost_table(runs: List[dict]) -> str:
 
 
 def build_card(*, size: str, stage: str, eval_run: str, license_id: str, repo_id: str,
-               model_dir: str = "") -> str:
+               model_dir: str = "", family: bool = False) -> str:
+    """
+    :param family: use the family display name as the title and list the sibling models
+    """
     params, shape, tokens = SIZES[size]
+    title = repo_id
+    family_section = ""
+    cmp_table = comparison_table(size)
+    comparison = "" if not cmp_table else f"""
+## Comparison with open models
+
+Greedy accuracy (%), all measured with this project's scorer. The open models were given a few
+worked examples in our answer format (8 for math, 6 for logic); ours are used as trained.
+
+{cmp_table}
+
+ProofWriter favors our models: they were fine-tuned on its training split, the open models only saw
+the 6 examples.
+"""
+    spread = seed_spread(size)
+    if family:
+        title = f"{FAMILY[size][1]} ({params} parameters)"
+        user = repo_id.split("/")[0]
+        family_section = f"""
+## Model family
+
+The Logi models (for *logic*) are the same recipe at six sizes. The second part of each name is a
+nickname after the Straw Hat crew of *One Piece*, smallest to largest (a fan reference, not
+affiliated with the series):
+
+{family_table(user, size)}
+"""
     ev = load_eval(eval_run) if eval_run else {}
-    runs = ledger_costs(size)
+    costs = lineage_cost_table(size, stage) or cost_table(ledger_costs(size))
     datasets = "\n".join(f"- {hf}" for _, hf, _ in DATA)
     data_rows = "\n".join(f"| {n} | `{hf}` | {lic} |" for n, hf, lic in DATA)
     return f"""---
@@ -125,7 +269,7 @@ datasets:
 {datasets}
 ---
 
-# {repo_id}
+# {title}
 
 A **{params}-parameter** decoder-only language model for **math word problems and
 logical reasoning**, trained **from scratch** for the MSML610 (Advanced Machine
@@ -167,11 +311,15 @@ Greedy decoding; Majority@8 and Pass@8 use 8 samples at temperature 0.7.
 
 {eval_table(ev)}
 
+{spread}
+{comparison}
 ## Training cost
 
 Trained on the University of Maryland Zaratan cluster (NVIDIA H100 80GB).
 
-{cost_table(runs)}
+{costs}
+
+Training runs only (evaluations and discarded runs are not included).
 
 ## Training data
 
@@ -187,9 +335,12 @@ All training data was 13-gram decontaminated against every evaluation set.
 - Math and logic only; not a chat or general-purpose model.
 - Weak on problems longer than those seen in training (e.g. 5–8-step arithmetic),
   and on competition-level math (MATH-500).
+- Easily misled by irrelevant numbers in a word problem.
+- English logic was learned from ProofWriter: with words outside that vocabulary the
+  model may misquote the rules and answer `unknown`.
 - Answers can be confidently wrong; check the steps.
 - English only; 2,048-token context.
-
+{family_section}
 ## Authors
 
 Gokulakannan Sakthivel and Basil Varghese (University of Maryland).

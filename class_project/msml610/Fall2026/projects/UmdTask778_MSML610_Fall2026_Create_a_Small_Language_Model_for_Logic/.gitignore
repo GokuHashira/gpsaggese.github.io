@@ -23,6 +23,10 @@ __pycache__/
 # Internal project log (the team story): local only, never committed.
 references/project_log.md
 
+# Planning documents: local only (team decision 2026-11-26).
+references/project_plan_v2.md
+references/mobile_deployment_plan.md
+
 # Evaluation outputs: only the summaries (eval_metrics.json) are versioned.
 results/**/pred_*.jsonl
 results/**/gpu_trace.csv
